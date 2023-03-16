@@ -6,7 +6,3 @@ build
 
 # Ignore IntelliJ config directory
 .idea
-
-# Ignore GCP App Engine Configurations
-gcp/app-credentials.yaml
-gcp/*.jar
