@@ -1,4 +1,4 @@
-package update.dependencies.app.util;
+package app.dependency.update.app.util;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;

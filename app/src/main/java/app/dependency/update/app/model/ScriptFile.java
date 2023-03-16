@@ -1,4 +1,4 @@
-package update.dependencies.app.model;
+package app.dependency.update.app.model;
 
 import lombok.Getter;
 import lombok.ToString;

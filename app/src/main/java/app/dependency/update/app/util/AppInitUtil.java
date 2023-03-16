@@ -1,7 +1,7 @@
-package update.dependencies.app.util;
+package app.dependency.update.app.util;
 
-import static update.dependencies.app.util.Util.PARAM_REPO_HOME;
-import static update.dependencies.app.util.Util.SCRIPTS_FOLDER;
+import static app.dependency.update.app.util.Util.PARAM_REPO_HOME;
+import static app.dependency.update.app.util.Util.SCRIPTS_FOLDER;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,9 +20,9 @@ import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import update.dependencies.App;
-import update.dependencies.app.exception.UpdateDependenciesRuntimeException;
-import update.dependencies.app.model.ScriptFile;
+import app.dependency.update.App;
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.ScriptFile;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,12 +37,12 @@ public class AppInitUtil {
         String[] argArray = arg.split("=");
         map.put(argArray[0], argArray[1]);
       } catch (Exception ex) {
-        throw new UpdateDependenciesRuntimeException("Invalid Param: " + arg, ex);
+        throw new AppDependencyUpdateRuntimeException("Invalid Param: " + arg, ex);
       }
     }
 
     if (map.get(PARAM_REPO_HOME) == null) {
-      throw new UpdateDependenciesRuntimeException("repo_home parameter must be provided");
+      throw new AppDependencyUpdateRuntimeException("repo_home parameter must be provided");
     }
 
     log.info("Args Map After Conversion: {}", map);
@@ -69,11 +69,11 @@ public class AppInitUtil {
         }
       }
     } catch (URISyntaxException | IOException ex) {
-      throw new UpdateDependenciesRuntimeException("Error reading script files in resources", ex);
+      throw new AppDependencyUpdateRuntimeException("Error reading script files in resources", ex);
     }
 
     if (scriptFiles.isEmpty()) {
-      throw new UpdateDependenciesRuntimeException("Script files not found in resources");
+      throw new AppDependencyUpdateRuntimeException("Script files not found in resources");
     }
 
     log.info("Script files: {}", scriptFiles);

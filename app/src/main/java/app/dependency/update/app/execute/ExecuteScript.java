@@ -1,8 +1,4 @@
-package update.dependencies.app.execute;
-
-import static update.dependencies.app.util.Util.COMMAND_PATH;
-import static update.dependencies.app.util.Util.PARAM_REPO_HOME;
-import static update.dependencies.app.util.Util.SCRIPTS_FOLDER;
+package app.dependency.update.app.execute;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,10 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+
+import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.Util;
 import lombok.extern.slf4j.Slf4j;
-import update.dependencies.app.exception.UpdateDependenciesIOException;
-import update.dependencies.app.exception.UpdateDependenciesRuntimeException;
-import update.dependencies.app.model.ScriptFile;
+import app.dependency.update.app.exception.AppDependencyUpdateIOException;
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 
 @Slf4j
 public class ExecuteScript implements Runnable {
@@ -32,8 +30,8 @@ public class ExecuteScript implements Runnable {
     this.threadName = threadName;
     this.argsMap = argsMap;
     this.scriptFile = scriptFile;
-    this.commandPath = COMMAND_PATH;
-    this.scriptsFolder = SCRIPTS_FOLDER;
+    this.commandPath = Util.COMMAND_PATH;
+    this.scriptsFolder = Util.SCRIPTS_FOLDER;
     this.tmpdir = System.getProperty("java.io.tmpdir");
     this.scriptPath =
         this.tmpdir + "/" + this.scriptsFolder + "/" + this.scriptFile.getScriptFileName();
@@ -50,7 +48,7 @@ public class ExecuteScript implements Runnable {
     try {
       quietCleanup();
       createTempScriptFile();
-      startProcess(this.commandPath, "chmod -x " + this.scriptPath, null);
+      startProcess(this.commandPath, "chmod +x " + this.scriptPath, null);
       try (InputStream inputStream = startProcess(this.commandPath, null, this.scriptPath)) {
         displayStreamOutput(inputStream);
       }
@@ -63,12 +61,12 @@ public class ExecuteScript implements Runnable {
   }
 
   private InputStream startProcess(String commandPath, String script, String scriptPath)
-      throws UpdateDependenciesIOException, UpdateDependenciesRuntimeException {
+      throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
     log.info("Starting process: {} | {} | {}", commandPath, script, scriptPath);
     try {
       Process process;
       if (script == null) {
-        String repoHome = this.argsMap.get(PARAM_REPO_HOME);
+        String repoHome = this.argsMap.get(Util.PARAM_REPO_HOME);
         process = new ProcessBuilder(commandPath, scriptPath, repoHome).start();
       } else {
         process = new ProcessBuilder(commandPath, script).start();
@@ -79,14 +77,14 @@ public class ExecuteScript implements Runnable {
       return process.getInputStream();
     } catch (IOException | InterruptedException ex) {
       if (ex instanceof IOException) {
-        throw new UpdateDependenciesIOException("Error in Start Process", ex.getCause());
+        throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
       } else {
-        throw new UpdateDependenciesRuntimeException("Error in Start Process", ex.getCause());
+        throw new AppDependencyUpdateRuntimeException("Error in Start Process", ex.getCause());
       }
     }
   }
 
-  private void createTempScriptFile() throws UpdateDependenciesIOException {
+  private void createTempScriptFile() throws AppDependencyUpdateIOException {
     try {
       log.info("Creating temp script file...");
       Path scriptsFolderPath = Path.of(this.tmpdir + "/" + this.scriptsFolder);
@@ -108,7 +106,7 @@ public class ExecuteScript implements Runnable {
       Path pathFile = Files.write(tempFile, inputStream.readAllBytes(), StandardOpenOption.WRITE);
       log.info("Written to file: {}", pathFile);
     } catch (IOException ex) {
-      throw new UpdateDependenciesIOException("Error in Create Temp Script File", ex.getCause());
+      throw new AppDependencyUpdateIOException("Error in Create Temp Script File", ex.getCause());
     }
   }
 
@@ -126,7 +124,7 @@ public class ExecuteScript implements Runnable {
   }
 
   private void displayStreamOutput(final InputStream stdoutInputStream)
-      throws UpdateDependenciesIOException {
+      throws AppDependencyUpdateIOException {
     log.info("Display stream output...");
     String line;
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(stdoutInputStream))) {
@@ -134,7 +132,7 @@ public class ExecuteScript implements Runnable {
         log.info(line);
       }
     } catch (IOException ex) {
-      throw new UpdateDependenciesIOException("Error in Display Stream Output", ex.getCause());
+      throw new AppDependencyUpdateIOException("Error in Display Stream Output", ex.getCause());
     }
   }
 

@@ -1,6 +1,6 @@
-package update.dependencies.app.util;
+package app.dependency.update.app.util;
 
-import static update.dependencies.app.util.Util.getGson;
+import static app.dependency.update.app.util.Util.getGson;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,7 +12,7 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import update.dependencies.app.exception.UpdateDependenciesRuntimeException;
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -90,6 +90,6 @@ public class ConnectorUtil {
       log.error("Error in HttpClient Send: [ {} ] | [ {} ] ", endpoint, httpMethod, ex);
     }
 
-    throw new UpdateDependenciesRuntimeException("Send Http Request Error");
+    throw new AppDependencyUpdateRuntimeException("Send Http Request Error");
   }
 }

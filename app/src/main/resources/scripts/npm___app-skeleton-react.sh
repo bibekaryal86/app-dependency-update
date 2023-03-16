@@ -6,7 +6,6 @@ script_file_name=$(basename $BASH_SOURCE)
 repo_name=${script_file_name%.*}
 echo Repo Home from Input Parameter -- $1
 repo_loc=$1$repo_name
-echo Repo Location -- $repo_loc
 
 # Give access to current user
 current_user=$(whoami)
@@ -15,6 +14,7 @@ cd $repo_loc
 
 echo Current User -- $current_user
 echo Current Location -- $PWD
+echo Repo Location -- $repo_loc
 
 # Create new branch for updates
 echo Creating new branch

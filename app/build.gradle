@@ -37,15 +37,15 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'update.dependencies.App'
+    mainClass = 'app.dependency.update.App'
 }
 
 jar {
-    archiveFileName = 'update-dependencies.jar'
+    archiveFileName = 'app-dependency-update.jar'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes "Main-Class": "update.dependencies.App"
+        attributes "Main-Class": "app.dependency.update.App"
     }
 
     from {
