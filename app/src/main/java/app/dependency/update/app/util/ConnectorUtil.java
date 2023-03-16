@@ -2,6 +2,7 @@ package app.dependency.update.app.util;
 
 import static app.dependency.update.app.util.Util.getGson;
 
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,7 +13,6 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

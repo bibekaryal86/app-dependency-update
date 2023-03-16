@@ -22,6 +22,7 @@ public class Util {
   // constants
   public static final String COMMAND_PATH = "/bin/bash";
   public static final String SCRIPTS_FOLDER = "scripts";
+  public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String PARAM_REPO_HOME = "repo_home";
 
   public static String getSystemEnvProperty(String keyName) {

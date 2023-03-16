@@ -3,13 +3,12 @@
  */
 package app.dependency.update;
 
-import java.util.List;
-import java.util.Map;
-
-import app.dependency.update.app.util.AppInitUtil;
-import lombok.extern.slf4j.Slf4j;
 import app.dependency.update.app.execute.ExecuteScript;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.AppInitUtil;
+import java.util.List;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class App {

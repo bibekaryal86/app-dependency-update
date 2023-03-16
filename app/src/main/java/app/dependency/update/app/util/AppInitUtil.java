@@ -3,6 +3,9 @@ package app.dependency.update.app.util;
 import static app.dependency.update.app.util.Util.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.Util.SCRIPTS_FOLDER;
 
+import app.dependency.update.App;
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.ScriptFile;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,9 +23,6 @@ import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import app.dependency.update.App;
-import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.ScriptFile;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
