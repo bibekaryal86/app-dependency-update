@@ -2,6 +2,7 @@
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo
+current_loc=$PWD
 script_file_name=$(basename $BASH_SOURCE)
 repo_name=${script_file_name%.*}
 echo Repo Home from Input Parameter -- $1
@@ -13,7 +14,7 @@ chown -R $current_user $repo_loc
 cd $repo_loc
 
 echo Current User -- $current_user
-echo Current Location -- $PWD
+echo Current Location -- $current_loc
 echo Repo Location -- $repo_loc
 
 # Create new branch for updates
