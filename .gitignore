@@ -1,0 +1,12 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Ignore IntelliJ config directory
+.idea
+
+# Ignore GCP App Engine Configurations
+gcp/app-credentials.yaml
+gcp/*.jar
