@@ -3,7 +3,7 @@
  */
 package app.dependency.update;
 
-import app.dependency.update.app.execute.ExecuteScript;
+import app.dependency.update.app.execute.ExecuteScriptFile;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.AppInitUtil;
 import java.util.List;
@@ -26,9 +26,9 @@ public class App {
   private static void executeNpmScripts(Map<String, String> argsMap, List<ScriptFile> scriptFiles) {
     scriptFiles.forEach(
         scriptFile -> {
-          ExecuteScript executeScript =
-              new ExecuteScript(scriptFile.getScriptFileName(), argsMap, scriptFile);
-          Thread esThread = executeScript.start();
+          ExecuteScriptFile executeScriptFile =
+              new ExecuteScriptFile(scriptFile.getScriptFileName(), argsMap, scriptFile);
+          Thread esThread = executeScriptFile.start();
           while (esThread.isAlive()) {
             threadSleep();
           }

@@ -17,7 +17,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ExecuteScript implements Runnable {
+public class ExecuteScriptFile implements Runnable {
   private final String threadName;
   private final String commandPath;
   private final String scriptsFolder;
@@ -27,7 +27,7 @@ public class ExecuteScript implements Runnable {
   private final ScriptFile scriptFile;
   private Thread thread;
 
-  public ExecuteScript(String threadName, Map<String, String> argsMap, ScriptFile scriptFile) {
+  public ExecuteScriptFile(String threadName, Map<String, String> argsMap, ScriptFile scriptFile) {
     this.threadName = threadName;
     this.argsMap = argsMap;
     this.scriptFile = scriptFile;
