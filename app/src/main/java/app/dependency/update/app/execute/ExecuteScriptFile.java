@@ -1,8 +1,5 @@
 package app.dependency.update.app.execute;
 
-import static app.dependency.update.app.util.Util.CHMOD_COMMAND;
-import static app.dependency.update.app.util.Util.JAVA_SYSTEM_TMPDIR;
-
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
@@ -34,7 +31,7 @@ public class ExecuteScriptFile implements Runnable {
     this.scriptFile = scriptFile;
     this.commandPath = Util.COMMAND_PATH;
     this.scriptsFolder = Util.SCRIPTS_FOLDER;
-    this.tmpdir = JAVA_SYSTEM_TMPDIR;
+    this.tmpdir = Util.JAVA_SYSTEM_TMPDIR;
     this.scriptPath =
         this.tmpdir + "/" + this.scriptsFolder + "/" + this.scriptFile.getScriptFileName();
   }
@@ -51,9 +48,9 @@ public class ExecuteScriptFile implements Runnable {
       quietCleanup();
       createTempScriptFile();
 
-      Process processChmod = startProcess(this.commandPath, CHMOD_COMMAND + this.scriptPath, null);
+      Process processChmod = startProcess(this.commandPath, Util.CHMOD_COMMAND + this.scriptPath, null);
       try (InputStream errorStream = processChmod.getErrorStream()) {
-        displayStreamOutput(CHMOD_COMMAND, errorStream, true);
+        displayStreamOutput(Util.CHMOD_COMMAND, errorStream, true);
       }
 
       Process processExecuteScript = startProcess(this.commandPath, null, this.scriptPath);
