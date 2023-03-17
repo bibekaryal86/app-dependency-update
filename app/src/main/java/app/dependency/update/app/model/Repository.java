@@ -7,11 +7,11 @@ import lombok.ToString;
 @Getter
 @ToString
 public class Repository {
-    private final Path repoPath;
-    private final String type;
+  private final Path repoPath;
+  private final String type;
 
-    public Repository(Path repoPath, String type) {
-        this.repoPath = repoPath;
-        this.type = type;
-    }
+  public Repository(Path repoPath, String type) {
+    this.repoPath = repoPath;
+    this.type = type;
+  }
 }

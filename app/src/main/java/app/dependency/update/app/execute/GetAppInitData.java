@@ -1,16 +1,14 @@
-package app.dependency.update.app.util;
+package app.dependency.update.app.execute;
 
 import static app.dependency.update.app.util.Util.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.Util.SCRIPTS_DIRECTORY;
 
 import app.dependency.update.App;
-import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -24,15 +22,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AppInitUtil {
+public class GetAppInitData {
+  private final String[] args;
 
-  public static Map<String, String> makeArgsMap(String[] args) {
+  public GetAppInitData(String[] args) {
+    this.args = args;
+  }
+
+  public AppInitData getAppInitData() {
+    log.info("Get App Init Data...");
+    // get the input arguments
+    Map<String, String> argsMap = makeArgsMap(this.args);
+    // get the scripts included in resources folder
+    List<ScriptFile> scriptFiles = getScriptsInResources();
+    // get the list of repositories and their type
+    List<Repository> repositories = getRepositoryLocations(argsMap);
+
+    return AppInitData.builder()
+        .argsMap(argsMap)
+        .scriptFiles(scriptFiles)
+        .repositories(repositories)
+        .build();
+  }
+
+  private Map<String, String> makeArgsMap(String[] args) {
     log.info("Args Before Conversion: {}", Arrays.asList(args));
     Map<String, String> map = new HashMap<>();
 
@@ -53,7 +69,8 @@ public class AppInitUtil {
     return map;
   }
 
-  public static List<ScriptFile> getScriptsInResources() {
+  private List<ScriptFile> getScriptsInResources() {
+    log.info("Get Scripts in Resources...");
     List<ScriptFile> scriptFiles;
 
     try {
@@ -72,7 +89,7 @@ public class AppInitUtil {
                   .collect(Collectors.toList());
         }
       }
-    } catch (URISyntaxException | IOException ex) {
+    } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException("Error reading script files in resources", ex);
     }
 
@@ -84,15 +101,19 @@ public class AppInitUtil {
     return scriptFiles;
   }
 
-  public static List<Repository> getRepositoryLocations(Map<String, String> argsMap)
-      throws IOException {
+  private List<Repository> getRepositoryLocations(Map<String, String> argsMap) {
+    log.info("Get Repository Locations...");
     List<Path> repoPaths;
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 1)) {
       repoPaths = pathStream.filter(Files::isDirectory).collect(Collectors.toList());
+    } catch (Exception ex) {
+      throw new AppDependencyUpdateRuntimeException(
+          "Repositories not found in the repo path provided!", ex);
     }
 
     if (repoPaths.isEmpty()) {
-      throw new AppDependencyUpdateIOException("Repositories not found in the repo path provided!");
+      throw new AppDependencyUpdateRuntimeException(
+          "Repositories not found in the repo path provided!");
     }
 
     List<Repository> repositories = new ArrayList<>();
@@ -103,6 +124,9 @@ public class AppInitUtil {
                 .filter(stream -> "package.json".equals(stream.getFileName().toString()))
                 .map(mapper -> new Repository(path, "npm"))
                 .toList());
+      } catch (Exception ex) {
+        throw new AppDependencyUpdateRuntimeException(
+            "NPM Files not found in the repo path provided!", ex);
       }
       try (Stream<Path> pathStream = Files.list(path)) {
         repositories.addAll(
@@ -110,6 +134,9 @@ public class AppInitUtil {
                 .filter(stream -> "settings.gradle".equals(stream.getFileName().toString()))
                 .map(mapper -> new Repository(path, "gradle"))
                 .toList());
+      } catch (Exception ex) {
+        throw new AppDependencyUpdateRuntimeException(
+            "Gradle Repositories not found in the repo path provided!", ex);
       }
     }
 

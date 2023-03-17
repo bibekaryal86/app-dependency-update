@@ -3,28 +3,35 @@
  */
 package app.dependency.update;
 
+import app.dependency.update.app.execute.CreateTempScriptFiles;
+import app.dependency.update.app.execute.DeleteTempScriptFiles;
 import app.dependency.update.app.execute.ExecuteScriptFile;
-import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.execute.GetAppInitData;
+import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.AppInitUtil;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class App {
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     log.info("Begin app-dependency-update initialization...");
 
-    // get the input arguments
-    Map<String, String> argsMap = AppInitUtil.makeArgsMap(args);
-    // get the scripts included in resources folder
-    List<ScriptFile> scriptFiles = AppInitUtil.getScriptsInResources();
-    // get the list of repositories and their type
-    List<Repository> repositoryList = AppInitUtil.getRepositoryLocations(argsMap);
-    // save script
+    // delete temp folders if exist at the beginning
+    new DeleteTempScriptFiles();
 
+    // get initial app data
+    GetAppInitData getAppInitData = new GetAppInitData(args);
+    final AppInitData appInitData = getAppInitData.getAppInitData();
+
+    // create temp script files
+    CreateTempScriptFiles createTempScriptFiles =
+        new CreateTempScriptFiles(appInitData.getScriptFiles());
+    createTempScriptFiles.createTempScriptFiles();
+
+    // delete temp folders if exist in the end
+    new DeleteTempScriptFiles();
     log.info("End app-dependency-update initialization...");
   }
 

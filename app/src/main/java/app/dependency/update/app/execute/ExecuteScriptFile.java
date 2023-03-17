@@ -48,7 +48,8 @@ public class ExecuteScriptFile implements Runnable {
       quietCleanup();
       createTempScriptFile();
 
-      Process processChmod = startProcess(this.commandPath, Util.CHMOD_COMMAND + this.scriptPath, null);
+      Process processChmod =
+          startProcess(this.commandPath, Util.CHMOD_COMMAND + this.scriptPath, null);
       try (InputStream errorStream = processChmod.getErrorStream()) {
         displayStreamOutput(Util.CHMOD_COMMAND, errorStream, true);
       }
