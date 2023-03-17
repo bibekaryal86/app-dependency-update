@@ -1,7 +1,7 @@
 package app.dependency.update.app.util;
 
 import static app.dependency.update.app.util.Util.PARAM_REPO_HOME;
-import static app.dependency.update.app.util.Util.SCRIPTS_FOLDER;
+import static app.dependency.update.app.util.Util.SCRIPTS_DIRECTORY;
 
 import app.dependency.update.App;
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
@@ -64,7 +64,7 @@ public class AppInitUtil {
       // file walks JAR
       URI uri = URI.create("jar:file:" + jarPath);
       try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-        try (Stream<Path> streamPath = Files.walk(fs.getPath(SCRIPTS_FOLDER), 1)) {
+        try (Stream<Path> streamPath = Files.walk(fs.getPath(SCRIPTS_DIRECTORY), 1)) {
           scriptFiles =
               streamPath
                   .filter(Files::isRegularFile)

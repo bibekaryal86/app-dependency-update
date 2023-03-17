@@ -23,6 +23,7 @@ public class App {
     List<ScriptFile> scriptFiles = AppInitUtil.getScriptsInResources();
     // get the list of repositories and their type
     List<Repository> repositoryList = AppInitUtil.getRepositoryLocations(argsMap);
+    // save script
 
     log.info("End app-dependency-update initialization...");
   }

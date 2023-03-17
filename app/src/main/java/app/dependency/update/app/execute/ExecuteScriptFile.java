@@ -30,7 +30,7 @@ public class ExecuteScriptFile implements Runnable {
     this.argsMap = argsMap;
     this.scriptFile = scriptFile;
     this.commandPath = Util.COMMAND_PATH;
-    this.scriptsFolder = Util.SCRIPTS_FOLDER;
+    this.scriptsFolder = Util.SCRIPTS_DIRECTORY;
     this.tmpdir = Util.JAVA_SYSTEM_TMPDIR;
     this.scriptPath =
         this.tmpdir + "/" + this.scriptsFolder + "/" + this.scriptFile.getScriptFileName();
