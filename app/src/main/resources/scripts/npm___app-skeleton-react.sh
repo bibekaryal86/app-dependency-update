@@ -17,6 +17,11 @@ echo Current User -- $current_user
 echo Current Location -- $current_loc
 echo Repo Location -- $repo_loc
 
+if [ $current_loc != $repo_loc ]; then
+    echo Current Location and Repo Location are different
+    exit 1
+fi
+
 # Create new branch for updates
 echo Creating new branch
 branch_name="update_dependencies_"$(date +%F)
