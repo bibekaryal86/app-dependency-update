@@ -1,7 +1,8 @@
-package nospring.service.skeleton.app.util;
+package app.dependency.update.app.util;
 
-import static nospring.service.skeleton.app.util.Util.getGson;
+import static app.dependency.update.app.util.Util.getGson;
 
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,8 +13,6 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nospring.service.skeleton.app.exception.CustomRuntimeException;
-import org.eclipse.jetty.http.HttpMethod;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -32,7 +31,7 @@ public class ConnectorUtil {
   }
 
   private static HttpRequest getHttpRequestBuilder(
-      String endpoint, HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
+      String endpoint, Util.HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
     HttpRequest.Builder httpRequestBuilder =
         HttpRequest.newBuilder().uri(getUri(endpoint)).header("Content-Type", "application/json");
 
@@ -42,13 +41,13 @@ public class ConnectorUtil {
       }
     }
 
-    if (httpMethod == HttpMethod.POST) {
+    if (httpMethod == Util.HttpMethod.POST) {
       httpRequestBuilder = httpRequestBuilder.POST(getPOST(bodyObject));
-    } else if (httpMethod == HttpMethod.PUT) {
+    } else if (httpMethod == Util.HttpMethod.PUT) {
       httpRequestBuilder = httpRequestBuilder.PUT(getPOST(bodyObject));
-    } else if (httpMethod == HttpMethod.DELETE) {
+    } else if (httpMethod == Util.HttpMethod.DELETE) {
       httpRequestBuilder = httpRequestBuilder.DELETE();
-    } else if (httpMethod == HttpMethod.GET) {
+    } else if (httpMethod == Util.HttpMethod.GET) {
       httpRequestBuilder = httpRequestBuilder.GET();
     }
 
@@ -62,7 +61,7 @@ public class ConnectorUtil {
 
   public static Object sendHttpRequest(
       String endpoint,
-      HttpMethod httpMethod,
+      Util.HttpMethod httpMethod,
       Object bodyObject,
       Map<String, String> headers,
       Class<?> clazz) {
@@ -91,6 +90,6 @@ public class ConnectorUtil {
       log.error("Error in HttpClient Send: [ {} ] | [ {} ] ", endpoint, httpMethod, ex);
     }
 
-    throw new CustomRuntimeException("HTTP ERROR");
+    throw new AppDependencyUpdateRuntimeException("Send Http Request Error");
   }
 }

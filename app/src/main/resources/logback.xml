@@ -2,7 +2,7 @@
 
 <configuration debug="true">
     <property name="LOG_PATTERN"
-              value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ, America/Denver}] [nospring-service-skeleton] [%thread] [%level] [%c{1}] --- %msg%n"/>
+              value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}] [%thread] [%level] --- %msg%n"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
