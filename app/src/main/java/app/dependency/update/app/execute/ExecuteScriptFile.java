@@ -53,15 +53,15 @@ public class ExecuteScriptFile implements Runnable {
 
       Process processChmod = startProcess(this.commandPath, CHMOD_COMMAND + this.scriptPath, null);
       try (InputStream errorStream = processChmod.getErrorStream()) {
-          displayStreamOutput(CHMOD_COMMAND, errorStream, true);
+        displayStreamOutput(CHMOD_COMMAND, errorStream, true);
       }
 
       Process processExecuteScript = startProcess(this.commandPath, null, this.scriptPath);
       try (InputStream errorStream = processExecuteScript.getErrorStream()) {
-          displayStreamOutput(this.scriptPath, errorStream, true);
+        displayStreamOutput(this.scriptPath, errorStream, true);
       }
       try (InputStream inputStream = processExecuteScript.getInputStream()) {
-          displayStreamOutput(this.scriptPath, inputStream, false);
+        displayStreamOutput(this.scriptPath, inputStream, false);
       }
 
       quietCleanup();

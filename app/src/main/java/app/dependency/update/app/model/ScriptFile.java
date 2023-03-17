@@ -7,10 +7,13 @@ import lombok.ToString;
 @ToString
 public class ScriptFile {
   private final String scriptFileName;
-  private final boolean isNpm;
+  private final String type;
+  private final int step;
 
   public ScriptFile(String scriptFileName) {
     this.scriptFileName = scriptFileName;
-    this.isNpm = scriptFileName.startsWith("npm__");
+    String[] sfnArray = scriptFileName.split("__");
+    this.type = sfnArray[0];
+    this.step = Integer.parseInt(sfnArray[1]);
   }
 }

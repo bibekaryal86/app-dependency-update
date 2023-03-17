@@ -4,7 +4,9 @@ import static app.dependency.update.app.util.Util.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.Util.SCRIPTS_FOLDER;
 
 import app.dependency.update.App;
+import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +15,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,5 +82,38 @@ public class AppInitUtil {
 
     log.info("Script files: {}", scriptFiles);
     return scriptFiles;
+  }
+
+  public static List<Repository> getRepositoryLocations(Map<String, String> argsMap)
+      throws IOException {
+    List<Path> repoPaths;
+    try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 1)) {
+      repoPaths = pathStream.filter(Files::isDirectory).collect(Collectors.toList());
+    }
+
+    if (repoPaths.isEmpty()) {
+      throw new AppDependencyUpdateIOException("Repositories not found in the repo path provided!");
+    }
+
+    List<Repository> repositories = new ArrayList<>();
+    for (Path path : repoPaths) {
+      try (Stream<Path> pathStream = Files.list(path)) {
+        repositories.addAll(
+            pathStream
+                .filter(stream -> "package.json".equals(stream.getFileName().toString()))
+                .map(mapper -> new Repository(path, "npm"))
+                .toList());
+      }
+      try (Stream<Path> pathStream = Files.list(path)) {
+        repositories.addAll(
+            pathStream
+                .filter(stream -> "settings.gradle".equals(stream.getFileName().toString()))
+                .map(mapper -> new Repository(path, "gradle"))
+                .toList());
+      }
+    }
+
+    log.info("Repository list: {}", repositories);
+    return repositories;
   }
 }

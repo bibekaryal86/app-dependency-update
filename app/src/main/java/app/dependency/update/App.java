@@ -4,26 +4,30 @@
 package app.dependency.update;
 
 import app.dependency.update.app.execute.ExecuteScriptFile;
+import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.AppInitUtil;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class App {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     log.info("Begin app-dependency-update initialization...");
 
+    // get the input arguments
     Map<String, String> argsMap = AppInitUtil.makeArgsMap(args);
+    // get the scripts included in resources folder
     List<ScriptFile> scriptFiles = AppInitUtil.getScriptsInResources();
-
-    executeNpmScripts(argsMap, scriptFiles);
+    // get the list of repositories and their type
+    List<Repository> repositoryList = AppInitUtil.getRepositoryLocations(argsMap);
 
     log.info("End app-dependency-update initialization...");
   }
 
-  private static void executeNpmScripts(Map<String, String> argsMap, List<ScriptFile> scriptFiles) {
+  private static void executeScripts(Map<String, String> argsMap, List<ScriptFile> scriptFiles) {
     scriptFiles.forEach(
         scriptFile -> {
           ExecuteScriptFile executeScriptFile =
