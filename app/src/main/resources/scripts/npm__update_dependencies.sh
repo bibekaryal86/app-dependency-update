@@ -3,10 +3,9 @@
 
 # Location of the repo
 current_loc=$PWD
-script_file_name=$(basename $BASH_SOURCE)
-repo_name=${script_file_name%.*}
+repo_loc="$1/$2"
 echo Repo Home from Input Parameter -- $1
-repo_loc=$1$repo_name
+echo Repo Name from Input Parameter -- $2
 
 # Give access to current user
 current_user=$(whoami)
@@ -36,7 +35,7 @@ echo Committing and pushing
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
-	git commit -am 'Updated Dependencies'
+	git commit -am 'App Dependencies Updated'
 	git push origin -u $branch_name
 	create_pr="yes"
 fi
@@ -44,7 +43,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo Creating PR
-	gh pr create -a "@me" -B "main" -H $branch_name -t "Update Dependencies" --fill
+	gh pr create -a "@me" -B "main" -H $branch_name -t "App Dependencies Updated" --fill
 fi
 
 # Cleanup

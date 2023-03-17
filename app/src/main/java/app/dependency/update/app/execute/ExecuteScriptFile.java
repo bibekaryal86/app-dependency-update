@@ -1,6 +1,7 @@
 package app.dependency.update.app.execute;
 
 import static app.dependency.update.app.util.Util.CHMOD_COMMAND;
+import static app.dependency.update.app.util.Util.JAVA_SYSTEM_TMPDIR;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -33,7 +34,7 @@ public class ExecuteScriptFile implements Runnable {
     this.scriptFile = scriptFile;
     this.commandPath = Util.COMMAND_PATH;
     this.scriptsFolder = Util.SCRIPTS_FOLDER;
-    this.tmpdir = System.getProperty("java.io.tmpdir");
+    this.tmpdir = JAVA_SYSTEM_TMPDIR;
     this.scriptPath =
         this.tmpdir + "/" + this.scriptsFolder + "/" + this.scriptFile.getScriptFileName();
   }
@@ -113,7 +114,7 @@ public class ExecuteScriptFile implements Runnable {
           getClass()
               .getClassLoader()
               .getResourceAsStream(
-                  this.scriptsFolder + "/" + this.scriptFile.getOriginalFileName())) {
+                  this.scriptsFolder + "/" + this.scriptFile.getScriptFileName())) {
         assert inputStream != null;
         Path pathFile = Files.write(tempFile, inputStream.readAllBytes(), StandardOpenOption.WRITE);
         log.info("Written to file: {}", pathFile);

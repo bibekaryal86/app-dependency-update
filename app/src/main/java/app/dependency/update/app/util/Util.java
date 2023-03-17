@@ -24,6 +24,7 @@ public class Util {
   public static final String SCRIPTS_FOLDER = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String PARAM_REPO_HOME = "repo_home";
+  public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");
 
   public static String getSystemEnvProperty(String keyName) {
     return (System.getProperty(keyName) != null)
