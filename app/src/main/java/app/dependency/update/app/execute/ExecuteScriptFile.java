@@ -101,7 +101,7 @@ public class ExecuteScriptFile implements Runnable {
       } else {
         log.info("Display stream output: {}\n{}", script, stringBuilder);
       }
-      } catch (IOException ex) {
+    } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());
     }
