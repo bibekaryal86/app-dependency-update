@@ -89,16 +89,19 @@ public class ExecuteScriptFile implements Runnable {
       String script, final InputStream inputStream, boolean isErrorStream)
       throws AppDependencyUpdateIOException {
     log.info("Display stream output: {}", script);
+    StringBuilder stringBuilder = new StringBuilder();
     String line;
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
       while ((line = reader.readLine()) != null) {
-        if (isErrorStream) {
-          log.error(line);
-        } else {
-          log.info(line);
-        }
+        stringBuilder.append(line).append("\n");
       }
-    } catch (IOException ex) {
+
+      if (isErrorStream) {
+        log.error("Display stream output: {}\n{}", script, stringBuilder);
+      } else {
+        log.info("Display stream output: {}\n{}", script, stringBuilder);
+      }
+      } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());
     }

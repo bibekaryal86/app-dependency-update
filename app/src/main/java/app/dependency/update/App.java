@@ -23,8 +23,7 @@ public class App {
     new CreateTempScriptFiles(appInitData.getScriptFiles()).createTempScriptFiles();
     // update dependencies
     new UpdateDependencies(appInitData).updateDependencies();
-    // delete temp folders if exist in the end
-    new DeleteTempScriptFiles();
+
     log.info("End app-dependency-update initialization...");
   }
 }

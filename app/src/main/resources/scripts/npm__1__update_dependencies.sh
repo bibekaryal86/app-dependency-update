@@ -2,6 +2,7 @@
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo
+echo Process Id--$$
 repo_loc="$1/$2"
 echo Repo Home from Input Parameter--$1
 echo Repo Name from Input Parameter--$2
@@ -42,7 +43,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo Creating PR
-	gh pr create -a "@me" -B "main" -H $branch_name -t "App Dependencies Updated" --fill
+	gh pr create -a "@me" -B "main" -H $branch_name -t "App Dependencies Updated" -b "App Dependencies Updated"
 fi
 
 # Cleanup

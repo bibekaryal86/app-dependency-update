@@ -37,8 +37,5 @@ public class UpdateDependenciesNpm {
     ExecuteScriptFile executeScriptFile =
         new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments);
     Thread thread = executeScriptFile.start();
-    while (thread.isAlive()) {
-      Util.threadSleep();
-    }
   }
 }
