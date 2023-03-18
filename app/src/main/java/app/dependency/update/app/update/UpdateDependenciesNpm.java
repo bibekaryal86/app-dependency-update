@@ -34,8 +34,6 @@ public class UpdateDependenciesNpm {
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(Util.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
-    ExecuteScriptFile executeScriptFile =
-        new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments);
-    Thread thread = executeScriptFile.start();
+    new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
   }
 }
