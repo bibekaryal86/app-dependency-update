@@ -38,8 +38,6 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private void executeScript() {
-    log.info("Begin execute script: {} | {}", threadName, scriptFile);
-
     try {
       Process processChmod = startProcess(Util.CHMOD_COMMAND + this.scriptPath);
       try (InputStream errorStream = processChmod.getErrorStream()) {
@@ -62,17 +60,18 @@ public class ExecuteScriptFile implements Runnable {
 
   private Process startProcess(String script)
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
-    log.info("Starting process: {} | {}", script, this.scriptPath);
+    log.info("Starting process: {}", script == null ? this.scriptPath : script);
     try {
       Process process;
       if (script == null) {
+
         process = new ProcessBuilder(this.commandPath, scriptPath, arguments).start();
       } else {
         process = new ProcessBuilder(this.commandPath, script).start();
       }
-      log.info("Wait for process: {} | {}", script, this.scriptPath);
+      log.info("Waiting process: {}", script == null ? this.scriptPath : script);
       process.waitFor();
-      log.info("Finished process: {} | {}", script, this.scriptPath);
+      log.info("Finished process: {}", script == null ? this.scriptPath : script);
       return process;
     } catch (IOException | InterruptedException ex) {
       if (ex instanceof IOException) {
