@@ -54,8 +54,6 @@ public class ExecuteScriptFile implements Runnable {
     } catch (Exception e) {
       log.error("Error in Execute Script: ", e);
     }
-
-    log.info("End execute script...");
   }
 
   private Process startProcess(String script)
@@ -107,11 +105,10 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  public Thread start() {
+  public void start() {
     if (thread == null) {
       thread = new Thread(this, threadName);
       thread.start();
     }
-    return thread;
   }
 }
