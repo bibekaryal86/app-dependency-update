@@ -5,12 +5,8 @@ package app.dependency.update;
 
 import app.dependency.update.app.execute.CreateTempScriptFiles;
 import app.dependency.update.app.execute.DeleteTempScriptFiles;
-import app.dependency.update.app.execute.ExecuteScriptFile;
 import app.dependency.update.app.execute.GetAppInitData;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.ScriptFile;
-import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,39 +16,13 @@ public class App {
 
     // delete temp folders if exist at the beginning
     new DeleteTempScriptFiles();
-
     // get initial app data
-    GetAppInitData getAppInitData = new GetAppInitData(args);
-    final AppInitData appInitData = getAppInitData.getAppInitData();
-
+    final AppInitData appInitData = new GetAppInitData(args).getAppInitData();
     // create temp script files
-    CreateTempScriptFiles createTempScriptFiles =
-        new CreateTempScriptFiles(appInitData.getScriptFiles());
-    createTempScriptFiles.createTempScriptFiles();
+    new CreateTempScriptFiles(appInitData.getScriptFiles()).createTempScriptFiles();
 
     // delete temp folders if exist in the end
     new DeleteTempScriptFiles();
     log.info("End app-dependency-update initialization...");
-  }
-
-  private static void executeScripts(Map<String, String> argsMap, List<ScriptFile> scriptFiles) {
-    scriptFiles.forEach(
-        scriptFile -> {
-          ExecuteScriptFile executeScriptFile =
-              new ExecuteScriptFile(scriptFile.getScriptFileName(), argsMap, scriptFile);
-          Thread esThread = executeScriptFile.start();
-          while (esThread.isAlive()) {
-            threadSleep();
-          }
-        });
-  }
-
-  private static void threadSleep() {
-    try {
-      Thread.sleep(1000);
-      log.info(".");
-    } catch (InterruptedException ex) {
-      log.error("Error in thread sleep", ex);
-    }
   }
 }

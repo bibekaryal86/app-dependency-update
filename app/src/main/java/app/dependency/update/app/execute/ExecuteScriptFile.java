@@ -8,32 +8,28 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ExecuteScriptFile implements Runnable {
   private final String threadName;
   private final String commandPath;
-  private final String scriptsFolder;
-  private final String tmpdir;
   private final String scriptPath;
-  private final Map<String, String> argsMap;
+  private final String arguments;
   private final ScriptFile scriptFile;
   private Thread thread;
 
-  public ExecuteScriptFile(String threadName, Map<String, String> argsMap, ScriptFile scriptFile) {
+  public ExecuteScriptFile(String threadName, ScriptFile scriptFile, String arguments) {
     this.threadName = threadName;
-    this.argsMap = argsMap;
     this.scriptFile = scriptFile;
+    this.arguments = arguments;
     this.commandPath = Util.COMMAND_PATH;
-    this.scriptsFolder = Util.SCRIPTS_DIRECTORY;
-    this.tmpdir = Util.JAVA_SYSTEM_TMPDIR;
     this.scriptPath =
-        this.tmpdir + "/" + this.scriptsFolder + "/" + this.scriptFile.getScriptFileName();
+        Util.JAVA_SYSTEM_TMPDIR
+            + "/"
+            + Util.SCRIPTS_DIRECTORY
+            + "/"
+            + this.scriptFile.getScriptFileName();
   }
 
   @Override
@@ -45,24 +41,18 @@ public class ExecuteScriptFile implements Runnable {
     log.info("Begin execute script: {} | {}", threadName, scriptFile);
 
     try {
-      quietCleanup();
-      createTempScriptFile();
-
-      Process processChmod =
-          startProcess(this.commandPath, Util.CHMOD_COMMAND + this.scriptPath, null);
+      Process processChmod = startProcess(Util.CHMOD_COMMAND + this.scriptPath);
       try (InputStream errorStream = processChmod.getErrorStream()) {
         displayStreamOutput(Util.CHMOD_COMMAND, errorStream, true);
       }
 
-      Process processExecuteScript = startProcess(this.commandPath, null, this.scriptPath);
+      Process processExecuteScript = startProcess(null);
       try (InputStream errorStream = processExecuteScript.getErrorStream()) {
         displayStreamOutput(this.scriptPath, errorStream, true);
       }
       try (InputStream inputStream = processExecuteScript.getInputStream()) {
         displayStreamOutput(this.scriptPath, inputStream, false);
       }
-
-      quietCleanup();
     } catch (Exception e) {
       log.error("Error in Execute Script: ", e);
     }
@@ -70,20 +60,19 @@ public class ExecuteScriptFile implements Runnable {
     log.info("End execute script...");
   }
 
-  private Process startProcess(String commandPath, String script, String scriptPath)
+  private Process startProcess(String script)
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
-    log.info("Starting process: {} | {} | {}", commandPath, script, scriptPath);
+    log.info("Starting process: {} | {}", script, this.scriptPath);
     try {
       Process process;
       if (script == null) {
-        String repoHome = this.argsMap.get(Util.PARAM_REPO_HOME);
-        process = new ProcessBuilder(commandPath, scriptPath, repoHome).start();
+        process = new ProcessBuilder(this.commandPath, scriptPath, arguments).start();
       } else {
-        process = new ProcessBuilder(commandPath, script).start();
+        process = new ProcessBuilder(this.commandPath, script).start();
       }
-      log.info("Wait for process: {} | {} | {}", commandPath, script, scriptPath);
+      log.info("Wait for process: {} | {}", script, this.scriptPath);
       process.waitFor();
-      log.info("Finished process: {} | {} | {}", commandPath, script, scriptPath);
+      log.info("Finished process: {} | {}", script, this.scriptPath);
       return process;
     } catch (IOException | InterruptedException ex) {
       if (ex instanceof IOException) {
@@ -94,51 +83,10 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private void createTempScriptFile() throws AppDependencyUpdateIOException {
-    try {
-      log.info("Creating temp script file...");
-      Path scriptsFolderPath = Path.of(this.tmpdir + "/" + this.scriptsFolder);
-      if (Files.exists(scriptsFolderPath)) {
-        log.info("Existing directory: {}", scriptsFolderPath);
-      } else {
-        log.info("Creating temp script directory...");
-        Path tempDirectory = Files.createDirectory(scriptsFolderPath);
-        log.info("Created directory: {}", tempDirectory);
-      }
-      Path tempFile = Files.createFile(Path.of(this.scriptPath));
-      log.info("Created file: {}", tempFile);
-
-      try (InputStream inputStream =
-          getClass()
-              .getClassLoader()
-              .getResourceAsStream(
-                  this.scriptsFolder + "/" + this.scriptFile.getScriptFileName())) {
-        assert inputStream != null;
-        Path pathFile = Files.write(tempFile, inputStream.readAllBytes(), StandardOpenOption.WRITE);
-        log.info("Written to file: {}", pathFile);
-      }
-    } catch (IOException ex) {
-      throw new AppDependencyUpdateIOException("Error in Create Temp Script File", ex.getCause());
-    }
-  }
-
-  private void quietCleanup() {
-    try {
-      log.info("Deleting temp script file/directory if exists...");
-      boolean isFileDeleted = Files.deleteIfExists(Path.of(this.scriptPath));
-      log.info("Deleted temp script file if exists: {}", isFileDeleted);
-      boolean isDirectoryDeleted =
-          Files.deleteIfExists(Path.of(this.tmpdir + "/" + this.scriptsFolder));
-      log.info("Deleted temp script directory if exists: {}", isDirectoryDeleted);
-    } catch (Exception ex) {
-      log.error("Quiet cleanup error: ", ex);
-    }
-  }
-
   private void displayStreamOutput(
       String script, final InputStream inputStream, boolean isErrorStream)
       throws AppDependencyUpdateIOException {
-    log.info("Display stream output: {} | isErrorStream: {}", script, isErrorStream);
+    log.info("Display stream output: {}", script);
     String line;
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
       while ((line = reader.readLine()) != null) {
