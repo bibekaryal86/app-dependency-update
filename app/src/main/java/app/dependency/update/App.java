@@ -7,7 +7,7 @@ import app.dependency.update.app.execute.CreateTempScriptFiles;
 import app.dependency.update.app.execute.DeleteTempScriptFiles;
 import app.dependency.update.app.execute.GetAppInitData;
 import app.dependency.update.app.model.AppInitData;
-import lombok.extern.slf4j.Slf4j;
+import app.dependency.update.app.update.UpdateDependencies;import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class App {
@@ -20,6 +20,8 @@ public class App {
     final AppInitData appInitData = new GetAppInitData(args).getAppInitData();
     // create temp script files
     new CreateTempScriptFiles(appInitData.getScriptFiles()).createTempScriptFiles();
+    // update dependencies
+    UpdateDependencies updateDependencies = new UpdateDependencies(appInitData);
 
     // delete temp folders if exist in the end
     new DeleteTempScriptFiles();

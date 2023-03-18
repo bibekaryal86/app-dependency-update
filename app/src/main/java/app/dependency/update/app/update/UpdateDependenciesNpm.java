@@ -29,6 +29,7 @@ public class UpdateDependenciesNpm {
   }
 
   private void executeUpdate(Repository repository, ScriptFile scriptFile) {
+    log.info("Execute NPM Update on: {}", repository);
     String arguments = this.argsMap.get(Util.PARAM_REPO_HOME) + " " + repository.getRepoName();
     ExecuteScriptFile executeScriptFile =
         new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments);
