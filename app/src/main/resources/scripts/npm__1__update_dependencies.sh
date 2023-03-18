@@ -2,21 +2,20 @@
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo
-current_loc=$PWD
 repo_loc="$1/$2"
-echo Repo Home from Input Parameter -- $1
-echo Repo Name from Input Parameter -- $2
+echo Repo Home from Input Parameter--$1
+echo Repo Name from Input Parameter--$2
 
 # Give access to current user
 current_user=$(whoami)
 chown -R $current_user $repo_loc
 cd $repo_loc
 
-echo Current User -- $current_user
-echo Current Location -- $current_loc
-echo Repo Location -- $repo_loc
+echo Current User--$current_user
+echo Current Location--$PWD
+echo Repo Location--$repo_loc
 
-if [ $current_loc != $repo_loc ]; then
+if [ $PWD != $repo_loc ]; then
     echo Current Location and Repo Location are different
     exit 1
 fi

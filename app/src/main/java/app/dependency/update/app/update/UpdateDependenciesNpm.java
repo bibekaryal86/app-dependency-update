@@ -4,6 +4,7 @@ import app.dependency.update.app.execute.ExecuteScriptFile;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.Util;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,9 @@ public class UpdateDependenciesNpm {
 
   private void executeUpdate(Repository repository, ScriptFile scriptFile) {
     log.info("Execute NPM Update on: {}", repository);
-    String arguments = this.argsMap.get(Util.PARAM_REPO_HOME) + " " + repository.getRepoName();
+    List<String> arguments = new LinkedList<>();
+    arguments.add(this.argsMap.get(Util.PARAM_REPO_HOME));
+    arguments.add(repository.getRepoName());
     ExecuteScriptFile executeScriptFile =
         new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments);
     Thread thread = executeScriptFile.start();

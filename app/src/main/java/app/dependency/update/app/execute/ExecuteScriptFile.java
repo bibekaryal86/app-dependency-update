@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -15,13 +17,11 @@ public class ExecuteScriptFile implements Runnable {
   private final String threadName;
   private final String commandPath;
   private final String scriptPath;
-  private final String arguments;
-  private final ScriptFile scriptFile;
+  private final List<String> arguments;
   private Thread thread;
 
-  public ExecuteScriptFile(String threadName, ScriptFile scriptFile, String arguments) {
+  public ExecuteScriptFile(String threadName, ScriptFile scriptFile, List<String> arguments) {
     this.threadName = threadName;
-    this.scriptFile = scriptFile;
     this.arguments = arguments;
     this.commandPath = Util.COMMAND_PATH;
     this.scriptPath =
@@ -29,7 +29,7 @@ public class ExecuteScriptFile implements Runnable {
             + "/"
             + Util.SCRIPTS_DIRECTORY
             + "/"
-            + this.scriptFile.getScriptFileName();
+            + scriptFile.getScriptFileName();
   }
 
   @Override
@@ -64,8 +64,11 @@ public class ExecuteScriptFile implements Runnable {
     try {
       Process process;
       if (script == null) {
-
-        process = new ProcessBuilder(this.commandPath, scriptPath, arguments).start();
+        List<String> command = new LinkedList<>();
+        command.add(this.commandPath);
+        command.add(this.scriptPath);
+        command.addAll(this.arguments);
+        process = new ProcessBuilder(command).start();
       } else {
         process = new ProcessBuilder(this.commandPath, script).start();
       }
