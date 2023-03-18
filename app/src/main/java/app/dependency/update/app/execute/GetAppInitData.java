@@ -8,6 +8,7 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.Util;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -122,7 +123,7 @@ public class GetAppInitData {
         repositories.addAll(
             pathStream
                 .filter(stream -> "package.json".equals(stream.getFileName().toString()))
-                .map(mapper -> new Repository(path, "npm"))
+                .map(mapper -> new Repository(path, Util.NPM))
                 .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
@@ -132,7 +133,7 @@ public class GetAppInitData {
         repositories.addAll(
             pathStream
                 .filter(stream -> "settings.gradle".equals(stream.getFileName().toString()))
-                .map(mapper -> new Repository(path, "gradle"))
+                .map(mapper -> new Repository(path, Util.GRADLE))
                 .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(

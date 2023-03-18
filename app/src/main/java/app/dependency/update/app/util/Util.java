@@ -25,6 +25,8 @@ public class Util {
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String PARAM_REPO_HOME = "repo_home";
   public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");
+  public static final String NPM = "npm";
+  public static final String GRADLE = "gradle";
 
   public static String getSystemEnvProperty(String keyName) {
     return (System.getProperty(keyName) != null)
@@ -63,6 +65,15 @@ public class Util {
               }
             })
         .create();
+  }
+
+  public static void threadSleep() {
+    try {
+      Thread.sleep(1000);
+      log.info(".");
+    } catch (InterruptedException ex) {
+      log.error("Error in thread sleep", ex);
+    }
   }
 
   public enum HttpMethod {
