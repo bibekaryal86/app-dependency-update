@@ -36,9 +36,8 @@ public class UpdateDependencies {
           npmScripts.isEmpty());
     } else {
       log.info("Updating NPM repositories: {}", npmRepositories);
-      UpdateDependenciesNpm updateDependenciesNpm =
-          new UpdateDependenciesNpm(npmRepositories, npmScripts, this.appInitData.getArgsMap());
-      updateDependenciesNpm.updateDependenciesNpm();
+      new UpdateDependenciesNpm(npmRepositories, npmScripts, this.appInitData.getArgsMap())
+          .updateDependenciesNpm();
     }
   }
 }
