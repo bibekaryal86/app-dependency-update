@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,7 +86,7 @@ public class GetAppInitData {
               streamPath
                   .filter(Files::isRegularFile)
                   .map(path -> new ScriptFile(path.getFileName().toString()))
-                  .collect(Collectors.toList());
+                  .toList();
         }
       }
     } catch (Exception ex) {
@@ -106,7 +105,7 @@ public class GetAppInitData {
     log.info("Get Repository Locations...");
     List<Path> repoPaths;
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 1)) {
-      repoPaths = pathStream.filter(Files::isDirectory).collect(Collectors.toList());
+      repoPaths = pathStream.filter(Files::isDirectory).toList();
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(
           "Repositories not found in the repo path provided!", ex);

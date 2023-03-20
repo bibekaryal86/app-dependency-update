@@ -26,9 +26,9 @@ public class ExecuteScriptFile implements Runnable {
     this.commandPath = Util.COMMAND_PATH;
     this.scriptPath =
         Util.JAVA_SYSTEM_TMPDIR
-            + "/"
+            + "/" // NOSONAR
             + Util.SCRIPTS_DIRECTORY
-            + "/"
+            + "/" // NOSONAR
             + scriptFile.getScriptFileName();
   }
 
@@ -74,12 +74,11 @@ public class ExecuteScriptFile implements Runnable {
       process.waitFor();
       log.info("Finished process: {}", script == null ? this.scriptPath : script);
       return process;
-    } catch (IOException | InterruptedException ex) {
-      if (ex instanceof IOException) {
-        throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
-      } else {
-        throw new AppDependencyUpdateRuntimeException("Error in Start Process", ex.getCause());
-      }
+    } catch (IOException ex) {
+      throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      throw new AppDependencyUpdateRuntimeException("Error in Start Process", ex.getCause());
     }
   }
 

@@ -41,7 +41,7 @@ public class CreateTempScriptFiles {
   }
 
   private boolean createTempScriptsDirectory() {
-    Path path = Path.of(this.tmpdir + "/" + this.scriptsDirectory);
+    Path path = Path.of(this.tmpdir + "/" + this.scriptsDirectory); // NOSONAR
 
     try {
       if (!Files.exists(path)) {
@@ -61,9 +61,9 @@ public class CreateTempScriptFiles {
           Files.createFile(
               Path.of(
                   this.tmpdir
-                      + "/"
+                      + "/" // NOSONAR
                       + this.scriptsDirectory
-                      + "/"
+                      + "/" // NOSONAR
                       + scriptFile.getScriptFileName()));
       try (InputStream inputStream =
           getClass()

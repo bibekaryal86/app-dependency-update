@@ -4,11 +4,6 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,41 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Util {
-  // provided at runtime
-  public static final String TIME_ZONE = "TZ";
-
   // constants
-  public static final String COMMAND_PATH = "/bin/bash";
+  public static final String COMMAND_PATH = "/bin/bash"; // NOSONAR
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String PARAM_REPO_HOME = "repo_home";
   public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");
   public static final String NPM = "npm";
   public static final String GRADLE = "gradle";
-
-  public static String getSystemEnvProperty(String keyName) {
-    return (System.getProperty(keyName) != null)
-        ? System.getProperty(keyName)
-        : System.getenv(keyName);
-  }
-
-  public static LocalDateTime getLocalDateTimeNow() {
-    String timeZone =
-        Optional.ofNullable(getSystemEnvProperty(TIME_ZONE)).orElse("America/Los_Angeles");
-    return LocalDateTime.now(ZoneId.of(timeZone));
-  }
-
-  public static boolean hasText(String s) {
-    return (s != null && !s.trim().isEmpty());
-  }
-
-  public static boolean isEmpty(Collection<?> c) {
-    return (c == null || c.isEmpty());
-  }
-
-  public static boolean isEmpty(Map<?, ?> m) {
-    return (m == null || m.isEmpty());
-  }
 
   public static Gson getGson() {
     return new GsonBuilder()
@@ -67,19 +35,10 @@ public class Util {
         .create();
   }
 
-  public static void threadSleep() {
-    try {
-      Thread.sleep(1000);
-      log.info(".");
-    } catch (InterruptedException ex) {
-      log.error("Error in thread sleep", ex);
-    }
-  }
-
   public enum HttpMethod {
     POST,
     PUT,
     DELETE,
-    GET;
+    GET
   }
 }
