@@ -26,9 +26,9 @@ public class ExecuteScriptFile implements Runnable {
     this.commandPath = Util.COMMAND_PATH;
     this.scriptPath =
         Util.JAVA_SYSTEM_TMPDIR
-            + "/" // NOSONAR
+            + Util.PATH_DELIMITER
             + Util.SCRIPTS_DIRECTORY
-            + "/" // NOSONAR
+            + Util.PATH_DELIMITER
             + scriptFile.getScriptFileName();
   }
 

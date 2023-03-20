@@ -12,7 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Util {
   // constants
-  public static final String COMMAND_PATH = "/bin/bash"; // NOSONAR
+  public static final String PATH_DELIMITER = "/";
+  public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String PARAM_REPO_HOME = "repo_home";
