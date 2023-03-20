@@ -67,6 +67,8 @@ public class UpdateDependencies {
           gradleScripts.isEmpty());
     } else {
       log.info("Updating Gradle repositories: {}", gradleRepositories);
+      new UpdateDependenciesGradle(gradleRepositories, gradleScripts, this.appInitData.getArgsMap())
+          .updateDependenciesGradle();
     }
   }
 }

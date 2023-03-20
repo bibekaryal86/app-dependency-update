@@ -4,6 +4,7 @@ import static app.dependency.update.app.util.Util.getGson;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -64,6 +65,7 @@ public class ConnectorUtil {
       Util.HttpMethod httpMethod,
       Object bodyObject,
       Map<String, String> headers,
+      Type type,
       Class<?> clazz) {
     try {
       log.info(
@@ -82,7 +84,12 @@ public class ConnectorUtil {
           httpResponse.statusCode(),
           httpResponse.body() == null ? null : httpResponse.body().length());
 
-      return getGson().fromJson(httpResponse.body(), clazz);
+      if (type == null) {
+        return getGson().fromJson(httpResponse.body(), clazz);
+      } else {
+        // if response is an array
+        return getGson().fromJson(httpResponse.body(), type);
+      }
     } catch (InterruptedException ex) {
       log.error("Error in HttpClient Send: [ {} ] | [ {} ]", endpoint, httpMethod, ex);
       Thread.currentThread().interrupt();

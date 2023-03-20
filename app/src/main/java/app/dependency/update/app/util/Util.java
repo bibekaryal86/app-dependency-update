@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Util {
   // constants
   public static final String PATH_DELIMITER = "/";
+  public static final String GRADLE_WRAPPER_REGEX = "(?<=\\-)(.*?)(?=\\-)";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
@@ -20,6 +21,10 @@ public class Util {
   public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");
   public static final String NPM = "npm";
   public static final String GRADLE = "gradle";
+  public static final String WRAPPER = "wrapper";
+  public static final String GRADLE_WRAPPER_PROPERTIES = GRADLE + "-" + WRAPPER + ".properties";
+  public static final String GRADLE_RELEASES_ENDPOINT =
+      "https://api.github.com/repos/gradle/gradle/releases";
 
   public static Gson getGson() {
     return new GsonBuilder()
