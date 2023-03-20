@@ -6,6 +6,7 @@ package app.dependency.update;
 import app.dependency.update.app.execute.CreateTempScriptFiles;
 import app.dependency.update.app.execute.DeleteTempScriptFiles;
 import app.dependency.update.app.execute.GetAppInitData;
+import app.dependency.update.app.execute.ThreadMonitor;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.update.UpdateDependencies;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ public class App {
     new CreateTempScriptFiles(appInitData.getScriptFiles()).createTempScriptFiles();
     // update dependencies
     new UpdateDependencies(appInitData).updateDependencies();
+    // monitor threads
+    new ThreadMonitor(appInitData);
 
     log.info("End app-dependency-update initialization...");
   }
