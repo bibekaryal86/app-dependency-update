@@ -95,9 +95,9 @@ public class ExecuteScriptFile implements Runnable {
       }
 
       if (isErrorStream) {
-        log.error("Display stream output: {}\n{}", script, stringBuilder);
+        log.error("Display stream output: {}\n{}\n", script, stringBuilder);
       } else {
-        log.info("Display stream output: {}\n{}", script, stringBuilder);
+        log.info("Display stream output: {}\n{}\n", script, stringBuilder);
       }
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
