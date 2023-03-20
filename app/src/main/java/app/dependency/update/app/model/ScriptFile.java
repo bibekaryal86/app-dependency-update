@@ -6,14 +6,14 @@ import lombok.ToString;
 @Getter
 @ToString
 public class ScriptFile {
-  private final String originalFileName;
   private final String scriptFileName;
-  private final boolean isNpm;
+  private final String type;
+  private final int step;
 
-  public ScriptFile(String originalFileName) {
-    this.originalFileName = originalFileName;
-    String[] origFileNameArray = originalFileName.split("___");
-    this.scriptFileName = origFileNameArray[1];
-    this.isNpm = origFileNameArray[0].equals("npm");
+  public ScriptFile(String scriptFileName) {
+    this.scriptFileName = scriptFileName;
+    String[] sfnArray = scriptFileName.split("__");
+    this.type = sfnArray[0];
+    this.step = Integer.parseInt(sfnArray[1]);
   }
 }
