@@ -1,7 +1,7 @@
 package app.dependency.update.app.execute;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.GradleReleasesResponse;
+import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.ConnectorUtil;
 import app.dependency.update.app.util.Util;
@@ -31,14 +31,14 @@ public class GradleWrapperStatus {
 
   private String getCurrentGradleVersion() {
     // get rid of draft and prerelease and sort by name descending
-    Optional<GradleReleasesResponse> optionalLatestGradleRelease =
+    Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         getGradleReleasesResponse().stream()
             .filter(
-                gradleReleasesResponse ->
-                    !(gradleReleasesResponse.isPrerelease() || gradleReleasesResponse.isDraft()))
-            .max(Comparator.comparing(GradleReleasesResponse::getName));
+                gradleReleaseResponse ->
+                    !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
+            .max(Comparator.comparing(GradleReleaseResponse::getName));
 
-    GradleReleasesResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
+    GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
     log.info("Latest Gradle Release: {}", optionalLatestGradleRelease);
 
     if (latestGradleRelease == null) {
@@ -49,14 +49,14 @@ public class GradleWrapperStatus {
   }
 
   @SuppressWarnings("unchecked")
-  private List<GradleReleasesResponse> getGradleReleasesResponse() {
-    return (List<GradleReleasesResponse>)
+  private List<GradleReleaseResponse> getGradleReleasesResponse() {
+    return (List<GradleReleaseResponse>)
         ConnectorUtil.sendHttpRequest(
             Util.GRADLE_RELEASES_ENDPOINT,
             Util.HttpMethod.GET,
             null,
             null,
-            new TypeToken<Collection<GradleReleasesResponse>>() {}.getType(),
+            new TypeToken<Collection<GradleReleaseResponse>>() {}.getType(),
             null);
   }
 

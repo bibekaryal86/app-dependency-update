@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class GradleReleasesResponse {
+public class GradleReleaseResponse {
   private final String name;
   private final boolean draft;
   private final boolean prerelease;
