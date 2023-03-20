@@ -6,6 +6,7 @@ import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.Util;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,6 +19,11 @@ public class UpdateDependencies {
   }
 
   public void updateDependencies() {
+    CompletableFuture.runAsync(this::updateNpmDependencies);
+    CompletableFuture.runAsync(this::updateGradleDependencies);
+  }
+
+  private void updateNpmDependencies() {
     // check and update NPM repositories
     List<Repository> npmRepositories =
         this.appInitData.getRepositories().stream()
@@ -38,6 +44,29 @@ public class UpdateDependencies {
       log.info("Updating NPM repositories: {}", npmRepositories);
       new UpdateDependenciesNpm(npmRepositories, npmScripts, this.appInitData.getArgsMap())
           .updateDependenciesNpm();
+    }
+  }
+
+  private void updateGradleDependencies() {
+    // check and update Gradle repositories
+    // first update gradle wrapper, then update dependencies
+    List<Repository> gradleRepositories =
+        this.appInitData.getRepositories().stream()
+            .filter(repository -> Util.GRADLE.equals(repository.getType()))
+            .toList();
+    List<ScriptFile> gradleScripts =
+        this.appInitData.getScriptFiles().stream()
+            .filter(scriptFile -> Util.GRADLE.equals(scriptFile.getType()))
+            .sorted(Comparator.comparingInt(ScriptFile::getStep))
+            .toList();
+
+    if (gradleRepositories.isEmpty() || gradleScripts.isEmpty()) {
+      log.info(
+          "Gradle Repositories [{}] and/or Gradle Scripts [{}] are empty!",
+          gradleRepositories.isEmpty(),
+          gradleScripts.isEmpty());
+    } else {
+      log.info("Updating Gradle repositories: {}", gradleRepositories);
     }
   }
 }
