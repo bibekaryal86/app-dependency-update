@@ -69,7 +69,9 @@ public class GradleWrapperStatus {
               return new Repository(
                   repository.getRepoPath(),
                   repository.getType(),
-                  isGradleWrapperUpdateRequired(currentGradleVersion, currentGradleVersionInRepo));
+                  isGradleWrapperUpdateRequired(currentGradleVersion, currentGradleVersionInRepo)
+                      ? currentGradleVersion
+                      : null);
             })
         .toList();
   }

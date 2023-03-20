@@ -6,11 +6,7 @@ echo Process Id--$$
 repo_loc="$1/$2"
 echo Repo Home from Input Parameter--$1
 echo Repo Name from Input Parameter--$2
-echo Gradle Wrapper Update Required from Input Parameter--$3
-echo Gradle Version from Input Parameter--$4
-
-# pass parameter to update wrapper or not
-
+echo Gradle Version from Input Parameter--$3
 
 # Give access to current user
 current_user=$(whoami)
@@ -32,11 +28,13 @@ branch_name="update_dependencies_"$(date +%F)
 git checkout -b $branch_name
 
 # Update dependencies
-echo Running Gradle Wrapper update
-chmod +x gradlew
-./gradlew wrapper --gradle-version=$4
-# Sometimes doesn't update on the first try
-./gradlew wrapper --gradle-version=$4
+if [ -n "$3" ]; then
+    echo Running Gradle Wrapper Update
+    chmod +x gradlew
+    ./gradlew wrapper --gradle-version=$3
+    # Sometimes doesn't update on the first try
+    ./gradlew wrapper --gradle-version=$3
+fi
 
 # Commit and push
 echo Committing and pushing

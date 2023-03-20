@@ -10,19 +10,19 @@ public class Repository {
   private final Path repoPath;
   private final String type;
   private final String repoName;
-  private final boolean gradleWrapperUpdateRequired;
+  private final String gradleVersion;
 
   public Repository(Path repoPath, String type) {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.gradleWrapperUpdateRequired = false;
+    this.gradleVersion = "";
   }
 
-  public Repository(Path repoPath, String type, boolean gradleWrapperUpdateRequired) {
+  public Repository(Path repoPath, String type, String gradleVersion) {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.gradleWrapperUpdateRequired = gradleWrapperUpdateRequired;
+    this.gradleVersion = gradleVersion;
   }
 }
