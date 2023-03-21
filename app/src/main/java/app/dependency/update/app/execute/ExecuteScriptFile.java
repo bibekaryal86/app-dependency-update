@@ -3,7 +3,7 @@ package app.dependency.update.app.execute;
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,12 +23,12 @@ public class ExecuteScriptFile implements Runnable {
   public ExecuteScriptFile(String threadName, ScriptFile scriptFile, List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
-    this.commandPath = Util.COMMAND_PATH;
+    this.commandPath = CommonUtil.COMMAND_PATH;
     this.scriptPath =
-        Util.JAVA_SYSTEM_TMPDIR
-            + Util.PATH_DELIMITER
-            + Util.SCRIPTS_DIRECTORY
-            + Util.PATH_DELIMITER
+        CommonUtil.JAVA_SYSTEM_TMPDIR
+            + CommonUtil.PATH_DELIMITER
+            + CommonUtil.SCRIPTS_DIRECTORY
+            + CommonUtil.PATH_DELIMITER
             + scriptFile.getScriptFileName();
   }
 
@@ -39,9 +39,9 @@ public class ExecuteScriptFile implements Runnable {
 
   private void executeScript() {
     try {
-      Process processChmod = startProcess(Util.CHMOD_COMMAND + this.scriptPath);
+      Process processChmod = startProcess(CommonUtil.CHMOD_COMMAND + this.scriptPath);
       try (InputStream errorStream = processChmod.getErrorStream()) {
-        displayStreamOutput(Util.CHMOD_COMMAND, errorStream, true);
+        displayStreamOutput(CommonUtil.CHMOD_COMMAND, errorStream, true);
       }
 
       Process processExecuteScript = startProcess(null);

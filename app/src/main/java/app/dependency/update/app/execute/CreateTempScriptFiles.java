@@ -2,7 +2,7 @@ package app.dependency.update.app.execute;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,8 +19,8 @@ public class CreateTempScriptFiles {
 
   public CreateTempScriptFiles(List<ScriptFile> scriptFiles) {
     this.scriptFiles = scriptFiles;
-    this.scriptsDirectory = Util.SCRIPTS_DIRECTORY;
-    this.tmpdir = Util.JAVA_SYSTEM_TMPDIR;
+    this.scriptsDirectory = CommonUtil.SCRIPTS_DIRECTORY;
+    this.tmpdir = CommonUtil.JAVA_SYSTEM_TMPDIR;
   }
 
   public void createTempScriptFiles() {
@@ -41,7 +41,7 @@ public class CreateTempScriptFiles {
   }
 
   private boolean createTempScriptsDirectory() {
-    Path path = Path.of(this.tmpdir + Util.PATH_DELIMITER + this.scriptsDirectory);
+    Path path = Path.of(this.tmpdir + CommonUtil.PATH_DELIMITER + this.scriptsDirectory);
 
     try {
       if (!Files.exists(path)) {
@@ -61,9 +61,9 @@ public class CreateTempScriptFiles {
           Files.createFile(
               Path.of(
                   this.tmpdir
-                      + Util.PATH_DELIMITER
+                      + CommonUtil.PATH_DELIMITER
                       + this.scriptsDirectory
-                      + Util.PATH_DELIMITER
+                      + CommonUtil.PATH_DELIMITER
                       + scriptFile.getScriptFileName()));
       try (InputStream inputStream =
           getClass()

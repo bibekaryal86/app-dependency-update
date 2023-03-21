@@ -3,7 +3,7 @@ package app.dependency.update.app.update;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,11 +27,11 @@ public class UpdateDependencies {
     // check and update NPM repositories
     List<Repository> npmRepositories =
         this.appInitData.getRepositories().stream()
-            .filter(repository -> Util.NPM.equals(repository.getType()))
+            .filter(repository -> CommonUtil.NPM.equals(repository.getType()))
             .toList();
     List<ScriptFile> npmScripts =
         this.appInitData.getScriptFiles().stream()
-            .filter(scriptFile -> Util.NPM.equals(scriptFile.getType()))
+            .filter(scriptFile -> CommonUtil.NPM.equals(scriptFile.getType()))
             .sorted(Comparator.comparingInt(ScriptFile::getStep))
             .toList();
 
@@ -52,11 +52,11 @@ public class UpdateDependencies {
     // first update gradle wrapper, then update dependencies
     List<Repository> gradleRepositories =
         this.appInitData.getRepositories().stream()
-            .filter(repository -> Util.GRADLE.equals(repository.getType()))
+            .filter(repository -> CommonUtil.GRADLE.equals(repository.getType()))
             .toList();
     List<ScriptFile> gradleScripts =
         this.appInitData.getScriptFiles().stream()
-            .filter(scriptFile -> Util.GRADLE.equals(scriptFile.getType()))
+            .filter(scriptFile -> CommonUtil.GRADLE.equals(scriptFile.getType()))
             .sorted(Comparator.comparingInt(ScriptFile::getStep))
             .toList();
 

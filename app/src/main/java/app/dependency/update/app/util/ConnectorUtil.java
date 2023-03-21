@@ -1,6 +1,6 @@
 package app.dependency.update.app.util;
 
-import static app.dependency.update.app.util.Util.getGson;
+import static app.dependency.update.app.util.CommonUtil.getGson;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class ConnectorUtil {
   }
 
   private static HttpRequest getHttpRequestBuilder(
-      String endpoint, Util.HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
+      String endpoint, CommonUtil.HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
     HttpRequest.Builder httpRequestBuilder =
         HttpRequest.newBuilder().uri(getUri(endpoint)).header("Content-Type", "application/json");
 
@@ -42,13 +42,13 @@ public class ConnectorUtil {
       }
     }
 
-    if (httpMethod == Util.HttpMethod.POST) {
+    if (httpMethod == CommonUtil.HttpMethod.POST) {
       httpRequestBuilder = httpRequestBuilder.POST(getPOST(bodyObject));
-    } else if (httpMethod == Util.HttpMethod.PUT) {
+    } else if (httpMethod == CommonUtil.HttpMethod.PUT) {
       httpRequestBuilder = httpRequestBuilder.PUT(getPOST(bodyObject));
-    } else if (httpMethod == Util.HttpMethod.DELETE) {
+    } else if (httpMethod == CommonUtil.HttpMethod.DELETE) {
       httpRequestBuilder = httpRequestBuilder.DELETE();
-    } else if (httpMethod == Util.HttpMethod.GET) {
+    } else if (httpMethod == CommonUtil.HttpMethod.GET) {
       httpRequestBuilder = httpRequestBuilder.GET();
     }
 
@@ -62,7 +62,7 @@ public class ConnectorUtil {
 
   public static Object sendHttpRequest(
       String endpoint,
-      Util.HttpMethod httpMethod,
+      CommonUtil.HttpMethod httpMethod,
       Object bodyObject,
       Map<String, String> headers,
       Type type,

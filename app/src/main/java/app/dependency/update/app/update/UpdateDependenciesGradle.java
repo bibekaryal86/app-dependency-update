@@ -3,7 +3,7 @@ package app.dependency.update.app.update;
 import app.dependency.update.app.execute.GradleWrapperStatus;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class UpdateDependenciesGradle {
   private void executeUpdate_1(Repository repository, ScriptFile scriptFile) {
     log.info("Execute Gradle Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
-    arguments.add(this.argsMap.get(Util.PARAM_REPO_HOME));
+    arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
     arguments.add(repository.getGradleVersion());
   }

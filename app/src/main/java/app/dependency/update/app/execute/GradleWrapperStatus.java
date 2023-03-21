@@ -4,7 +4,7 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.ConnectorUtil;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,8 +52,8 @@ public class GradleWrapperStatus {
   private List<GradleReleaseResponse> getGradleReleasesResponse() {
     return (List<GradleReleaseResponse>)
         ConnectorUtil.sendHttpRequest(
-            Util.GRADLE_RELEASES_ENDPOINT,
-            Util.HttpMethod.GET,
+            CommonUtil.GRADLE_RELEASES_ENDPOINT,
+            CommonUtil.HttpMethod.GET,
             null,
             null,
             new TypeToken<Collection<GradleReleaseResponse>>() {}.getType(),
@@ -82,12 +82,12 @@ public class GradleWrapperStatus {
             repository
                 .getRepoPath()
                 .toString()
-                .concat(Util.PATH_DELIMITER)
-                .concat(Util.GRADLE)
-                .concat(Util.PATH_DELIMITER)
-                .concat(Util.WRAPPER)
-                .concat(Util.PATH_DELIMITER)
-                .concat(Util.GRADLE_WRAPPER_PROPERTIES));
+                .concat(CommonUtil.PATH_DELIMITER)
+                .concat(CommonUtil.GRADLE)
+                .concat(CommonUtil.PATH_DELIMITER)
+                .concat(CommonUtil.WRAPPER)
+                .concat(CommonUtil.PATH_DELIMITER)
+                .concat(CommonUtil.GRADLE_WRAPPER_PROPERTIES));
     try {
       List<String> allLines = Files.readAllLines(wrapperPath);
       String distributionUrl =
@@ -108,7 +108,7 @@ public class GradleWrapperStatus {
   private String parseDistributionUrlForGradleVersion(String distributionUrl) {
     // matches text between two hyphens
     // eg: distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
-    Pattern pattern = Pattern.compile(Util.GRADLE_WRAPPER_REGEX);
+    Pattern pattern = Pattern.compile(CommonUtil.GRADLE_WRAPPER_REGEX);
     Matcher matcher = pattern.matcher(distributionUrl);
     if (matcher.find()) {
       return matcher.group();

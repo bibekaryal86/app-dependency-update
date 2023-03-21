@@ -3,7 +3,7 @@ package app.dependency.update.app.update;
 import app.dependency.update.app.execute.ExecuteScriptFile;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class UpdateDependenciesNpm {
   private void executeUpdate(Repository repository, ScriptFile scriptFile) {
     log.info("Execute NPM Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
-    arguments.add(this.argsMap.get(Util.PARAM_REPO_HOME));
+    arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
     new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
   }

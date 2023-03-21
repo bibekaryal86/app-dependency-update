@@ -2,7 +2,7 @@ package app.dependency.update.app.execute;
 
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.util.Util;
+import app.dependency.update.app.util.CommonUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class ThreadMonitor {
     // thread names are set as repository names
     List<String> npmThreadNames =
         this.appInitData.getRepositories().stream()
-            .filter(repository -> repository.getType().equals(Util.NPM))
+            .filter(repository -> repository.getType().equals(CommonUtil.NPM))
             .map(Repository::getRepoName)
             .toList();
 
