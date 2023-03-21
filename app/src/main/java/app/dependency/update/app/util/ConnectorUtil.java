@@ -1,9 +1,10 @@
 package app.dependency.update.app.util;
 
-import static app.dependency.update.app.util.Util.getGson;
+import static app.dependency.update.app.util.CommonUtil.getGson;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -31,7 +32,10 @@ public class ConnectorUtil {
   }
 
   private static HttpRequest getHttpRequestBuilder(
-      String endpoint, Util.HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
+      String endpoint,
+      CommonUtil.HttpMethod httpMethod,
+      Object bodyObject,
+      Map<String, String> headers) {
     HttpRequest.Builder httpRequestBuilder =
         HttpRequest.newBuilder().uri(getUri(endpoint)).header("Content-Type", "application/json");
 
@@ -41,13 +45,13 @@ public class ConnectorUtil {
       }
     }
 
-    if (httpMethod == Util.HttpMethod.POST) {
+    if (httpMethod == CommonUtil.HttpMethod.POST) {
       httpRequestBuilder = httpRequestBuilder.POST(getPOST(bodyObject));
-    } else if (httpMethod == Util.HttpMethod.PUT) {
+    } else if (httpMethod == CommonUtil.HttpMethod.PUT) {
       httpRequestBuilder = httpRequestBuilder.PUT(getPOST(bodyObject));
-    } else if (httpMethod == Util.HttpMethod.DELETE) {
+    } else if (httpMethod == CommonUtil.HttpMethod.DELETE) {
       httpRequestBuilder = httpRequestBuilder.DELETE();
-    } else if (httpMethod == Util.HttpMethod.GET) {
+    } else if (httpMethod == CommonUtil.HttpMethod.GET) {
       httpRequestBuilder = httpRequestBuilder.GET();
     }
 
@@ -61,9 +65,10 @@ public class ConnectorUtil {
 
   public static Object sendHttpRequest(
       String endpoint,
-      Util.HttpMethod httpMethod,
+      CommonUtil.HttpMethod httpMethod,
       Object bodyObject,
       Map<String, String> headers,
+      Type type,
       Class<?> clazz) {
     try {
       log.info(
@@ -82,7 +87,12 @@ public class ConnectorUtil {
           httpResponse.statusCode(),
           httpResponse.body() == null ? null : httpResponse.body().length());
 
-      return getGson().fromJson(httpResponse.body(), clazz);
+      if (type == null) {
+        return getGson().fromJson(httpResponse.body(), clazz);
+      } else {
+        // if response is an array
+        return getGson().fromJson(httpResponse.body(), type);
+      }
     } catch (InterruptedException ex) {
       log.error("Error in HttpClient Send: [ {} ] | [ {} ]", endpoint, httpMethod, ex);
       Thread.currentThread().interrupt();
