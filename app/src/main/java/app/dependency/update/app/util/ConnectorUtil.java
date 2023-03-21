@@ -32,7 +32,10 @@ public class ConnectorUtil {
   }
 
   private static HttpRequest getHttpRequestBuilder(
-      String endpoint, CommonUtil.HttpMethod httpMethod, Object bodyObject, Map<String, String> headers) {
+      String endpoint,
+      CommonUtil.HttpMethod httpMethod,
+      Object bodyObject,
+      Map<String, String> headers) {
     HttpRequest.Builder httpRequestBuilder =
         HttpRequest.newBuilder().uri(getUri(endpoint)).header("Content-Type", "application/json");
 

@@ -15,7 +15,8 @@ public class DeleteTempScriptFiles {
     log.info("Delete Temp Script Files Quiet Cleanup...");
 
     try {
-      Path tempScriptsDirectory = Path.of(CommonUtil.JAVA_SYSTEM_TMPDIR + "/" + CommonUtil.SCRIPTS_DIRECTORY);
+      Path tempScriptsDirectory =
+          Path.of(CommonUtil.JAVA_SYSTEM_TMPDIR + "/" + CommonUtil.SCRIPTS_DIRECTORY);
       if (Files.exists(tempScriptsDirectory)) {
         try (Stream<Path> paths = Files.walk(tempScriptsDirectory)) {
           paths.sorted(Comparator.reverseOrder()).forEach(this::delete);

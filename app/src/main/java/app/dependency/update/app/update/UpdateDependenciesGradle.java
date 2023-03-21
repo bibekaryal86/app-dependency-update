@@ -1,5 +1,6 @@
 package app.dependency.update.app.update;
 
+import app.dependency.update.app.execute.ExecuteScriptFile;
 import app.dependency.update.app.execute.GradleWrapperStatus;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
@@ -27,13 +28,16 @@ public class UpdateDependenciesGradle {
     List<Repository> gradleRepositories =
         new GradleWrapperStatus(repositories).getGradleWrapperStatus();
     log.info("Gradle Repositories with Gradle Wrapper Status: {}", gradleRepositories);
+
+    gradleRepositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
   }
 
-  private void executeUpdate_1(Repository repository, ScriptFile scriptFile) {
+  private void executeUpdate(Repository repository, ScriptFile scriptFile) {
     log.info("Execute Gradle Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
     arguments.add(repository.getGradleVersion());
+    new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
   }
 }
