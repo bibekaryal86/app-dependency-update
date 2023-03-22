@@ -57,9 +57,6 @@ public class MongoUtil {
   }
 
   public static List<MongoDependencies> retrieveDependencies() {
-    // for gradle plugins group:artifact are not available in build.gradle, only group is provided
-    // since relatively low number of plugins used, save group:artifact in mongodb and retrieve
-    // another option was to put in a properties file and read from it, but this seems better
     List<MongoDependencies> mongoDependencies = new ArrayList<>();
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       FindIterable<MongoDependencies> gradlePluginFindIterable =
