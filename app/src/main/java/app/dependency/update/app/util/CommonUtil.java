@@ -37,6 +37,10 @@ public class CommonUtil {
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?wt=json&q=g:%s+AND+a:%s";
 
+  public static boolean isEmpty(String s) {
+    return (s == null || s.trim().isEmpty());
+  }
+
   public static boolean isEmpty(Collection<?> c) {
     return (c == null || c.isEmpty());
   }
