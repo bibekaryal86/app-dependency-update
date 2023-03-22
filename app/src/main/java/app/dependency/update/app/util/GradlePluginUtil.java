@@ -1,6 +1,6 @@
 package app.dependency.update.app.util;
 
-import app.dependency.update.app.model.GradlePlugin;
+import app.dependency.update.app.model.MongoPlugins;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,10 +20,10 @@ public class GradlePluginUtil {
   }
 
   private static Map<String, String> setPluginGroupArtifactMap() {
-    List<GradlePlugin> gradlePlugins = MongoUtil.retrieveGradlePlugins();
+    List<MongoPlugins> mongoPlugins = MongoUtil.retrievePlugins();
     pluginGroupArtifactMap =
-        gradlePlugins.stream()
-            .collect(Collectors.toMap(GradlePlugin::getGroup, GradlePlugin::getArtifact));
+        mongoPlugins.stream()
+            .collect(Collectors.toMap(MongoPlugins::getGroup, MongoPlugins::getArtifact));
     log.info("Set Gradle Plugin Group Artifact Map: {}", pluginGroupArtifactMap);
     return pluginGroupArtifactMap;
   }

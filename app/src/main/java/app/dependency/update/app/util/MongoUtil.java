@@ -1,7 +1,8 @@
 package app.dependency.update.app.util;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.GradlePlugin;
+import app.dependency.update.app.model.MongoDependencies;
+import app.dependency.update.app.model.MongoPlugins;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerApi;
@@ -35,19 +36,34 @@ public class MongoUtil {
     }
   }
 
-  public static List<GradlePlugin> retrieveGradlePlugins() {
+  public static List<MongoPlugins> retrievePlugins() {
     // for gradle plugins group:artifact are not available in build.gradle, only group is provided
     // since relatively low number of plugins used, save group:artifact in mongodb and retrieve
     // another option was to put in a properties file and read from it, but this seems better
-    List<GradlePlugin> gradlePlugins = new ArrayList<>();
+    List<MongoPlugins> mongoPlugins = new ArrayList<>();
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
-      FindIterable<GradlePlugin> gradlePluginFindIterable =
+      FindIterable<MongoPlugins> gradlePluginFindIterable =
           getMongoCollectionPlugins(mongoClient).find();
-      gradlePluginFindIterable.forEach(gradlePlugins::add);
+      gradlePluginFindIterable.forEach(mongoPlugins::add);
     } catch (Exception ex) {
-      throw new AppDependencyUpdateRuntimeException("Error Retrieving Gradle Plugins List", ex);
+      throw new AppDependencyUpdateRuntimeException("Error Retrieving Mongo Plugins List", ex);
     }
-    return gradlePlugins;
+    return mongoPlugins;
+  }
+
+  public static List<MongoDependencies> retrieveDependencies() {
+    // for gradle plugins group:artifact are not available in build.gradle, only group is provided
+    // since relatively low number of plugins used, save group:artifact in mongodb and retrieve
+    // another option was to put in a properties file and read from it, but this seems better
+    List<MongoDependencies> mongoDependencies = new ArrayList<>();
+    try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
+      FindIterable<MongoDependencies> gradlePluginFindIterable =
+          getMongoCollectionDependencies(mongoClient).find();
+      gradlePluginFindIterable.forEach(mongoDependencies::add);
+    } catch (Exception ex) {
+      throw new AppDependencyUpdateRuntimeException("Error Retrieving Mongo Dependencies List", ex);
+    }
+    return mongoDependencies;
   }
 
   private static MongoClientSettings getMongoClientSettings() {
@@ -62,9 +78,16 @@ public class MongoUtil {
         .build();
   }
 
-  private static MongoCollection<GradlePlugin> getMongoCollectionPlugins(MongoClient mongoClient) {
+  private static MongoCollection<MongoPlugins> getMongoCollectionPlugins(MongoClient mongoClient) {
     return mongoClient
         .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
-        .getCollection("plugins", GradlePlugin.class);
+        .getCollection("plugins", MongoPlugins.class);
+  }
+
+  private static MongoCollection<MongoDependencies> getMongoCollectionDependencies(
+      MongoClient mongoClient) {
+    return mongoClient
+        .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
+        .getCollection("dependencies", MongoDependencies.class);
   }
 }
