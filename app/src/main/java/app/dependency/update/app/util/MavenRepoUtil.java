@@ -61,7 +61,7 @@ public class MavenRepoUtil {
       latestVersion = currentVersion;
     }
 
-    dependenciesMap.putIfAbsent(mavenId, latestVersion);
+
 
     return latestVersion;
   }
@@ -75,12 +75,14 @@ public class MavenRepoUtil {
         && !CommonUtil.isEmpty(mavenSearchResponse.getResponse().getDocs())) {
       String latestVersion = mavenSearchResponse.getResponse().getDocs().get(0).getLatestVersion();
       // save to local repo as well
+      String mavenId = group + ":" + artifact;
       MongoUtil.insertDependencies(
           Collections.singletonList(
               MongoDependencies.builder()
-                  .id(String.format("%s:%s", group, artifact))
+                  .id(mavenId)
                   .latestVersion(latestVersion)
                   .build()));
+      dependenciesMap.putIfAbsent(mavenId, latestVersion);
       return latestVersion;
     }
     return null;
