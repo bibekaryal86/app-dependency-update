@@ -1,8 +1,12 @@
 package app.dependency.update.app.util;
 
 import app.dependency.update.app.model.MavenSearchResponse;
-import java.util.HashMap;
+import app.dependency.update.app.model.MongoDependencies;
+import app.dependency.update.app.model.MongoPlugins;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,17 +14,47 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MavenRepoUtil {
-  private static final Map<String, String> mavenVersionMap = new HashMap<>();
+  private static Map<String, String> pluginsMap = new ConcurrentHashMap<>();
+  private static Map<String, String> dependenciesMap = new ConcurrentHashMap<>();
 
-  public static Map<String, String> getMavenVersionMap() {
-    return mavenVersionMap;
+  public static Map<String, String> getPluginsMap() {
+    if (CommonUtil.isEmpty(pluginsMap)) {
+      return setPluginsMap();
+    }
+    return pluginsMap;
   }
 
-  public static String getLatestMavenVersion(String group, String artifact, String currentVersion) {
+  public static Map<String, String> getDependenciesMap() {
+    if (CommonUtil.isEmpty(dependenciesMap)) {
+      return setDependenciesMap();
+    }
+    return dependenciesMap;
+  }
+
+  private static Map<String, String> setPluginsMap() {
+    List<MongoPlugins> mongoPlugins = MongoUtil.retrievePlugins();
+    pluginsMap =
+        mongoPlugins.stream()
+            .collect(Collectors.toMap(MongoPlugins::getGroup, MongoPlugins::getArtifact));
+    log.info("Set Plugin Map: {}", pluginsMap);
+    return pluginsMap;
+  }
+
+  private static Map<String, String> setDependenciesMap() {
+    List<MongoDependencies> mongoDependencies = MongoUtil.retrieveDependencies();
+    dependenciesMap =
+        mongoDependencies.stream()
+            .collect(
+                Collectors.toMap(MongoDependencies::getId, MongoDependencies::getLatestVersion));
+    log.info("Set Dependencies Map: {}", dependenciesMap);
+    return dependenciesMap;
+  }
+
+  public static String getLatestVersion(String group, String artifact, String currentVersion) {
     String mavenId = group + ":" + artifact;
 
-    if (getMavenVersionMap().get(mavenId) != null) {
-      return getMavenVersionMap().get(mavenId);
+    if (getDependenciesMap().get(mavenId) != null) {
+      return getDependenciesMap().get(mavenId);
     }
 
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
@@ -32,12 +66,12 @@ public class MavenRepoUtil {
       // there could be more than one matching response, but that is highly unlikely
       // also highly likely that the build will fair after PR in that scenario
       // so get the first element in the list
-      mavenVersionMap.put(
+      dependenciesMap.put(
           mavenId, mavenSearchResponse.getResponse().getDocs().get(0).getLatestVersion());
       return mavenSearchResponse.getResponse().getDocs().get(0).getLatestVersion();
     }
 
-    mavenVersionMap.put(mavenId, currentVersion);
+    dependenciesMap.put(mavenId, currentVersion);
     return currentVersion;
   }
 

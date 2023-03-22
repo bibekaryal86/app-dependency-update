@@ -5,6 +5,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Collection;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,10 @@ public class CommonUtil {
 
   public static boolean isEmpty(Collection<?> c) {
     return (c == null || c.isEmpty());
+  }
+
+  public static boolean isEmpty(Map<?, ?> m) {
+    return (m == null || m.isEmpty());
   }
 
   public static String getSystemEnvProperty(String keyName, String defaultValue) {
