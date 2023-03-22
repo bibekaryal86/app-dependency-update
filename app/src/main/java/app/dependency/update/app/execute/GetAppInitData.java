@@ -61,12 +61,23 @@ public class GetAppInitData {
       }
     }
 
-    if (map.get(PARAM_REPO_HOME) == null) {
+    checkRequiredArgumentsAndParametersOnInit(map);
+    log.info("Args Map After Conversion: {}", map);
+    return map;
+  }
+
+  private void checkRequiredArgumentsAndParametersOnInit(Map<String, String> argsMap) {
+    if (argsMap.get(PARAM_REPO_HOME) == null) {
       throw new AppDependencyUpdateRuntimeException("repo_home parameter must be provided");
     }
 
-    log.info("Args Map After Conversion: {}", map);
-    return map;
+    if (CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_USERNAME, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
+    }
+
+    if (CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_PASSWORD, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
+    }
   }
 
   private List<ScriptFile> getScriptsInResources() {
