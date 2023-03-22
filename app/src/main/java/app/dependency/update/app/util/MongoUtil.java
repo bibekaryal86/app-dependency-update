@@ -11,6 +11,10 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.InsertManyResult;
+import com.mongodb.client.result.UpdateResult;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -18,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.conversions.Bson;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -64,6 +69,35 @@ public class MongoUtil {
       throw new AppDependencyUpdateRuntimeException("Error Retrieving Mongo Dependencies List", ex);
     }
     return mongoDependencies;
+  }
+
+  public static void insertDependencies(List<MongoDependencies> mongoDependencies) {
+    // unique index for `id` is added to mongodb collection
+    try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
+      InsertManyResult insertManyResult =
+          getMongoCollectionDependencies(mongoClient).insertMany(mongoDependencies);
+      log.info("Insert Dependencies Result: {}", insertManyResult.getInsertedIds());
+    } catch (Exception ex) {
+      log.error("Insert Dependencies Error: ", ex);
+    }
+  }
+
+  public static void updateDependencies(List<MongoDependencies> mongoDependencies) {
+    try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
+      mongoDependencies.forEach(
+          mongoDependency -> {
+            Bson filter = Filters.eq("id", mongoDependency.getId());
+            Bson update = Updates.set("latestVersion", mongoDependency.getLatestVersion());
+            UpdateResult updateResult =
+                getMongoCollectionDependencies(mongoClient).updateOne(filter, update);
+            log.info(
+                "Update Dependency Result: {} | {}",
+                updateResult.getModifiedCount(),
+                mongoDependency);
+          });
+    } catch (Exception ex) {
+      log.error("Update Dependencies Error: ", ex);
+    }
   }
 
   private static MongoClientSettings getMongoClientSettings() {
