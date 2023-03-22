@@ -5,7 +5,6 @@ import app.dependency.update.app.model.MongoDependencies;
 import app.dependency.update.app.model.MongoPlugins;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -14,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MavenRepoUtil {
-  private static Map<String, String> pluginsMap = new ConcurrentHashMap<>();
-  private static Map<String, String> dependenciesMap = new ConcurrentHashMap<>();
+  private static Map<String, String> pluginsMap = null;
+  private static Map<String, String> dependenciesMap = null;
 
   public static Map<String, String> getPluginsMap() {
     if (CommonUtil.isEmpty(pluginsMap)) {
