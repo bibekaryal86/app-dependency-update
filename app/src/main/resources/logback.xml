@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration debug="false">
+    <property name="LOG_FILE" value="/home/pi/zava/logs/app-dependency-update/app-dependency-update"/>
     <property name="LOG_PATTERN"
               value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}] [%thread] [%level] --- %msg%n"/>
 
@@ -11,8 +12,26 @@
         </encoder>
     </appender>
 
+    <appender name="FILELOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}_%i.log</FileNamePattern>
+            <!-- keep 14 days' worth of history -->
+            <maxHistory>14</maxHistory>
+            <!-- Single file size limit -->
+            <maxFileSize>5MB</maxFileSize>
+            <!-- Total files size limit -->
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILELOG"/>
     </root>
 
 </configuration>

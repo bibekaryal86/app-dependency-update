@@ -61,8 +61,6 @@ public class MavenRepoUtil {
       latestVersion = currentVersion;
     }
 
-
-
     return latestVersion;
   }
 
@@ -78,10 +76,7 @@ public class MavenRepoUtil {
       String mavenId = group + ":" + artifact;
       MongoUtil.insertDependencies(
           Collections.singletonList(
-              MongoDependencies.builder()
-                  .id(mavenId)
-                  .latestVersion(latestVersion)
-                  .build()));
+              MongoDependencies.builder().id(mavenId).latestVersion(latestVersion).build()));
       dependenciesMap.putIfAbsent(mavenId, latestVersion);
       return latestVersion;
     }
