@@ -9,5 +9,5 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class MavenResponse {
-  private final List<MavenDocs> docs;
+  private final List<MavenDoc> docs;
 }

@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class MavenDocs {
+public class MavenDoc {
   private final String id;
   private final String latestVersion;
 }
