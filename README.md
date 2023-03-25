@@ -1,6 +1,6 @@
 # dependencies-updater
 
-* Things to add:
+* Things to update:
   * Add scheduled tasks
     * Task 1, check mongo for updated list of gradle plugins (once a week?)
     * Task 2, check mongo and maven for any updates required in mongo (once a week?)
