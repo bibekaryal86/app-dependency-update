@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MongoPlugins {
+public class MongoPlugin {
   private String group;
   private String artifact;
 }

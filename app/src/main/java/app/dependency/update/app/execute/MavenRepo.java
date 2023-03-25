@@ -2,8 +2,8 @@ package app.dependency.update.app.execute;
 
 import app.dependency.update.app.model.MavenDoc;
 import app.dependency.update.app.model.MavenSearchResponse;
-import app.dependency.update.app.model.MongoDependencies;
-import app.dependency.update.app.model.MongoPlugins;
+import app.dependency.update.app.model.MongoDependency;
+import app.dependency.update.app.model.MongoPlugin;
 import app.dependency.update.app.util.CommonUtil;
 import app.dependency.update.app.util.ConnectorUtil;
 import app.dependency.update.app.util.MongoUtil;
@@ -18,25 +18,25 @@ import lombok.extern.slf4j.Slf4j;
 public class MavenRepo {
 
   public void setPluginsMap() {
-    List<MongoPlugins> mongoPlugins = MongoUtil.retrievePlugins();
+    List<MongoPlugin> mongoPlugins = MongoUtil.retrievePlugins();
     Map<String, String> pluginsMap =
         mongoPlugins.stream()
-            .collect(Collectors.toMap(MongoPlugins::getGroup, MongoPlugins::getArtifact));
+            .collect(Collectors.toMap(MongoPlugin::getGroup, MongoPlugin::getArtifact));
     CommonUtil.setPluginsMap(pluginsMap);
-    log.info("Set Plugin Map: {}", pluginsMap);
+    log.info("Set Plugin Map: {}", pluginsMap.size());
   }
 
   public void setDependenciesMap() {
-    List<MongoDependencies> mongoDependencies = MongoUtil.retrieveDependencies();
+    List<MongoDependency> mongoDependencies = MongoUtil.retrieveDependencies();
     Map<String, String> dependenciesMap =
         mongoDependencies.stream()
             .collect(
-                Collectors.toMap(MongoDependencies::getId, MongoDependencies::getLatestVersion));
+                Collectors.toMap(MongoDependency::getId, MongoDependency::getLatestVersion));
     CommonUtil.setDependenciesMap(dependenciesMap);
-    log.info("Set Dependencies Map: {}", dependenciesMap);
+    log.info("Set Dependencies Map: {}", dependenciesMap.size());
   }
 
-  public String getLatestVersion(String group, String artifact, String currentVersion) {
+  public String getLatestVersion(String group, String artifact, String currentVersion, boolean forceRemote) {
     // plugins do not have artifact information, so get artifact from pluginsMap
     if (CommonUtil.isEmpty(artifact)) {
       artifact = CommonUtil.getPluginsMap().get(group);
@@ -52,7 +52,7 @@ public class MavenRepo {
 
     String mavenId = group + ":" + artifact;
 
-    if (CommonUtil.getDependenciesMap().get(mavenId) != null) {
+    if (!forceRemote && CommonUtil.getDependenciesMap().get(mavenId) != null) {
       // return from dependencies map from local repo
       return CommonUtil.getDependenciesMap().get(mavenId);
     }
@@ -68,7 +68,7 @@ public class MavenRepo {
     // save to local maven repo as well
     MongoUtil.insertDependencies(
         Collections.singletonList(
-            MongoDependencies.builder()
+            MongoDependency.builder()
                 .id(mavenId)
                 .latestVersion(latestVersion.getLatestVersion())
                 .build()));
