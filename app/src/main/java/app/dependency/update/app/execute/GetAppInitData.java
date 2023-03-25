@@ -35,7 +35,7 @@ public class GetAppInitData {
   public AppInitData getAppInitData() {
     log.info("Get App Init Data...");
     // get the input arguments
-    Map<String, String> argsMap = makeArgsMap(this.args);
+    Map<String, String> argsMap = makeArgsMap();
     // get the scripts included in resources folder
     List<ScriptFile> scriptFiles = getScriptsInResources();
     // get the list of repositories and their type
@@ -48,36 +48,35 @@ public class GetAppInitData {
         .build();
   }
 
-  private Map<String, String> makeArgsMap(String[] args) {
+  private Map<String, String> makeArgsMap() {
     log.info("Args Before Conversion: {}", Arrays.asList(args));
     Map<String, String> map = new HashMap<>();
 
-    for (String arg : args) {
-      try {
-        String[] argArray = arg.split("=");
-        map.put(argArray[0], argArray[1]);
-      } catch (Exception ex) {
-        throw new AppDependencyUpdateRuntimeException("Invalid Param: " + arg, ex);
-      }
+    if (CommonUtil.getSystemEnvProperty(CommonUtil.PARAM_REPO_HOME, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
+    } else {
+      map.put(
+          CommonUtil.PARAM_REPO_HOME,
+          CommonUtil.getSystemEnvProperty(CommonUtil.PARAM_REPO_HOME, null));
     }
-
-    checkRequiredArgumentsAndParametersOnInit(map);
-    log.info("Args Map After Conversion: {}", map);
-    return map;
-  }
-
-  private void checkRequiredArgumentsAndParametersOnInit(Map<String, String> argsMap) {
-    if (argsMap.get(PARAM_REPO_HOME) == null) {
-      throw new AppDependencyUpdateRuntimeException("repo_home parameter must be provided");
-    }
-
     if (CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_USERNAME, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
+    } else {
+      map.put(
+          CommonUtil.ENV_MONGO_USERNAME,
+          CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_USERNAME, null));
     }
 
     if (CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_PASSWORD, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
+    } else {
+      map.put(
+          CommonUtil.ENV_MONGO_PASSWORD,
+          CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_PASSWORD, null));
     }
+
+    log.info("Args Map After Conversion: {}", map);
+    return map;
   }
 
   private List<ScriptFile> getScriptsInResources() {

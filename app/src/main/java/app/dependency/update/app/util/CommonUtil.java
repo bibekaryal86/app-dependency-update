@@ -5,6 +5,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -35,7 +36,27 @@ public class CommonUtil {
   public static final String GRADLE_RELEASES_ENDPOINT =
       "https://api.github.com/repos/gradle/gradle/releases";
   public static final String MAVEN_SEARCH_ENDPOINT =
-      "https://search.maven.org/solrsearch/select?wt=json&q=g:%s+AND+a:%s";
+      "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
+
+  // caches
+  private static Map<String, String> pluginsMap = null;
+  private static Map<String, String> dependenciesMap = null;
+
+  public static Map<String, String> getPluginsMap() {
+    return pluginsMap;
+  }
+
+  public static void setPluginsMap(Map<String, String> pluginsMap) {
+    CommonUtil.pluginsMap = Collections.unmodifiableMap(pluginsMap);
+  }
+
+  public static Map<String, String> getDependenciesMap() {
+    return dependenciesMap;
+  }
+
+  public static void setDependenciesMap(Map<String, String> dependenciesMap) {
+    CommonUtil.dependenciesMap = Collections.unmodifiableMap(dependenciesMap);
+  }
 
   public static boolean isEmpty(String s) {
     return (s == null || s.trim().isEmpty());
