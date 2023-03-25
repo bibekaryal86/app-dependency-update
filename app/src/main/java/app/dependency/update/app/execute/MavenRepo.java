@@ -30,13 +30,13 @@ public class MavenRepo {
     List<MongoDependency> mongoDependencies = MongoUtil.retrieveDependencies();
     Map<String, String> dependenciesMap =
         mongoDependencies.stream()
-            .collect(
-                Collectors.toMap(MongoDependency::getId, MongoDependency::getLatestVersion));
+            .collect(Collectors.toMap(MongoDependency::getId, MongoDependency::getLatestVersion));
     CommonUtil.setDependenciesMap(dependenciesMap);
     log.info("Set Dependencies Map: {}", dependenciesMap.size());
   }
 
-  public String getLatestVersion(String group, String artifact, String currentVersion, boolean forceRemote) {
+  public String getLatestVersion(
+      String group, String artifact, String currentVersion, boolean forceRemote) {
     // plugins do not have artifact information, so get artifact from pluginsMap
     if (CommonUtil.isEmpty(artifact)) {
       artifact = CommonUtil.getPluginsMap().get(group);
@@ -89,14 +89,14 @@ public class MavenRepo {
         && mavenSearchResponse.getResponse() != null
         && !CommonUtil.isEmpty(mavenSearchResponse.getResponse().getDocs())) {
       return mavenSearchResponse.getResponse().getDocs().stream()
-          .filter(mavenDoc -> !isCheckContains(mavenDoc.getLatestVersion()))
+          .filter(mavenDoc -> !isCheckPreReleaseVersion(mavenDoc.getLatestVersion()))
           .max(Comparator.comparing(MavenDoc::getLatestVersion))
           .orElse(null);
     }
     return null;
   }
 
-  private boolean isCheckContains(String version) {
+  private boolean isCheckPreReleaseVersion(String version) {
     return version.contains("alpha")
         || version.contains("ALPHA")
         || version.contains("b")
