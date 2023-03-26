@@ -25,19 +25,19 @@ public class AppScheduler {
       Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 0)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 22, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 5)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 22, 5)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10)),
+              CronScheduleBuilder.dailyAtHourAndMinute(22, 10)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 15)),
+              CronScheduleBuilder.dailyAtHourAndMinute(22, 15)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 30)));
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 22, 30)));
 
   public void startUpdateRepoScheduler() {
     log.info("Start Repo Scheduler...");
