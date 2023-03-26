@@ -21,6 +21,8 @@ public class App {
     new AppScheduler().startUpdateRepoScheduler();
     // start scheduler to delete/create/delete temp script files
     new AppScheduler().startFileSystemScheduler(appInitData);
+    // start scheduler to update dependencies
+    new AppScheduler().startUpdateProjectDependenciesScheduler(appInitData);
     // monitor threads
     new ThreadMonitor(appInitData);
     // update dependencies

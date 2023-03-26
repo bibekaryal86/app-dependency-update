@@ -2,6 +2,7 @@ package app.dependency.update.app.schedule;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.util.CommonUtil;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,7 +36,16 @@ public class AppScheduler {
               CronScheduleBuilder.dailyAtHourAndMinute(22, 10)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(22, 15)),
+              CronScheduleBuilder.dailyAtHourAndMinute(22, 10)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 15)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 20)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 25)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
               CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 30)));
@@ -45,8 +55,7 @@ public class AppScheduler {
     String schedulerName = "UpdateRepo";
 
     try {
-      Scheduler scheduler =
-          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
@@ -77,8 +86,7 @@ public class AppScheduler {
     String schedulerName = "FileSystem";
 
     try {
-      Scheduler scheduler =
-          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
 
       // schedule to delete temp script files before running scripts
@@ -113,6 +121,48 @@ public class AppScheduler {
     }
   }
 
+  public void startUpdateProjectDependenciesScheduler(final AppInitData appInitData) {
+    log.info("Start Update Project Dependencies Scheduler...");
+    String schedulerName = "UpdateProjectDependencies";
+
+    try {
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
+      scheduler.start();
+
+      // schedule to update NPM dependencies
+      JobDetail jobDetailUpdateNpmDependencies = getJobDetailUpdateNpmDependencies(appInitData);
+      Trigger triggerUpdateNpmDependencies =
+          getTrigger(
+              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateNpmDependencies.class.getSimpleName()));
+      scheduler.scheduleJob(jobDetailUpdateNpmDependencies, triggerUpdateNpmDependencies);
+
+      // schedule to update Gradle wrapper
+      JobDetail jobDetailUpdateGradleWrapper = getJobDetailUpdateGradleWrapper(appInitData);
+      Trigger triggerUpdateGradleWrapper =
+          getTrigger(
+              SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateGradleWrapper.class.getSimpleName()));
+      scheduler.scheduleJob(jobDetailUpdateGradleWrapper, triggerUpdateGradleWrapper);
+
+      // schedule to update Gradle dependencies
+      JobDetail jobDetailUpdateGradleDependencies = getJobDetailUpdateGradleDependencies(appInitData);
+      Trigger triggerUpdateGradleDependencies =
+              getTrigger(
+                      SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
+                      SCHEDULER_CRON_BUILDER_MAP.get(
+                              SchedulerJobUpdateGradleDependencies.class.getSimpleName()
+                      )
+              );
+      scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
+    } catch (SchedulerException ex) {
+      throw new AppDependencyUpdateRuntimeException(
+          schedulerName + " Scheduler Initialization Error", ex);
+    }
+  }
+
   private Trigger getTrigger(String identity, CronScheduleBuilder cronScheduleBuilder) {
     return TriggerBuilder.newTrigger()
         .withIdentity(identity)
@@ -133,22 +183,49 @@ public class AppScheduler {
         .build();
   }
 
-  private JobDetail getJobDetailDeleteTempScriptFiles(String identitySuffix) {
+  private JobDetail getJobDetailDeleteTempScriptFiles(final String identitySuffix) {
     return JobBuilder.newJob(SchedulerJobDeleteTempScriptFiles.class)
         .withIdentity(SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + identitySuffix)
         .build();
   }
 
-  private JobDetail getJobDetailCreateTempScriptFiles(AppInitData appInitData) {
+  private JobDetail getJobDetailCreateTempScriptFiles(final AppInitData appInitData) {
     JobDataMap jobDataMap = new JobDataMap();
-    jobDataMap.put(SchedulerJobCreateTempScriptFiles.APP_INIT_DATA_MAP, appInitData);
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
     return JobBuilder.newJob(SchedulerJobCreateTempScriptFiles.class)
         .withIdentity(SchedulerJobCreateTempScriptFiles.class.getSimpleName())
         .usingJobData(jobDataMap)
         .build();
   }
 
-  private Properties getProperties(String schedulerName) {
+  private JobDetail getJobDetailUpdateNpmDependencies(final AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobUpdateNpmDependencies.class)
+        .withIdentity(SchedulerJobUpdateNpmDependencies.class.getSimpleName())
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
+  private JobDetail getJobDetailUpdateGradleWrapper(final AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobUpdateGradleWrapper.class)
+        .withIdentity(SchedulerJobUpdateGradleWrapper.class.getSimpleName())
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
+  private JobDetail getJobDetailUpdateGradleDependencies(final AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobUpdateGradleDependencies.class)
+        .withIdentity(SchedulerJobUpdateGradleDependencies.class.getSimpleName())
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
+  private Properties getProperties(final String schedulerName) {
     String fStr = "false";
     Properties properties = new Properties();
     // default properties from quartz.properties
