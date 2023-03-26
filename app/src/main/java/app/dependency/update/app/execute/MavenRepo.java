@@ -66,17 +66,20 @@ public class MavenRepo {
     }
 
     // save to local maven repo as well
-    MongoUtil.insertDependencies(
-        Collections.singletonList(
-            MongoDependency.builder().id(mavenId).latestVersion(latestVersion.getV()).build()));
+    if (!forceRemote) {
+      MongoUtil.insertDependencies(
+          Collections.singletonList(
+              MongoDependency.builder().id(mavenId).latestVersion(latestVersion.getV()).build()));
+    }
 
     return latestVersion.getV();
   }
 
   private MavenDoc getLatestVersion(String group, String artifact) {
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
-    log.info("Maven Search Response: [{}:{}], {}", group, artifact, mavenSearchResponse);
-    return getLatestVersion(mavenSearchResponse);
+    MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
+    log.info("Maven Search Response: [{}:{}], [{}:{}]", group, artifact, mavenDoc, mavenSearchResponse);
+    return mavenDoc;
   }
 
   private MavenDoc getLatestVersion(MavenSearchResponse mavenSearchResponse) {
