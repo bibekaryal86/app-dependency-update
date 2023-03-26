@@ -2,6 +2,8 @@ package app.dependency.update.app.schedule;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronScheduleBuilder;
@@ -17,6 +19,24 @@ import org.quartz.impl.StdSchedulerFactory;
 @Slf4j
 public class AppScheduler {
 
+  private final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
+      Map.ofEntries(
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "Begin",
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 0)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 5)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobMavenRepoPlugins.class.getSimpleName(),
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 10)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobMavenRepoDependencies.class.getSimpleName(),
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 15)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "End",
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 30)));
+
   public void startUpdateRepoScheduler() {
     log.info("Start Repo Scheduler...");
     String schedulerName = "UpdateRepo";
@@ -31,7 +51,7 @@ public class AppScheduler {
       Trigger triggerMavenRepoPlugins =
           getTrigger(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10));
+              SCHEDULER_CRON_BUILDER_MAP.get(SchedulerJobMavenRepoPlugins.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoPlugins, triggerMavenRepoPlugins);
 
       // scheduler to get/manipulate/save dependencies for local maven repo and set the Map in
@@ -40,7 +60,8 @@ public class AppScheduler {
       Trigger triggerMavenRepoDependencies =
           getTrigger(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 15));
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobMavenRepoDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
@@ -62,7 +83,8 @@ public class AppScheduler {
       Trigger triggerDeleteTempScriptFiles =
           getTrigger(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 0));
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "Begin"));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // schedule to delete temp script files after running scripts
@@ -70,7 +92,8 @@ public class AppScheduler {
       triggerDeleteTempScriptFiles =
           getTrigger(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 30));
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "End"));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // scheduler to create temp script files
@@ -78,7 +101,8 @@ public class AppScheduler {
       Trigger triggerCreateTempScriptFiles =
           getTrigger(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 5));
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobCreateTempScriptFiles.class.getSimpleName() + "Begin"));
       scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
