@@ -1,10 +1,12 @@
 package app.dependency.update.app.schedule;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.AppInitData;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -15,11 +17,11 @@ import org.quartz.impl.StdSchedulerFactory;
 @Slf4j
 public class AppScheduler {
 
-  public void startRepoScheduler() {
-    log.info("Start Scheduler...");
+  public void startUpdateRepoScheduler() {
+    log.info("Start Repo Scheduler...");
+    String schedulerName = "UpdateRepo";
 
     try {
-      String schedulerName = "Update-Repo";
       Scheduler scheduler =
           new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
       scheduler.start();
@@ -38,10 +40,49 @@ public class AppScheduler {
       Trigger triggerMavenRepoDependencies =
           getTrigger(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10));
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 15));
       scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
-      throw new AppDependencyUpdateRuntimeException("Scheduler Initialization Error", ex);
+      throw new AppDependencyUpdateRuntimeException(
+          schedulerName + " Scheduler Initialization Error", ex);
+    }
+  }
+
+  public void startFileSystemScheduler(final AppInitData appInitData) {
+    log.info("Start File System Scheduler...");
+    String schedulerName = "FileSystem";
+
+    try {
+      Scheduler scheduler =
+          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
+      scheduler.start();
+
+      // schedule to delete temp script files before running scripts
+      JobDetail jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles();
+      Trigger triggerDeleteTempScriptFiles =
+          getTrigger(
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 0));
+      scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
+
+      // schedule to delete temp script files after running scripts
+      jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles();
+      triggerDeleteTempScriptFiles =
+          getTrigger(
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 30));
+      scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
+
+      // scheduler to create temp script files
+      JobDetail jobDetailCreateTempScriptFiles = getJobDetailCreateTempScriptFiles(appInitData);
+      Trigger triggerCreateTempScriptFiles =
+          getTrigger(
+              SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 5));
+      scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
+    } catch (SchedulerException ex) {
+      throw new AppDependencyUpdateRuntimeException(
+          schedulerName + " Scheduler Initialization Error", ex);
     }
   }
 
@@ -65,6 +106,21 @@ public class AppScheduler {
         .build();
   }
 
+  private JobDetail getJobDetailDeleteTempScriptFiles() {
+    return JobBuilder.newJob(SchedulerJobDeleteTempScriptFiles.class)
+        .withIdentity(SchedulerJobDeleteTempScriptFiles.class.getSimpleName())
+        .build();
+  }
+
+  private JobDetail getJobDetailCreateTempScriptFiles(AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(SchedulerJobCreateTempScriptFiles.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobCreateTempScriptFiles.class)
+        .withIdentity(SchedulerJobCreateTempScriptFiles.class.getSimpleName())
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
   private Properties getProperties(String schedulerName) {
     String fStr = "false";
     Properties properties = new Properties();
@@ -74,7 +130,7 @@ public class AppScheduler {
     properties.setProperty("org.quartz.scheduler.rmi.proxy", fStr);
     properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", fStr);
     properties.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
-    properties.setProperty("org.quartz.threadPool.threadCount", "5");
+    properties.setProperty("org.quartz.threadPool.threadCount", "10");
     properties.setProperty("org.quartz.threadPool.threadPriority", "5");
     properties.setProperty(
         "org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", "true");
