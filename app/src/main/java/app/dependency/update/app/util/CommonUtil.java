@@ -89,6 +89,7 @@ public class CommonUtil {
           sb.append(s);
         }
       } catch (NumberFormatException ignored) {
+        // ignore exception
       }
     }
     return sb.toString();
