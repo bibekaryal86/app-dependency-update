@@ -78,7 +78,8 @@ public class MavenRepo {
   private MavenDoc getLatestVersion(String group, String artifact) {
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
-    log.info("Maven Search Response: [{}:{}], [{}:{}]", group, artifact, mavenDoc, mavenSearchResponse);
+    log.info(
+        "Maven Search Response: [{}:{}], [{}:{}]", group, artifact, mavenDoc, mavenSearchResponse);
     return mavenDoc;
   }
 
