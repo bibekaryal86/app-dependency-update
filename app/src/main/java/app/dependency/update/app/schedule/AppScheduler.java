@@ -19,10 +19,12 @@ import org.quartz.impl.StdSchedulerFactory;
 @Slf4j
 public class AppScheduler {
 
-  private final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
+  private static final String BEGIN = "Begin";
+  private static final String END = "End";
+  private static final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
       Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "Begin",
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
               CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
@@ -34,7 +36,7 @@ public class AppScheduler {
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
               CronScheduleBuilder.dailyAtHourAndMinute(10, 15)),
           new AbstractMap.SimpleEntry<>(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "End",
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
               CronScheduleBuilder.weeklyOnDayAndHourAndMinute(5, 10, 30)));
 
   public void startUpdateRepoScheduler() {
@@ -43,8 +45,9 @@ public class AppScheduler {
 
     try {
       Scheduler scheduler =
-          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
+          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
+      log.info("UpdateRepo Scheduler Name: {} | {}", scheduler.getSchedulerName(), scheduler.getSchedulerInstanceId());
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
       JobDetail jobDetailMavenRepoPlugins = getJobDetailMavenRepoPlugins();
@@ -75,25 +78,26 @@ public class AppScheduler {
 
     try {
       Scheduler scheduler =
-          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
+          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
+      log.info("FileSystem Scheduler Name: {} | {}", scheduler.getSchedulerName(), scheduler.getSchedulerInstanceId());
 
       // schedule to delete temp script files before running scripts
-      JobDetail jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles();
+      JobDetail jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles(BEGIN);
       Trigger triggerDeleteTempScriptFiles =
           getTrigger(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
               SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "Begin"));
+                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // schedule to delete temp script files after running scripts
-      jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles();
+      jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles(END);
       triggerDeleteTempScriptFiles =
           getTrigger(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName(),
+              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
               SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + "End"));
+                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // scheduler to create temp script files
@@ -102,7 +106,7 @@ public class AppScheduler {
           getTrigger(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
               SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobCreateTempScriptFiles.class.getSimpleName() + "Begin"));
+                  SchedulerJobCreateTempScriptFiles.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
@@ -130,9 +134,9 @@ public class AppScheduler {
         .build();
   }
 
-  private JobDetail getJobDetailDeleteTempScriptFiles() {
+  private JobDetail getJobDetailDeleteTempScriptFiles(String identitySuffix) {
     return JobBuilder.newJob(SchedulerJobDeleteTempScriptFiles.class)
-        .withIdentity(SchedulerJobDeleteTempScriptFiles.class.getSimpleName())
+        .withIdentity(SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + identitySuffix)
         .build();
   }
 
