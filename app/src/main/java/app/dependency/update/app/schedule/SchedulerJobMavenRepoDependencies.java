@@ -2,6 +2,7 @@ package app.dependency.update.app.schedule;
 
 import app.dependency.update.app.execute.MavenRepo;
 import app.dependency.update.app.model.MongoDependency;
+import app.dependency.update.app.util.CommonUtil;
 import app.dependency.update.app.util.MongoUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,8 @@ public class SchedulerJobMavenRepoDependencies implements Job {
   }
 
   private boolean isRequiresUpdate(String currentVersion, String latestVersion) {
-    return latestVersion.compareTo(currentVersion) > 0;
+    return CommonUtil.getVersionToCompare(latestVersion)
+            .compareTo(CommonUtil.getVersionToCompare(currentVersion))
+        > 0;
   }
 }

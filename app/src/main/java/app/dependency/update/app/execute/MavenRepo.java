@@ -68,10 +68,7 @@ public class MavenRepo {
     // save to local maven repo as well
     MongoUtil.insertDependencies(
         Collections.singletonList(
-            MongoDependency.builder()
-                .id(mavenId)
-                .latestVersion(latestVersion.getV())
-                .build()));
+            MongoDependency.builder().id(mavenId).latestVersion(latestVersion.getV()).build()));
 
     return latestVersion.getV();
   }
@@ -90,7 +87,9 @@ public class MavenRepo {
         && !CommonUtil.isEmpty(mavenSearchResponse.getResponse().getDocs())) {
       return mavenSearchResponse.getResponse().getDocs().stream()
           .filter(mavenDoc -> !isCheckPreReleaseVersion(mavenDoc.getV()))
-          .max(Comparator.comparing(MavenDoc::getV))
+          .max(
+              Comparator.comparing(
+                  MavenDoc::getV, Comparator.comparing(CommonUtil::getVersionToCompare)))
           .orElse(null);
     }
     return null;
