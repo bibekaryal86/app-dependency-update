@@ -20,7 +20,8 @@ public class AppScheduler {
 
     try {
       String schedulerName = "Update-Repo";
-      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
+      Scheduler scheduler =
+          new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
       scheduler.start();
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
@@ -31,7 +32,8 @@ public class AppScheduler {
               CronScheduleBuilder.dailyAtHourAndMinute(10, 10));
       scheduler.scheduleJob(jobDetailMavenRepoPlugins, triggerMavenRepoPlugins);
 
-      // scheduler to get/manipulate/save dependencies for local maven repo and set the Map in CommonUtil
+      // scheduler to get/manipulate/save dependencies for local maven repo and set the Map in
+      // CommonUtil
       JobDetail jobDetailMavenRepoDependencies = getJobDetailMavenRepoDependencies();
       Trigger triggerMavenRepoDependencies =
           getTrigger(
@@ -67,7 +69,7 @@ public class AppScheduler {
     String fStr = "false";
     Properties properties = new Properties();
     // default properties from quartz.properties
-    properties.setProperty("org.quartz.scheduler.instanceName", "Quartz-"+schedulerName);
+    properties.setProperty("org.quartz.scheduler.instanceName", "Quartz-" + schedulerName);
     properties.setProperty("org.quartz.scheduler.rmi.export", fStr);
     properties.setProperty("org.quartz.scheduler.rmi.proxy", fStr);
     properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", fStr);
@@ -79,8 +81,8 @@ public class AppScheduler {
     properties.setProperty("org.quartz.jobStore.misfireThreshold", "60000");
     properties.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
     // others
-    properties.setProperty("org.quartz.scheduler.instanceId", "Scheduler-"+schedulerName);
-    properties.setProperty("org.quartz.scheduler.threadName", "QS-"+schedulerName);
+    properties.setProperty("org.quartz.scheduler.instanceId", "Scheduler-" + schedulerName);
+    properties.setProperty("org.quartz.scheduler.threadName", "QS-" + schedulerName);
     return properties;
   }
 }
