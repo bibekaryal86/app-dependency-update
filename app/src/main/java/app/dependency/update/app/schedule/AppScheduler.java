@@ -15,11 +15,12 @@ import org.quartz.impl.StdSchedulerFactory;
 @Slf4j
 public class AppScheduler {
 
-  public void startScheduler() {
+  public void startRepoScheduler() {
     log.info("Start Scheduler...");
 
     try {
-      Scheduler scheduler = new StdSchedulerFactory(getProperties()).getScheduler();
+      String schedulerName = "Update-Repo";
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler(schedulerName);
       scheduler.start();
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
@@ -62,24 +63,24 @@ public class AppScheduler {
         .build();
   }
 
-  private Properties getProperties() {
-    String falseStr = "false"; // for lint smell
+  private Properties getProperties(String schedulerName) {
+    String fStr = "false";
     Properties properties = new Properties();
     // default properties from quartz.properties
-    properties.setProperty("org.quartz.scheduler.instanceName", "Quartz"); // DefaultQuartzScheduler
-    properties.setProperty("org.quartz.scheduler.rmi.export", falseStr);
-    properties.setProperty("org.quartz.scheduler.rmi.proxy", falseStr);
-    properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", falseStr);
+    properties.setProperty("org.quartz.scheduler.instanceName", "Quartz-"+schedulerName);
+    properties.setProperty("org.quartz.scheduler.rmi.export", fStr);
+    properties.setProperty("org.quartz.scheduler.rmi.proxy", fStr);
+    properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", fStr);
     properties.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
-    properties.setProperty("org.quartz.threadPool.threadCount", "5"); // 10
+    properties.setProperty("org.quartz.threadPool.threadCount", "5");
     properties.setProperty("org.quartz.threadPool.threadPriority", "5");
     properties.setProperty(
         "org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", "true");
     properties.setProperty("org.quartz.jobStore.misfireThreshold", "60000");
     properties.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
     // others
-    properties.setProperty("org.quartz.scheduler.instanceId", "Scheduler");
-    properties.setProperty("org.quartz.scheduler.threadName", "QS");
+    properties.setProperty("org.quartz.scheduler.instanceId", "Scheduler-"+schedulerName);
+    properties.setProperty("org.quartz.scheduler.threadName", "QS-"+schedulerName);
     return properties;
   }
 }

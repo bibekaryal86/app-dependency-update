@@ -18,7 +18,7 @@ public class App {
     log.info("Begin app-dependency-update initialization...");
 
     // start scheduler
-    new AppScheduler().startScheduler();
+    new AppScheduler().startRepoScheduler();
     // delete temp folders if exist at the beginning
     new DeleteTempScriptFiles();
     // get initial app data
