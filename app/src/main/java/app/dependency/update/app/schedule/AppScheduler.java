@@ -48,7 +48,6 @@ public class AppScheduler {
       Scheduler scheduler =
           new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
-      log.info("UpdateRepo Scheduler Name: {} | {}", scheduler.getSchedulerName(), scheduler.getSchedulerInstanceId());
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
       JobDetail jobDetailMavenRepoPlugins = getJobDetailMavenRepoPlugins();
@@ -81,7 +80,6 @@ public class AppScheduler {
       Scheduler scheduler =
           new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
-      log.info("FileSystem Scheduler Name: {} | {}", scheduler.getSchedulerName(), scheduler.getSchedulerInstanceId());
 
       // schedule to delete temp script files before running scripts
       JobDetail jobDetailDeleteTempScriptFiles = getJobDetailDeleteTempScriptFiles(BEGIN);
