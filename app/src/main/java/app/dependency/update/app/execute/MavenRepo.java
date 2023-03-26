@@ -70,10 +70,10 @@ public class MavenRepo {
         Collections.singletonList(
             MongoDependency.builder()
                 .id(mavenId)
-                .latestVersion(latestVersion.getLatestVersion())
+                .latestVersion(latestVersion.getV())
                 .build()));
 
-    return latestVersion.getLatestVersion();
+    return latestVersion.getV();
   }
 
   private MavenDoc getLatestVersion(String group, String artifact) {
@@ -89,8 +89,8 @@ public class MavenRepo {
         && mavenSearchResponse.getResponse() != null
         && !CommonUtil.isEmpty(mavenSearchResponse.getResponse().getDocs())) {
       return mavenSearchResponse.getResponse().getDocs().stream()
-          .filter(mavenDoc -> !isCheckPreReleaseVersion(mavenDoc.getLatestVersion()))
-          .max(Comparator.comparing(MavenDoc::getLatestVersion))
+          .filter(mavenDoc -> !isCheckPreReleaseVersion(mavenDoc.getV()))
+          .max(Comparator.comparing(MavenDoc::getV))
           .orElse(null);
     }
     return null;

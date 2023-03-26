@@ -28,27 +28,8 @@ public class SchedulerJobMavenRepoDependencies implements Job {
   public List<MongoDependency> findMongoDependenciesToUpdate() {
     // get the dependencies, best to get it from mongo than from local Map
     List<MongoDependency> mongoDependencies = MongoUtil.retrieveDependencies();
+    List<MongoDependency> mongoDependenciesToUpdate = new ArrayList<>();
 
-    List<MongoDependency> mongoDependenciesToUpdate =
-        mongoDependencies.stream()
-            .filter(
-                mongoDependency -> {
-                  String[] mavenIdArray = mongoDependency.getId().split(":");
-                  String currentVersion = mongoDependency.getLatestVersion();
-                  // get current version from Maven Central Repository
-                  String latestVersion =
-                      new MavenRepo()
-                          .getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion, true);
-                  return isRequiresUpdate(currentVersion, latestVersion);
-                })
-            .toList();
-
-    log.info(
-        "Mongo Dependencies to Update: {}\n{}",
-        mongoDependenciesToUpdate.size(),
-        mongoDependenciesToUpdate);
-
-    List<MongoDependency> mongoDependenciesToUpdate1 = new ArrayList<>();
     mongoDependencies.forEach(
         mongoDependency -> {
           String[] mavenIdArray = mongoDependency.getId().split(":");
@@ -59,7 +40,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
                   .getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion, true);
           // check if local maven repo needs updating
           if (isRequiresUpdate(currentVersion, latestVersion)) {
-            mongoDependenciesToUpdate1.add(
+            mongoDependenciesToUpdate.add(
                 MongoDependency.builder()
                     .id(mongoDependency.getId())
                     .latestVersion(latestVersion)
@@ -67,12 +48,15 @@ public class SchedulerJobMavenRepoDependencies implements Job {
           }
         });
 
-    log.info("Second: {}\n{}", mongoDependenciesToUpdate1.size(), mongoDependenciesToUpdate1);
+    log.info(
+        "Mongo Dependencies to Update: {}\n{}",
+        mongoDependenciesToUpdate.size(),
+        mongoDependenciesToUpdate);
 
     return mongoDependenciesToUpdate;
   }
 
   private boolean isRequiresUpdate(String currentVersion, String latestVersion) {
-    return currentVersion.compareTo(latestVersion) > 0;
+    return latestVersion.compareTo(currentVersion) > 0;
   }
 }

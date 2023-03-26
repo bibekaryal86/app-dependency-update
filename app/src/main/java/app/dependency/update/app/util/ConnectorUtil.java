@@ -71,7 +71,7 @@ public class ConnectorUtil {
       Type type,
       Class<?> clazz) {
     try {
-      log.info(
+      log.debug(
           "HTTP Request Sent::: Endpoint: [ {} ], Method: [ {} ], Headers: [ {} ], Body: [ {} ]",
           endpoint,
           httpMethod,
@@ -81,7 +81,7 @@ public class ConnectorUtil {
       HttpRequest httpRequest = getHttpRequestBuilder(endpoint, httpMethod, bodyObject, headers);
       HttpResponse<String> httpResponse = sendHttpRequest(httpRequest);
 
-      log.info(
+      log.debug(
           "HTTP Response Received::: Endpoint: [ {} ], Status: [ {} ], Body: [ {} ]",
           endpoint,
           httpResponse.statusCode(),
@@ -94,7 +94,7 @@ public class ConnectorUtil {
         return getGson().fromJson(httpResponse.body(), type);
       }
     } catch (InterruptedException ex) {
-      log.error("Error in HttpClient Send: [ {} ] | [ {} ]", endpoint, httpMethod, ex);
+      log.error("Interrupted Error in HttpClient Send: [ {} ] | [ {} ]", endpoint, httpMethod, ex);
       Thread.currentThread().interrupt();
     } catch (Exception ex) {
       log.error("Error in HttpClient Send: [ {} ] | [ {} ] ", endpoint, httpMethod, ex);
