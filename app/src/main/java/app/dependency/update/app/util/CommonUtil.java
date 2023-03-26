@@ -6,7 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +76,22 @@ public class CommonUtil {
     String envProperty =
         System.getProperty(keyName) != null ? System.getProperty(keyName) : System.getenv(keyName);
     return envProperty == null ? defaultValue : envProperty;
+  }
+
+  public static String getVersionToCompare(String version) {
+    List<String> strList = Stream.of(version.split("\\.")).limit(3).toList();
+    StringBuilder sb = new StringBuilder();
+    for (String s : strList) {
+      try {
+        if (Integer.parseInt(s) < 10) {
+          sb.append("0").append(s);
+        } else {
+          sb.append(s);
+        }
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return sb.toString();
   }
 
   public static Gson getGson() {

@@ -8,6 +8,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class MavenDoc {
-  private final String id;
-  private final String latestVersion;
+  private final String g;
+  private final String a;
+  private final String v;
 }

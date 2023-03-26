@@ -10,7 +10,7 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MongoDependencies {
+public class MongoDependency {
   @BsonProperty private String id;
   private String latestVersion;
 }

@@ -64,13 +64,13 @@ public class AppScheduler {
   }
 
   private Properties getProperties() {
-    String falseString = "false"; // for lint smell
+    String falseStr = "false"; // for lint smell
     Properties properties = new Properties();
     // default properties from quartz.properties
     properties.setProperty("org.quartz.scheduler.instanceName", "Quartz"); // DefaultQuartzScheduler
-    properties.setProperty("org.quartz.scheduler.rmi.export", falseString);
-    properties.setProperty("org.quartz.scheduler.rmi.proxy", falseString);
-    properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", falseString);
+    properties.setProperty("org.quartz.scheduler.rmi.export", falseStr);
+    properties.setProperty("org.quartz.scheduler.rmi.proxy", falseStr);
+    properties.setProperty("org.quartz.scheduler.rmi.wrapJobExecutionInUserTransaction", falseStr);
     properties.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
     properties.setProperty("org.quartz.threadPool.threadCount", "5"); // 10
     properties.setProperty("org.quartz.threadPool.threadPriority", "5");

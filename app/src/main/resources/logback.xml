@@ -3,7 +3,7 @@
 <configuration debug="false">
     <property name="LOG_FILE" value="/home/pi/zava/logs/app-dependency-update/app-dependency-update"/>
     <property name="LOG_PATTERN"
-              value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}] [%thread] [%level] --- %msg%n"/>
+              value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}] [%thread] [%level] [%c{0}]--- %msg%n"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -28,6 +28,16 @@
             <charset>utf8</charset>
         </encoder>
     </appender>
+
+    <logger name="org.mongodb.driver" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILELOG"/>
+    </logger>
+
+    <logger name="org.quartz" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILELOG"/>
+    </logger>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

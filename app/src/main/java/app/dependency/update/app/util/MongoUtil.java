@@ -1,8 +1,8 @@
 package app.dependency.update.app.util;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.MongoDependencies;
-import app.dependency.update.app.model.MongoPlugins;
+import app.dependency.update.app.model.MongoDependency;
+import app.dependency.update.app.model.MongoPlugin;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerApi;
@@ -41,13 +41,13 @@ public class MongoUtil {
     }
   }
 
-  public static List<MongoPlugins> retrievePlugins() {
+  public static List<MongoPlugin> retrievePlugins() {
     // for gradle plugins group:artifact are not available in build.gradle, only group is provided
     // since relatively low number of plugins used, save group:artifact in mongodb and retrieve
     // another option was to put in a properties file and read from it, but this seems better
-    List<MongoPlugins> mongoPlugins = new ArrayList<>();
+    List<MongoPlugin> mongoPlugins = new ArrayList<>();
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
-      FindIterable<MongoPlugins> gradlePluginFindIterable =
+      FindIterable<MongoPlugin> gradlePluginFindIterable =
           getMongoCollectionPlugins(mongoClient).find();
       gradlePluginFindIterable.forEach(mongoPlugins::add);
     } catch (Exception ex) {
@@ -56,10 +56,10 @@ public class MongoUtil {
     return mongoPlugins;
   }
 
-  public static List<MongoDependencies> retrieveDependencies() {
-    List<MongoDependencies> mongoDependencies = new ArrayList<>();
+  public static List<MongoDependency> retrieveDependencies() {
+    List<MongoDependency> mongoDependencies = new ArrayList<>();
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
-      FindIterable<MongoDependencies> gradlePluginFindIterable =
+      FindIterable<MongoDependency> gradlePluginFindIterable =
           getMongoCollectionDependencies(mongoClient).find();
       gradlePluginFindIterable.forEach(mongoDependencies::add);
     } catch (Exception ex) {
@@ -68,7 +68,7 @@ public class MongoUtil {
     return mongoDependencies;
   }
 
-  public static void insertDependencies(List<MongoDependencies> mongoDependencies) {
+  public static void insertDependencies(List<MongoDependency> mongoDependencies) {
     // unique index for `id` is added to mongodb collection
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       InsertManyResult insertManyResult =
@@ -79,7 +79,7 @@ public class MongoUtil {
     }
   }
 
-  public static void updateDependencies(List<MongoDependencies> mongoDependencies) {
+  public static void updateDependencies(List<MongoDependency> mongoDependencies) {
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       mongoDependencies.forEach(
           mongoDependency -> {
@@ -109,16 +109,16 @@ public class MongoUtil {
         .build();
   }
 
-  private static MongoCollection<MongoPlugins> getMongoCollectionPlugins(MongoClient mongoClient) {
+  private static MongoCollection<MongoPlugin> getMongoCollectionPlugins(MongoClient mongoClient) {
     return mongoClient
         .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
-        .getCollection("plugins", MongoPlugins.class);
+        .getCollection("plugins", MongoPlugin.class);
   }
 
-  private static MongoCollection<MongoDependencies> getMongoCollectionDependencies(
+  private static MongoCollection<MongoDependency> getMongoCollectionDependencies(
       MongoClient mongoClient) {
     return mongoClient
         .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
-        .getCollection("dependencies", MongoDependencies.class);
+        .getCollection("dependencies", MongoDependency.class);
   }
 }
