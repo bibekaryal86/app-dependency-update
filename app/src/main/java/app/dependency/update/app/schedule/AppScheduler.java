@@ -23,30 +23,29 @@ public class AppScheduler {
       scheduler.start();
 
       // schedule to get gradle plugins from local maven repo and set the Map in CommonUtil
-      scheduler.scheduleJob(
-          getJobDetailMavenRepoPlugins(),
+      JobDetail jobDetailMavenRepoPlugins = getJobDetailMavenRepoPlugins();
+      Trigger triggerMavenRepoPlugins =
           getTrigger(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              getJobDetailMavenRepoPlugins(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10)));
-      // scheduler to get/manipulate/save dependencies for local maven repo
-      scheduler.scheduleJob(
-          getJobDetailMavenRepoDependencies(),
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 10));
+      scheduler.scheduleJob(jobDetailMavenRepoPlugins, triggerMavenRepoPlugins);
+
+      // scheduler to get/manipulate/save dependencies for local maven repo and set the Map in CommonUtil
+      JobDetail jobDetailMavenRepoDependencies = getJobDetailMavenRepoDependencies();
+      Trigger triggerMavenRepoDependencies =
           getTrigger(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              getJobDetailMavenRepoDependencies(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 15)));
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 10));
+      scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException("Scheduler Initialization Error", ex);
     }
   }
 
-  private Trigger getTrigger(
-      String identity, JobDetail jobDetail, CronScheduleBuilder cronScheduleBuilder) {
+  private Trigger getTrigger(String identity, CronScheduleBuilder cronScheduleBuilder) {
     return TriggerBuilder.newTrigger()
         .withIdentity(identity)
         .withSchedule(cronScheduleBuilder)
-        .forJob(jobDetail)
         .startNow()
         .build();
   }
