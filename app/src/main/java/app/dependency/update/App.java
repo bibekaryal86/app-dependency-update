@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class App {
   public static void main(String[] args) {
-    log.info("Begin app-dependency-update initialization...");
+    log.warn("Begin app-dependency-update initialization...");
 
     // get initial app data
     final AppInitData appInitData = new GetAppInitData(args).getAppInitData();
@@ -25,6 +25,6 @@ public class App {
     // monitor threads
     new ThreadMonitor(appInitData);
 
-    log.info("End app-dependency-update initialization...");
+    log.warn("End app-dependency-update initialization...");
   }
 }
