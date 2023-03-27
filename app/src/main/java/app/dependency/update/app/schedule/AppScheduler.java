@@ -23,6 +23,7 @@ public class AppScheduler {
 
   private static final String BEGIN = "Begin";
   private static final String END = "End";
+  private static final String INIT_ERROR = " Scheduler Initialization Error...";
   private static final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
       Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
@@ -77,7 +78,7 @@ public class AppScheduler {
       scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
-          schedulerName + " Scheduler Initialization Error", ex);
+          schedulerName + INIT_ERROR, ex);
     }
   }
 
@@ -117,7 +118,7 @@ public class AppScheduler {
       scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
-          schedulerName + " Scheduler Initialization Error", ex);
+          schedulerName + INIT_ERROR, ex);
     }
   }
 
@@ -158,7 +159,7 @@ public class AppScheduler {
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
-          schedulerName + " Scheduler Initialization Error", ex);
+          schedulerName + INIT_ERROR, ex);
     }
   }
 
