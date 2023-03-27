@@ -85,7 +85,12 @@ public class GetAppInitData {
     try {
       // get path of the current running JAR
       String jarPath =
-          GetAppInitData.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+          GetAppInitData.class
+              .getProtectionDomain()
+              .getCodeSource()
+              .getLocation()
+              .toURI()
+              .getPath();
 
       // file walks JAR
       URI uri = URI.create("jar:file:" + jarPath);

@@ -77,8 +77,7 @@ public class AppScheduler {
                   SchedulerJobMavenRepoDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
-      throw new AppDependencyUpdateRuntimeException(
-          schedulerName + INIT_ERROR, ex);
+      throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
     }
   }
 
@@ -117,8 +116,7 @@ public class AppScheduler {
                   SchedulerJobCreateTempScriptFiles.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
     } catch (SchedulerException ex) {
-      throw new AppDependencyUpdateRuntimeException(
-          schedulerName + INIT_ERROR, ex);
+      throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
     }
   }
 
@@ -158,8 +156,7 @@ public class AppScheduler {
                   SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
     } catch (SchedulerException ex) {
-      throw new AppDependencyUpdateRuntimeException(
-          schedulerName + INIT_ERROR, ex);
+      throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
     }
   }
 
