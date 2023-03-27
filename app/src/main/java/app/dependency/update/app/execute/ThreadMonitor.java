@@ -86,23 +86,25 @@ public class ThreadMonitor {
   }
 
   private static void maybeAnimation() {
-      try {
-        System.out.print("\r");
-        Thread.sleep(500);
-        System.out.print("[ / ]");
-        System.out.print("\r");
-        Thread.sleep(500);
-        System.out.print("[ - ]");
-        System.out.print("\r");
-        Thread.sleep(500);
-        System.out.print("[ \\ ]");
-        System.out.print("\r");
-        Thread.sleep(500);
-        System.out.print("[ | ]");
-        System.out.print("\r");
-        Thread.sleep(500);
-        System.out.print("\r");
-        System.out.print("\r");
-      } catch (InterruptedException ignored) { Thread.currentThread().interrupt();}
+    try {
+      System.out.print("\r");
+      Thread.sleep(500);
+      System.out.print("[ / ]");
+      System.out.print("\r");
+      Thread.sleep(500);
+      System.out.print("[ - ]");
+      System.out.print("\r");
+      Thread.sleep(500);
+      System.out.print("[ \\ ]");
+      System.out.print("\r");
+      Thread.sleep(500);
+      System.out.print("[ | ]");
+      System.out.print("\r");
+      Thread.sleep(500);
+      System.out.print("\r");
+      System.out.print("\r");
+    } catch (InterruptedException ignored) {
+      Thread.currentThread().interrupt();
+    }
   }
 }
