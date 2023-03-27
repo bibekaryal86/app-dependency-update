@@ -29,22 +29,18 @@ fi
 echo Creating new branch
 branch_name="update_dependencies_"$(date +%F)
 git checkout -b "$branch_name"
-
-# Update dependencies
-if [ -n "$3" ]; then
-    echo Running Gradle Wrapper Update
-    chmod +x gradlew
-    ./gradlew wrapper --gradle-version="$3"
-    # Sometimes doesn't update on the first try
-    ./gradlew wrapper --gradle-version="$3"
-fi
+echo Running Gradle Wrapper Update
+chmod +x gradlew
+./gradlew wrapper --gradle-version="$3"
+# Sometimes doesn't update on the first try
+./gradlew wrapper --gradle-version="$3"
 
 # Commit and push
 echo Committing and pushing
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
-	git commit -am 'App Dependencies Updated'
+	git commit -am 'Gradle Wrapper Updated'
 	git push origin -u "$branch_name"
 	create_pr="yes"
 fi

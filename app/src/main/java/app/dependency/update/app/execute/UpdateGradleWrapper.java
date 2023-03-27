@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,13 +82,17 @@ public class UpdateGradleWrapper {
         .map(
             repository -> {
               String currentVersion = getCurrentGradleVersionInRepo(repository);
-              return new Repository(
-                  repository.getRepoPath(),
-                  repository.getType(),
-                  CommonUtil.isRequiresUpdate(currentVersion, latestVersion)
-                      ? latestVersion
-                      : null);
+              if (CommonUtil.isRequiresUpdate(currentVersion, latestVersion)) {
+                return new Repository(
+                    repository.getRepoPath(),
+                    repository.getType(),
+                    CommonUtil.isRequiresUpdate(currentVersion, latestVersion)
+                        ? latestVersion
+                        : null);
+              }
+              return null;
             })
+        .filter(Objects::nonNull)
         .toList();
   }
 

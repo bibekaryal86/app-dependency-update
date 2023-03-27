@@ -41,7 +41,7 @@ public class SchedulerJobUpdateGradleWrapper implements Job {
           gradleRepositories.isEmpty(),
           gradleScripts.isEmpty());
     } else {
-      log.info("Updating Gradle repositories: {}", gradleRepositories);
+      log.info("Updating Gradle repositories for Wrapper: {}", gradleRepositories);
       new UpdateGradleWrapper(gradleRepositories, gradleScripts, appInitData.getArgsMap())
           .updateGradleWrapper();
     }
