@@ -3,7 +3,6 @@ package app.dependency.update.app.execute;
 import static app.dependency.update.app.util.CommonUtil.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.CommonUtil.SCRIPTS_DIRECTORY;
 
-import app.dependency.update.App;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
@@ -86,7 +85,12 @@ public class GetAppInitData {
     try {
       // get path of the current running JAR
       String jarPath =
-          App.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+          GetAppInitData.class
+              .getProtectionDomain()
+              .getCodeSource()
+              .getLocation()
+              .toURI()
+              .getPath();
 
       // file walks JAR
       URI uri = URI.create("jar:file:" + jarPath);

@@ -7,7 +7,6 @@ import app.dependency.update.app.execute.GetAppInitData;
 import app.dependency.update.app.execute.ThreadMonitor;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.schedule.AppScheduler;
-import app.dependency.update.app.update.UpdateDependencies;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,10 +20,10 @@ public class App {
     new AppScheduler().startUpdateRepoScheduler();
     // start scheduler to delete/create/delete temp script files
     new AppScheduler().startFileSystemScheduler(appInitData);
+    // start scheduler to update dependencies
+    new AppScheduler().startUpdateProjectDependenciesScheduler(appInitData);
     // monitor threads
     new ThreadMonitor(appInitData);
-    // update dependencies
-    new UpdateDependencies(appInitData).updateDependencies();
 
     log.info("End app-dependency-update initialization...");
   }

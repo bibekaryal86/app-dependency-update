@@ -1,6 +1,5 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.CreateTempScriptFiles;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.util.CommonUtil;
 import java.util.concurrent.CompletableFuture;
@@ -10,19 +9,19 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 @Slf4j
-public class SchedulerJobCreateTempScriptFiles implements Job {
+public class SchedulerJobUpdateGradleDependencies implements Job {
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    log.info("Start SchedulerJobDeleteTempScriptFiles...");
-
+    log.info("Start SchedulerJobUpdateGradleDependencies...");
     final AppInitData appInitData =
         (AppInitData) context.getJobDetail().getJobDataMap().get(CommonUtil.APP_INIT_DATA_MAP);
-    CompletableFuture.runAsync(() -> createTempScriptFiles(appInitData));
+    CompletableFuture.runAsync(() -> updateGradleDependencies(appInitData));
   }
 
-  private void createTempScriptFiles(final AppInitData appInitData) {
-    new CreateTempScriptFiles(appInitData.getScriptFiles()).createTempScriptFiles();
-    log.info("Finish SchedulerJobDeleteTempScriptFiles...");
+  private void updateGradleDependencies(final AppInitData appInitData) {
+
+    // TODO
+    log.info("Finish SchedulerJobUpdateGradleDependencies...");
   }
 }

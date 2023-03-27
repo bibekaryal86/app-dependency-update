@@ -1,7 +1,5 @@
-package app.dependency.update.app.update;
+package app.dependency.update.app.execute;
 
-import app.dependency.update.app.execute.ExecuteScriptFile;
-import app.dependency.update.app.execute.GradleWrapperStatus;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
@@ -11,33 +9,30 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class UpdateDependenciesGradle {
+public class UpdateNpmDependencies {
 
   private final List<Repository> repositories;
   private final List<ScriptFile> scriptFiles;
   private final Map<String, String> argsMap;
 
-  public UpdateDependenciesGradle(
+  public UpdateNpmDependencies(
       List<Repository> repositories, List<ScriptFile> scriptFiles, Map<String, String> argsMap) {
     this.repositories = repositories;
     this.scriptFiles = scriptFiles;
     this.argsMap = argsMap;
   }
 
-  public void updateDependenciesGradle() {
-    List<Repository> gradleRepositories =
-        new GradleWrapperStatus(repositories).getGradleWrapperStatus();
-    log.info("Gradle Repositories with Gradle Wrapper Status: {}", gradleRepositories);
-
-    gradleRepositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
+  public void updateDependenciesNpm() {
+    // updating NPM dependencies is fairly straightforward because everything is done by the npm
+    // script, we just need to execute it for each repository
+    this.repositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
   }
 
   private void executeUpdate(Repository repository, ScriptFile scriptFile) {
-    log.info("Execute Gradle Update on: {}", repository);
+    log.info("Execute NPM Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
-    arguments.add(repository.getGradleVersion());
     new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
   }
 }

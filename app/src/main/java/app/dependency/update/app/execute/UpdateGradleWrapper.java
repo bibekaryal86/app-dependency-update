@@ -3,6 +3,7 @@ package app.dependency.update.app.execute;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
 import app.dependency.update.app.util.ConnectorUtil;
 import com.google.gson.reflect.TypeToken;
@@ -11,25 +12,37 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GradleWrapperStatus {
-  private final List<Repository> gradleRepositories;
+public class UpdateGradleWrapper {
 
-  public GradleWrapperStatus(List<Repository> gradleRepositories) {
-    this.gradleRepositories = gradleRepositories;
+  private final List<Repository> repositories;
+  private final List<ScriptFile> scriptFiles;
+  private final Map<String, String> argsMap;
+
+  public UpdateGradleWrapper(
+      List<Repository> repositories, List<ScriptFile> scriptFiles, Map<String, String> argsMap) {
+    this.repositories = repositories;
+    this.scriptFiles = scriptFiles;
+    this.argsMap = argsMap;
   }
 
-  public List<Repository> getGradleWrapperStatus() {
-    return getGradleRepositoriesWithGradleWrapperStatus(getCurrentGradleVersion());
+  public void updateGradleWrapper() {
+    List<Repository> gradleRepositories =
+        getGradleRepositoriesWithGradleWrapperStatus(getLatestGradleVersion());
+    log.info("Gradle Repositories with Gradle Wrapper Status: {}", gradleRepositories);
+
+    gradleRepositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
   }
 
-  private String getCurrentGradleVersion() {
+  private String getLatestGradleVersion() {
     // get rid of draft and prerelease and sort by name descending
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         getGradleReleasesResponse().stream()
@@ -60,17 +73,16 @@ public class GradleWrapperStatus {
             null);
   }
 
-  private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(
-      String currentGradleVersion) {
-    return this.gradleRepositories.stream()
+  private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(String latestVersion) {
+    return this.repositories.stream()
         .map(
             repository -> {
-              String currentGradleVersionInRepo = getCurrentGradleVersionInRepo(repository);
+              String currentVersion = getCurrentGradleVersionInRepo(repository);
               return new Repository(
                   repository.getRepoPath(),
                   repository.getType(),
-                  isGradleWrapperUpdateRequired(currentGradleVersion, currentGradleVersionInRepo)
-                      ? currentGradleVersion
+                  CommonUtil.isRequiresUpdate(latestVersion, currentVersion)
+                      ? latestVersion
                       : null);
             })
         .toList();
@@ -117,8 +129,12 @@ public class GradleWrapperStatus {
     }
   }
 
-  private boolean isGradleWrapperUpdateRequired(
-      String currentGradleVersion, String currentGradleVersionInRepo) {
-    return currentGradleVersion.compareTo(currentGradleVersionInRepo) > 0;
+  private void executeUpdate(Repository repository, ScriptFile scriptFile) {
+    log.info("Execute Gradle Update on: {}", repository);
+    List<String> arguments = new LinkedList<>();
+    arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
+    arguments.add(repository.getRepoName());
+    arguments.add(repository.getGradleVersion());
+    new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
   }
 }

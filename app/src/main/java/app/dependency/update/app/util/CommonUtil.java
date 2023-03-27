@@ -28,6 +28,7 @@ public class CommonUtil {
   public static final String WRAPPER = "wrapper";
   public static final String GRADLE_WRAPPER_PROPERTIES = GRADLE + "-" + WRAPPER + ".properties";
   public static final String MONGODB_DATABASE_NAME = "repository";
+  public static final String APP_INIT_DATA_MAP = "APP_INIT_DATA";
 
   // provided at runtime
   public static final String PARAM_REPO_HOME = "repo_home";
@@ -93,6 +94,13 @@ public class CommonUtil {
       }
     }
     return sb.toString();
+  }
+
+  public static boolean isRequiresUpdate(String currentVersion, String latestVersion) {
+    if (isEmpty(currentVersion) || isEmpty(latestVersion)) {
+      return false;
+    }
+    return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
   }
 
   public static Gson getGson() {
