@@ -6,6 +6,7 @@ import app.dependency.update.app.util.CommonUtil;
 import app.dependency.update.app.util.MongoUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -17,6 +18,10 @@ public class SchedulerJobMavenRepoDependencies implements Job {
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobMavenRepoDependencies...");
+    CompletableFuture.runAsync(this::execute);
+  }
+
+  private void execute() {
     // get the list of dependencies that needs updating
     List<MongoDependency> mongoDependencies = findMongoDependenciesToUpdate();
     // update the mongo maven repo

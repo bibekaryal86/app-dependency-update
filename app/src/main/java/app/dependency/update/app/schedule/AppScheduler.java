@@ -148,14 +148,13 @@ public class AppScheduler {
       scheduler.scheduleJob(jobDetailUpdateGradleWrapper, triggerUpdateGradleWrapper);
 
       // schedule to update Gradle dependencies
-      JobDetail jobDetailUpdateGradleDependencies = getJobDetailUpdateGradleDependencies(appInitData);
+      JobDetail jobDetailUpdateGradleDependencies =
+          getJobDetailUpdateGradleDependencies(appInitData);
       Trigger triggerUpdateGradleDependencies =
-              getTrigger(
-                      SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-                      SCHEDULER_CRON_BUILDER_MAP.get(
-                              SchedulerJobUpdateGradleDependencies.class.getSimpleName()
-                      )
-              );
+          getTrigger(
+              SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(
