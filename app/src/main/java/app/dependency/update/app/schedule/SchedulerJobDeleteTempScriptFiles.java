@@ -11,7 +11,7 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobDeleteTempScriptFiles implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobDeleteTempScriptFiles...");
     CompletableFuture.runAsync(this::deleteTempScriptFiles);
   }

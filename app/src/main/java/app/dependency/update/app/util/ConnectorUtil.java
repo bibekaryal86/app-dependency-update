@@ -23,19 +23,19 @@ public class ConnectorUtil {
     return HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5L)).build();
   }
 
-  private static URI getUri(String endpoint) {
+  private static URI getUri(final String endpoint) {
     return URI.create(endpoint);
   }
 
-  private static HttpRequest.BodyPublisher getPOST(Object object) {
+  private static HttpRequest.BodyPublisher getPOST(final Object object) {
     return HttpRequest.BodyPublishers.ofString(getGson().toJson(object));
   }
 
   private static HttpRequest getHttpRequestBuilder(
-      String endpoint,
-      CommonUtil.HttpMethod httpMethod,
-      Object bodyObject,
-      Map<String, String> headers) {
+      final String endpoint,
+      final CommonUtil.HttpMethod httpMethod,
+      final Object bodyObject,
+      final Map<String, String> headers) {
     HttpRequest.Builder httpRequestBuilder =
         HttpRequest.newBuilder().uri(getUri(endpoint)).header("Content-Type", "application/json");
 
@@ -58,18 +58,18 @@ public class ConnectorUtil {
     return httpRequestBuilder.build();
   }
 
-  private static HttpResponse<String> sendHttpRequest(HttpRequest httpRequest)
+  private static HttpResponse<String> sendHttpRequest(final HttpRequest httpRequest)
       throws IOException, InterruptedException {
     return getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
   }
 
   public static Object sendHttpRequest(
-      String endpoint,
-      CommonUtil.HttpMethod httpMethod,
-      Object bodyObject,
-      Map<String, String> headers,
-      Type type,
-      Class<?> clazz) {
+      final String endpoint,
+      final CommonUtil.HttpMethod httpMethod,
+      final Object bodyObject,
+      final Map<String, String> headers,
+      final Type type,
+      final Class<?> clazz) {
     try {
       log.debug(
           "HTTP Request Sent::: Endpoint: [ {} ], Method: [ {} ], Headers: [ {} ], Body: [ {} ]",

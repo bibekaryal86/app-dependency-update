@@ -17,7 +17,7 @@ public class CreateTempScriptFiles {
   private final String tmpdir;
   private final List<ScriptFile> scriptFiles;
 
-  public CreateTempScriptFiles(List<ScriptFile> scriptFiles) {
+  public CreateTempScriptFiles(final List<ScriptFile> scriptFiles) {
     this.scriptFiles = scriptFiles;
     this.scriptsDirectory = CommonUtil.SCRIPTS_DIRECTORY;
     this.tmpdir = CommonUtil.JAVA_SYSTEM_TMPDIR;
@@ -55,7 +55,7 @@ public class CreateTempScriptFiles {
     }
   }
 
-  private boolean createTempScriptFile(ScriptFile scriptFile) {
+  private boolean createTempScriptFile(final ScriptFile scriptFile) {
     try {
       Path filePath =
           Files.createFile(

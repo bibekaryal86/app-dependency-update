@@ -49,7 +49,7 @@ public class CommonUtil {
     return pluginsMap;
   }
 
-  public static void setPluginsMap(Map<String, String> pluginsMap) {
+  public static void setPluginsMap(final Map<String, String> pluginsMap) {
     CommonUtil.pluginsMap = Collections.unmodifiableMap(pluginsMap);
   }
 
@@ -57,29 +57,29 @@ public class CommonUtil {
     return dependenciesMap;
   }
 
-  public static void setDependenciesMap(Map<String, String> dependenciesMap) {
+  public static void setDependenciesMap(final Map<String, String> dependenciesMap) {
     CommonUtil.dependenciesMap = Collections.unmodifiableMap(dependenciesMap);
   }
 
-  public static boolean isEmpty(String s) {
+  public static boolean isEmpty(final String s) {
     return (s == null || s.trim().isEmpty());
   }
 
-  public static boolean isEmpty(Collection<?> c) {
+  public static boolean isEmpty(final Collection<?> c) {
     return (c == null || c.isEmpty());
   }
 
-  public static boolean isEmpty(Map<?, ?> m) {
+  public static boolean isEmpty(final Map<?, ?> m) {
     return (m == null || m.isEmpty());
   }
 
-  public static String getSystemEnvProperty(String keyName, String defaultValue) {
+  public static String getSystemEnvProperty(final String keyName, final String defaultValue) {
     String envProperty =
         System.getProperty(keyName) != null ? System.getProperty(keyName) : System.getenv(keyName);
     return envProperty == null ? defaultValue : envProperty;
   }
 
-  public static String getVersionToCompare(String version) {
+  public static String getVersionToCompare(final String version) {
     List<String> strList = Stream.of(version.split("\\.")).limit(3).toList();
     StringBuilder sb = new StringBuilder();
     for (String s : strList) {
@@ -96,7 +96,7 @@ public class CommonUtil {
     return sb.toString();
   }
 
-  public static boolean isRequiresUpdate(String currentVersion, String latestVersion) {
+  public static boolean isRequiresUpdate(final String currentVersion, final String latestVersion) {
     if (isEmpty(currentVersion) || isEmpty(latestVersion)) {
       return false;
     }

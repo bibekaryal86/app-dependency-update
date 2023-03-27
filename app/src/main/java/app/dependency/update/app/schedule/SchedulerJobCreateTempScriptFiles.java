@@ -13,7 +13,7 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobCreateTempScriptFiles implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobDeleteTempScriptFiles...");
 
     final AppInitData appInitData =

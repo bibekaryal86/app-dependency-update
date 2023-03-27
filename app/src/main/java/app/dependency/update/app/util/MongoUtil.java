@@ -68,7 +68,7 @@ public class MongoUtil {
     return mongoDependencies;
   }
 
-  public static void insertDependencies(List<MongoDependency> mongoDependencies) {
+  public static void insertDependencies(final List<MongoDependency> mongoDependencies) {
     // unique index for `id` is added to mongodb collection
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       InsertManyResult insertManyResult =
@@ -79,7 +79,7 @@ public class MongoUtil {
     }
   }
 
-  public static void updateDependencies(List<MongoDependency> mongoDependencies) {
+  public static void updateDependencies(final List<MongoDependency> mongoDependencies) {
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       mongoDependencies.forEach(
           mongoDependency -> {
@@ -109,14 +109,15 @@ public class MongoUtil {
         .build();
   }
 
-  private static MongoCollection<MongoPlugin> getMongoCollectionPlugins(MongoClient mongoClient) {
+  private static MongoCollection<MongoPlugin> getMongoCollectionPlugins(
+      final MongoClient mongoClient) {
     return mongoClient
         .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
         .getCollection("plugins", MongoPlugin.class);
   }
 
   private static MongoCollection<MongoDependency> getMongoCollectionDependencies(
-      MongoClient mongoClient) {
+      final MongoClient mongoClient) {
     return mongoClient
         .getDatabase(CommonUtil.MONGODB_DATABASE_NAME)
         .getCollection("dependencies", MongoDependency.class);

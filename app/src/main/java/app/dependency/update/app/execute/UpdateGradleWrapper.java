@@ -28,7 +28,9 @@ public class UpdateGradleWrapper {
   private final Map<String, String> argsMap;
 
   public UpdateGradleWrapper(
-      List<Repository> repositories, List<ScriptFile> scriptFiles, Map<String, String> argsMap) {
+      final List<Repository> repositories,
+      final List<ScriptFile> scriptFiles,
+      final Map<String, String> argsMap) {
     this.repositories = repositories;
     this.scriptFiles = scriptFiles;
     this.argsMap = argsMap;
@@ -73,7 +75,8 @@ public class UpdateGradleWrapper {
             null);
   }
 
-  private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(String latestVersion) {
+  private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(
+      final String latestVersion) {
     return this.repositories.stream()
         .map(
             repository -> {
@@ -81,14 +84,14 @@ public class UpdateGradleWrapper {
               return new Repository(
                   repository.getRepoPath(),
                   repository.getType(),
-                  CommonUtil.isRequiresUpdate(latestVersion, currentVersion)
+                  CommonUtil.isRequiresUpdate(currentVersion, latestVersion)
                       ? latestVersion
                       : null);
             })
         .toList();
   }
 
-  private String getCurrentGradleVersionInRepo(Repository repository) {
+  private String getCurrentGradleVersionInRepo(final Repository repository) {
     Path wrapperPath =
         Path.of(
             repository
@@ -117,7 +120,7 @@ public class UpdateGradleWrapper {
     return null;
   }
 
-  private String parseDistributionUrlForGradleVersion(String distributionUrl) {
+  private String parseDistributionUrlForGradleVersion(final String distributionUrl) {
     // matches text between two hyphens
     // eg: distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
     Pattern pattern = Pattern.compile(CommonUtil.GRADLE_WRAPPER_REGEX);
@@ -129,7 +132,7 @@ public class UpdateGradleWrapper {
     }
   }
 
-  private void executeUpdate(Repository repository, ScriptFile scriptFile) {
+  private void executeUpdate(final Repository repository, final ScriptFile scriptFile) {
     log.info("Execute Gradle Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));

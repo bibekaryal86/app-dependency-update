@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ThreadMonitor {
   private final AppInitData appInitData;
 
-  public ThreadMonitor(AppInitData appInitData) {
+  public ThreadMonitor(final AppInitData appInitData) {
     this.appInitData = appInitData;
     Executors.newScheduledThreadPool(1)
         .scheduleWithFixedDelay(this::monitorThreads, 3, 3, TimeUnit.SECONDS);
@@ -26,7 +26,7 @@ public class ThreadMonitor {
     monitorNpmThreads(threads);
   }
 
-  private void monitorNpmThreads(Set<Thread> threads) {
+  private void monitorNpmThreads(final Set<Thread> threads) {
     // thread names are set as repository names
     List<String> npmThreadNames =
         this.appInitData.getRepositories().stream()

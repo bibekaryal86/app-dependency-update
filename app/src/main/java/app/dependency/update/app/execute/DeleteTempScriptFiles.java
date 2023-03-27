@@ -27,7 +27,7 @@ public class DeleteTempScriptFiles {
     }
   }
 
-  public void delete(Path path) {
+  public void delete(final Path path) {
     try {
       boolean isDeleted = Files.deleteIfExists(path);
       log.info("Delete: {} | {}", path, isDeleted);

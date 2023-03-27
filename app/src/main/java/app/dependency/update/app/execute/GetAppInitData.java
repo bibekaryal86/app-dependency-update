@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GetAppInitData {
   private final String[] args;
 
-  public GetAppInitData(String[] args) {
+  public GetAppInitData(final String[] args) {
     this.args = args;
   }
 
@@ -115,7 +115,7 @@ public class GetAppInitData {
     return scriptFiles;
   }
 
-  private List<Repository> getRepositoryLocations(Map<String, String> argsMap) {
+  private List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
     log.info("Get Repository Locations...");
     List<Path> repoPaths;
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 1)) {

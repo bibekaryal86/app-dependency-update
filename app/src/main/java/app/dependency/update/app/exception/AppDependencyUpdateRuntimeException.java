@@ -1,11 +1,11 @@
 package app.dependency.update.app.exception;
 
 public class AppDependencyUpdateRuntimeException extends RuntimeException {
-  public AppDependencyUpdateRuntimeException(String message) {
+  public AppDependencyUpdateRuntimeException(final String message) {
     super(message);
   }
 
-  public AppDependencyUpdateRuntimeException(String message, Throwable ex) {
+  public AppDependencyUpdateRuntimeException(final String message, final Throwable ex) {
     super(message, ex);
   }
 }

@@ -16,7 +16,9 @@ public class UpdateNpmDependencies {
   private final Map<String, String> argsMap;
 
   public UpdateNpmDependencies(
-      List<Repository> repositories, List<ScriptFile> scriptFiles, Map<String, String> argsMap) {
+      final List<Repository> repositories,
+      final List<ScriptFile> scriptFiles,
+      final Map<String, String> argsMap) {
     this.repositories = repositories;
     this.scriptFiles = scriptFiles;
     this.argsMap = argsMap;
@@ -28,7 +30,7 @@ public class UpdateNpmDependencies {
     this.repositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
   }
 
-  private void executeUpdate(Repository repository, ScriptFile scriptFile) {
+  private void executeUpdate(final Repository repository, final ScriptFile scriptFile) {
     log.info("Execute NPM Update on: {}", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
