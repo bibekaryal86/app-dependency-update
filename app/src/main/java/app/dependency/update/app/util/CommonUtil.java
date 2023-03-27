@@ -96,6 +96,13 @@ public class CommonUtil {
     return sb.toString();
   }
 
+  public static boolean isRequiresUpdate(String currentVersion, String latestVersion) {
+    if (isEmpty(currentVersion) || isEmpty(latestVersion)) {
+      return false;
+    }
+    return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
+  }
+
   public static Gson getGson() {
     return new GsonBuilder()
         .setExclusionStrategies(
