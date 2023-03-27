@@ -36,13 +36,17 @@ public class MavenRepo {
   }
 
   public String getLatestVersion(
-      String group, String artifact, String currentVersion, boolean forceRemote) {
+      final String group,
+      final String artifact,
+      final String currentVersion,
+      final boolean forceRemote) {
     // plugins do not have artifact information, so get artifact from pluginsMap
+    String localArtifact = artifact;
     if (CommonUtil.isEmpty(artifact)) {
-      artifact = CommonUtil.getPluginsMap().get(group);
+      localArtifact = CommonUtil.getPluginsMap().get(group);
 
       // check again
-      if (CommonUtil.isEmpty(artifact)) {
+      if (CommonUtil.isEmpty(localArtifact)) {
         // Still nothing? it is likely plugin information is not available in the local repository
         // Do not throw error, log the event and continue updating others
         log.error("Plugin information missing: {}", group);
@@ -50,7 +54,7 @@ public class MavenRepo {
       }
     }
 
-    String mavenId = group + ":" + artifact;
+    String mavenId = group + ":" + localArtifact;
 
     if (!forceRemote && CommonUtil.getDependenciesMap().get(mavenId) != null) {
       // return from dependencies map from local repo
@@ -75,7 +79,7 @@ public class MavenRepo {
     return latestVersion.getV();
   }
 
-  private MavenDoc getLatestVersion(String group, String artifact) {
+  private MavenDoc getLatestVersion(final String group, final String artifact) {
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
     log.info(
@@ -83,7 +87,7 @@ public class MavenRepo {
     return mavenDoc;
   }
 
-  private MavenDoc getLatestVersion(MavenSearchResponse mavenSearchResponse) {
+  private MavenDoc getLatestVersion(final MavenSearchResponse mavenSearchResponse) {
     // the search returns 5 latest, filter to not get RC or alpha/beta or unfinished releases
     // the search returns sorted list already, but need to filter and get max after
     if (mavenSearchResponse != null
@@ -99,7 +103,7 @@ public class MavenRepo {
     return null;
   }
 
-  private boolean isCheckPreReleaseVersion(String version) {
+  private boolean isCheckPreReleaseVersion(final String version) {
     return version.contains("alpha")
         || version.contains("ALPHA")
         || version.contains("b")
@@ -111,7 +115,8 @@ public class MavenRepo {
         || version.contains("SNAPSHOT");
   }
 
-  private static MavenSearchResponse getMavenSearchResponse(String group, String artifact) {
+  private static MavenSearchResponse getMavenSearchResponse(
+      final String group, final String artifact) {
     return (MavenSearchResponse)
         ConnectorUtil.sendHttpRequest(
             String.format(CommonUtil.MAVEN_SEARCH_ENDPOINT, group, artifact),

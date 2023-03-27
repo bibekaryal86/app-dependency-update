@@ -17,14 +17,14 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobUpdateNpmDependencies implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobUpdateNpmDependencies...");
     final AppInitData appInitData =
         (AppInitData) context.getJobDetail().getJobDataMap().get(CommonUtil.APP_INIT_DATA_MAP);
     CompletableFuture.runAsync(() -> updateNpmDependencies(appInitData));
   }
 
-  private void updateNpmDependencies(AppInitData appInitData) {
+  private void updateNpmDependencies(final AppInitData appInitData) {
     // check and update NPM repositories
     List<Repository> npmRepositories =
         appInitData.getRepositories().stream()

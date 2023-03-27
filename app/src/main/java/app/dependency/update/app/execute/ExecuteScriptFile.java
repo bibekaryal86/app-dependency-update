@@ -20,7 +20,8 @@ public class ExecuteScriptFile implements Runnable {
   private final List<String> arguments;
   private Thread thread;
 
-  public ExecuteScriptFile(String threadName, ScriptFile scriptFile, List<String> arguments) {
+  public ExecuteScriptFile(
+      final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
     this.commandPath = CommonUtil.COMMAND_PATH;
@@ -56,7 +57,7 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private Process startProcess(String script)
+  private Process startProcess(final String script)
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
     log.info("Starting process: {}", script == null ? this.scriptPath : script);
     try {
@@ -83,7 +84,7 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private void displayStreamOutput(
-      String script, final InputStream inputStream, boolean isErrorStream)
+      final String script, final InputStream inputStream, final boolean isErrorStream)
       throws AppDependencyUpdateIOException {
     log.info("Display stream output: {}", script);
     StringBuilder stringBuilder = new StringBuilder();

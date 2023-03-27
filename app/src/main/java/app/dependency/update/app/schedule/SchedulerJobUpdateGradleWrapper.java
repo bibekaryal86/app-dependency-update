@@ -17,14 +17,14 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobUpdateGradleWrapper implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobUpdateGradleWrapper...");
     final AppInitData appInitData =
         (AppInitData) context.getJobDetail().getJobDataMap().get(CommonUtil.APP_INIT_DATA_MAP);
     CompletableFuture.runAsync(() -> updateGradleWrapper(appInitData));
   }
 
-  private void updateGradleWrapper(AppInitData appInitData) {
+  private void updateGradleWrapper(final AppInitData appInitData) {
     List<Repository> gradleRepositories =
         appInitData.getRepositories().stream()
             .filter(repository -> CommonUtil.GRADLE.equals(repository.getType()))
@@ -41,7 +41,7 @@ public class SchedulerJobUpdateGradleWrapper implements Job {
           gradleRepositories.isEmpty(),
           gradleScripts.isEmpty());
     } else {
-      log.info("Updating Gradle repositories: {}", gradleRepositories);
+      log.info("Updating Gradle repositories for Wrapper: {}", gradleRepositories);
       new UpdateGradleWrapper(gradleRepositories, gradleScripts, appInitData.getArgsMap())
           .updateGradleWrapper();
     }

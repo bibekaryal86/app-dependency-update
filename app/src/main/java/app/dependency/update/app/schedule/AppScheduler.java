@@ -160,7 +160,7 @@ public class AppScheduler {
     }
   }
 
-  private Trigger getTrigger(String identity, CronScheduleBuilder cronScheduleBuilder) {
+  private Trigger getTrigger(final String identity, final CronScheduleBuilder cronScheduleBuilder) {
     return TriggerBuilder.newTrigger()
         .withIdentity(identity)
         .withSchedule(cronScheduleBuilder)

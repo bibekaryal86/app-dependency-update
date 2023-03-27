@@ -12,7 +12,7 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobUpdateGradleDependencies implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobUpdateGradleDependencies...");
     final AppInitData appInitData =
         (AppInitData) context.getJobDetail().getJobDataMap().get(CommonUtil.APP_INIT_DATA_MAP);

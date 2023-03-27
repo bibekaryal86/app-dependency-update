@@ -16,7 +16,7 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobMavenRepoDependencies implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobMavenRepoDependencies...");
     CompletableFuture.runAsync(this::execute);
   }
@@ -45,7 +45,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
               new MavenRepo()
                   .getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion, true);
           // check if local maven repo needs updating
-          if (isRequiresUpdate(currentVersion, latestVersion)) {
+          if (CommonUtil.isRequiresUpdate(currentVersion, latestVersion)) {
             mongoDependenciesToUpdate.add(
                 MongoDependency.builder()
                     .id(mongoDependency.getId())
@@ -60,11 +60,5 @@ public class SchedulerJobMavenRepoDependencies implements Job {
         mongoDependenciesToUpdate);
 
     return mongoDependenciesToUpdate;
-  }
-
-  private boolean isRequiresUpdate(String currentVersion, String latestVersion) {
-    return CommonUtil.getVersionToCompare(latestVersion)
-            .compareTo(CommonUtil.getVersionToCompare(currentVersion))
-        > 0;
   }
 }

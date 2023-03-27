@@ -11,7 +11,7 @@ import org.quartz.JobExecutionException;
 public class SchedulerJobMavenRepoPlugins implements Job {
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
     log.info("Start SchedulerJobMavenRepoPlugins...");
     CompletableFuture.runAsync(this::execute);
   }
