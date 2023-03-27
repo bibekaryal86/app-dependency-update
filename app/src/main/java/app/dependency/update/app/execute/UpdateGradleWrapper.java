@@ -143,6 +143,8 @@ public class UpdateGradleWrapper {
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
     arguments.add(repository.getGradleVersion());
-    new ExecuteScriptFile(repository.getRepoName(), scriptFile, arguments).start();
+    new ExecuteScriptFile(
+            repository.getRepoName() + "_" + CommonUtil.WRAPPER, scriptFile, arguments)
+        .start();
   }
 }
