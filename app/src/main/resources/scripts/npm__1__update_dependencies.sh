@@ -46,7 +46,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo Creating PR
-	gh pr create -a "@me" -B "main" -H "$branch_name" -t "App Dependencies Updated" -b "App Dependencies Updated"
+	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated" -b "Dependencies Updated"
 fi
 
 # Cleanup
