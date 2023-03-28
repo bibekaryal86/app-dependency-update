@@ -42,15 +42,15 @@ public class ExecuteScriptFile implements Runnable {
     try {
       Process processChmod = startProcess(CommonUtil.CHMOD_COMMAND + this.scriptPath);
       try (InputStream errorStream = processChmod.getErrorStream()) {
-        displayStreamOutput(CommonUtil.CHMOD_COMMAND, errorStream, true);
+        displayStreamOutput(CommonUtil.CHMOD_COMMAND, errorStream);
       }
 
       Process processExecuteScript = startProcess(null);
       try (InputStream errorStream = processExecuteScript.getErrorStream()) {
-        displayStreamOutput(this.scriptPath, errorStream, true);
+        displayStreamOutput(this.scriptPath, errorStream);
       }
       try (InputStream inputStream = processExecuteScript.getInputStream()) {
-        displayStreamOutput(this.scriptPath, inputStream, false);
+        displayStreamOutput(this.scriptPath, inputStream);
       }
     } catch (Exception e) {
       log.error("Error in Execute Script: ", e);
@@ -83,8 +83,7 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private void displayStreamOutput(
-      final String script, final InputStream inputStream, final boolean isErrorStream)
+  private void displayStreamOutput(final String script, final InputStream inputStream)
       throws AppDependencyUpdateIOException {
     log.info("Display stream output: {}", script);
     StringBuilder stringBuilder = new StringBuilder();
@@ -94,11 +93,7 @@ public class ExecuteScriptFile implements Runnable {
         stringBuilder.append(line).append("\n");
       }
 
-      if (isErrorStream) {
-        log.error("Display stream output: {}\n{}\n", script, stringBuilder);
-      } else {
-        log.info("Display stream output: {}\n{}\n", script, stringBuilder);
-      }
+      log.info("Display stream output: {}\n{}\n", script, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());
