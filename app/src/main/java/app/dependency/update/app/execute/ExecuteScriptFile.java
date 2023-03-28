@@ -83,8 +83,7 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private void displayStreamOutput(
-      final String script, final InputStream inputStream)
+  private void displayStreamOutput(final String script, final InputStream inputStream)
       throws AppDependencyUpdateIOException {
     log.info("Display stream output: {}", script);
     StringBuilder stringBuilder = new StringBuilder();
@@ -94,7 +93,7 @@ public class ExecuteScriptFile implements Runnable {
         stringBuilder.append(line).append("\n");
       }
 
-        log.info("Display stream output: {}\n{}\n", script, stringBuilder);
+      log.info("Display stream output: {}\n{}\n", script, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());
