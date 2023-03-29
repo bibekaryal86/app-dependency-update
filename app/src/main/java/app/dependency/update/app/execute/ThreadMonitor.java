@@ -87,6 +87,8 @@ public class ThreadMonitor {
     return gradleThreads.stream().collect(Collectors.toMap(Thread::getName, Thread::getState));
   }
 
+  // suppressing sonarlint rule to use logger instead os system out
+  @SuppressWarnings("java:S106")
   private static void maybeAnimation() {
     try {
       System.out.print("\r");
