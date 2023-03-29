@@ -102,8 +102,7 @@ public class AppScheduler {
               SCHEDULER_CRON_BUILDER_MAP.get(SchedulerJobMavenRepoPlugins.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoPlugins, triggerMavenRepoPlugins);
 
-      // scheduler to get/manipulate/save dependencies for local maven repo and set the Map in
-      // CommonUtil
+      // scheduler to get/save dependencies for local maven repo and set the Map in CommonUtil
       JobDetail jobDetailMavenRepoDependencies = getJobDetailMavenRepoDependencies();
       Trigger triggerMavenRepoDependencies =
           getTrigger(
