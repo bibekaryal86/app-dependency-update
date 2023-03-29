@@ -3,9 +3,9 @@
  */
 package app.dependency.update;
 
-import app.dependency.update.app.execute.GetAppInitData;
+import app.dependency.update.app.execute.MavenRepo;
+import app.dependency.update.app.execute.SetAppInitData;
 import app.dependency.update.app.execute.ThreadMonitor;
-import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.schedule.AppScheduler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,17 +14,21 @@ public class App {
   public static void main(String[] args) {
     log.warn("Begin app-dependency-update initialization...");
 
-    // get initial app data
-    final AppInitData appInitData = new GetAppInitData(args).getAppInitData();
-    // start scheduler to update local maven repo in mongo
-    new AppScheduler().startUpdateRepoScheduler();
-    // start scheduler to delete/create/delete temp script files
-    new AppScheduler().startFileSystemScheduler(appInitData);
-    // start scheduler to update dependencies
-    new AppScheduler().startUpdateProjectDependenciesScheduler(appInitData);
+    // set app init data
+    appInitData(args);
+    // start schedulers
+    new AppScheduler().startSchedulers();
     // monitor threads
-    new ThreadMonitor(appInitData);
+    new ThreadMonitor();
 
     log.warn("End app-dependency-update initialization...");
+  }
+
+  private static void appInitData(final String[] args) {
+    // set caches when the app runs for the first time
+    // these are later maintained by schedulers
+    new SetAppInitData(args).setAppInitData();
+    new MavenRepo().setPluginsMap();
+    new MavenRepo().setDependenciesMap();
   }
 }

@@ -27,6 +27,9 @@ public class AppScheduler {
   private static final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
       Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
+              SchedulerJobAppInitData.class.getSimpleName(),
+              CronScheduleBuilder.dailyAtHourAndMinute(21, 55)),
+          new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
               CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 0)),
           new AbstractMap.SimpleEntry<>(
@@ -51,8 +54,40 @@ public class AppScheduler {
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
               CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 22, 30)));
 
-  public void startUpdateRepoScheduler() {
-    log.info("Start Repo Scheduler...");
+  public void startSchedulers() {
+    // start scheduler to periodically check and set app init data
+    this.startAppInitDataScheduler();
+    // start scheduler to update local maven repo in mongo
+    this.startUpdateRepoScheduler();
+    // start scheduler to delete/create/delete temp script files
+    this.startFileSystemScheduler();
+    // start scheduler to update dependencies
+    this.startUpdateProjectDependenciesScheduler();
+  }
+
+  private void startAppInitDataScheduler() {
+    log.info("Start App Init Data Scheduler...");
+    String schedulerName = "AppInitData";
+
+    try {
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
+      scheduler.start();
+
+      // schedule to set app init data periodically (to get changes to repositories)
+      JobDetail jobDetailAppInitData = getJobDetailAppInitData();
+      Trigger triggerAppInitData =
+          getTrigger(
+              SchedulerJobAppInitData.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(SchedulerJobAppInitData.class.getSimpleName()));
+      scheduler.scheduleJob(jobDetailAppInitData, triggerAppInitData);
+
+    } catch (SchedulerException ex) {
+      throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
+    }
+  }
+
+  private void startUpdateRepoScheduler() {
+    log.info("Start Update Repo Scheduler...");
     String schedulerName = "UpdateRepo";
 
     try {
@@ -81,9 +116,10 @@ public class AppScheduler {
     }
   }
 
-  public void startFileSystemScheduler(final AppInitData appInitData) {
+  private void startFileSystemScheduler() {
     log.info("Start File System Scheduler...");
     String schedulerName = "FileSystem";
+    final AppInitData appInitData = CommonUtil.getAppInitData();
 
     try {
       Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
@@ -120,9 +156,10 @@ public class AppScheduler {
     }
   }
 
-  public void startUpdateProjectDependenciesScheduler(final AppInitData appInitData) {
+  private void startUpdateProjectDependenciesScheduler() {
     log.info("Start Update Project Dependencies Scheduler...");
     String schedulerName = "UpdateProjectDependencies";
+    final AppInitData appInitData = CommonUtil.getAppInitData();
 
     try {
       Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
@@ -165,6 +202,12 @@ public class AppScheduler {
         .withIdentity(identity)
         .withSchedule(cronScheduleBuilder)
         .startNow()
+        .build();
+  }
+
+  private JobDetail getJobDetailAppInitData() {
+    return JobBuilder.newJob(SchedulerJobAppInitData.class)
+        .withIdentity(SchedulerJobAppInitData.class.getSimpleName())
         .build();
   }
 
