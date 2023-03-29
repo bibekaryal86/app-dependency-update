@@ -4,7 +4,6 @@ import static app.dependency.update.app.util.CommonUtil.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.CommonUtil.SCRIPTS_DIRECTORY;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
@@ -24,27 +23,23 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GetAppInitData {
+public class SetAppInitData {
   private final String[] args;
 
-  public GetAppInitData(final String[] args) {
+  public SetAppInitData(final String[] args) {
     this.args = args;
   }
 
-  public AppInitData getAppInitData() {
-    log.info("Get App Init Data...");
+  public void setAppInitData() {
+    log.info("Set App Init Data...");
     // get the input arguments
     Map<String, String> argsMap = makeArgsMap();
     // get the scripts included in resources folder
     List<ScriptFile> scriptFiles = getScriptsInResources();
     // get the list of repositories and their type
     List<Repository> repositories = getRepositoryLocations(argsMap);
-
-    return AppInitData.builder()
-        .argsMap(argsMap)
-        .scriptFiles(scriptFiles)
-        .repositories(repositories)
-        .build();
+    // set app init data
+    CommonUtil.setAppInitData(argsMap, scriptFiles, repositories);
   }
 
   private Map<String, String> makeArgsMap() {
@@ -85,7 +80,7 @@ public class GetAppInitData {
     try {
       // get path of the current running JAR
       String jarPath =
-          GetAppInitData.class
+          SetAppInitData.class
               .getProtectionDomain()
               .getCodeSource()
               .getLocation()

@@ -1,5 +1,8 @@
 package app.dependency.update.app.util;
 
+import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.model.ScriptFile;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -44,8 +47,25 @@ public class CommonUtil {
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
 
   // caches
+  private static AppInitData appInitData = null;
   private static Map<String, String> pluginsMap = null;
   private static Map<String, String> dependenciesMap = null;
+
+  public static AppInitData getAppInitData() {
+    return appInitData;
+  }
+
+  public static void setAppInitData(
+      final Map<String, String> argsMap,
+      final List<ScriptFile> scriptFiles,
+      List<Repository> repositories) {
+    appInitData =
+        AppInitData.builder()
+            .argsMap(argsMap)
+            .scriptFiles(scriptFiles)
+            .repositories(repositories)
+            .build();
+  }
 
   public static Map<String, String> getPluginsMap() {
     return pluginsMap;
