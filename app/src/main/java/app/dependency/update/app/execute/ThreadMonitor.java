@@ -14,20 +14,19 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ThreadMonitor {
-  private final AppInitData appInitData;
 
-  public ThreadMonitor(final AppInitData appInitData) {
-    this.appInitData = appInitData;
+  public ThreadMonitor() {
     Executors.newScheduledThreadPool(1)
-        .scheduleWithFixedDelay(this::monitorThreads, 3, 3, TimeUnit.SECONDS);
+        .scheduleWithFixedDelay(this::monitorThreads, 5, 3, TimeUnit.SECONDS);
   }
 
   private void monitorThreads() {
+    final AppInitData appInitData = CommonUtil.getAppInitData();
     final Set<Thread> threads = Thread.getAllStackTraces().keySet();
     Map<String, Thread.State> threadStatusMap = new HashMap<>();
-    threadStatusMap.putAll(monitorNpmThreads(threads));
-    threadStatusMap.putAll(monitorGradleWrapperThreads(threads));
-    threadStatusMap.putAll(monitorGradleDependenciesThreads(threads));
+    threadStatusMap.putAll(monitorNpmThreads(appInitData, threads));
+    threadStatusMap.putAll(monitorGradleWrapperThreads(appInitData, threads));
+    threadStatusMap.putAll(monitorGradleDependenciesThreads(appInitData, threads));
 
     if (threadStatusMap.size() > 0) {
       log.warn("Current Threads Executing Updates: {}", threadStatusMap);
@@ -36,10 +35,11 @@ public class ThreadMonitor {
     }
   }
 
-  private Map<String, Thread.State> monitorNpmThreads(final Set<Thread> threads) {
+  private Map<String, Thread.State> monitorNpmThreads(
+      final AppInitData appInitData, final Set<Thread> threads) {
     // thread names are set as repository names
     List<String> npmThreadNames =
-        this.appInitData.getRepositories().stream()
+        appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(CommonUtil.NPM))
             .map(Repository::getRepoName)
             .toList();
@@ -52,9 +52,10 @@ public class ThreadMonitor {
     return npmThreads.stream().collect(Collectors.toMap(Thread::getName, Thread::getState));
   }
 
-  private Map<String, Thread.State> monitorGradleWrapperThreads(final Set<Thread> threads) {
+  private Map<String, Thread.State> monitorGradleWrapperThreads(
+      final AppInitData appInitData, final Set<Thread> threads) {
     List<String> gradleWrapperThreadNames =
-        this.appInitData.getRepositories().stream()
+        appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(CommonUtil.GRADLE))
             .map(repository -> repository.getRepoName() + "_" + CommonUtil.WRAPPER)
             .toList();
@@ -70,9 +71,10 @@ public class ThreadMonitor {
         .collect(Collectors.toMap(Thread::getName, Thread::getState));
   }
 
-  private Map<String, Thread.State> monitorGradleDependenciesThreads(final Set<Thread> threads) {
+  private Map<String, Thread.State> monitorGradleDependenciesThreads(
+      final AppInitData appInitData, final Set<Thread> threads) {
     List<String> gradleThreadNames =
-        this.appInitData.getRepositories().stream()
+        appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(CommonUtil.GRADLE))
             .map(Repository::getRepoName)
             .toList();
