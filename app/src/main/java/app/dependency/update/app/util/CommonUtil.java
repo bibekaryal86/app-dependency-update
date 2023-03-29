@@ -19,6 +19,8 @@ public class CommonUtil {
   // constants
   public static final String PATH_DELIMITER = "/";
   public static final String GRADLE_WRAPPER_REGEX = "(?<=\\-)(.*?)(?=\\-)";
+  public static final String GRADLE_BUILD_BLOCK_END_REGEX = "([a-z]+\\s\\{)";
+  public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
@@ -101,6 +103,10 @@ public class CommonUtil {
       return false;
     }
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
+  }
+
+  public static String leftTrim(final String line) {
+    return line.replaceAll("^\\s+", "");
   }
 
   public static Gson getGson() {
