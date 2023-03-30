@@ -25,10 +25,10 @@ public class ReadBuildGradle {
     this.repository = repository;
   }
 
-  public void readBuildGradle() {
+  public BuildGradleConfigs readBuildGradle() {
     Path buildGradlePath =
         Path.of(
-            repository
+            this.repository
                 .getRepoPath()
                 .toString()
                 .concat(CommonUtil.PATH_DELIMITER)
@@ -40,16 +40,15 @@ public class ReadBuildGradle {
       List<String> allLines = Files.readAllLines(buildGradlePath);
       GradleConfigBlock plugins = getPluginsBlock(allLines);
       GradleConfigBlock dependencies = getDependenciesBlock(allLines);
-      BuildGradleConfigs buildGradleConfigs =
-          BuildGradleConfigs.builder()
+      return BuildGradleConfigs.builder()
               .originals(allLines)
               .plugins(plugins)
               .dependencies(dependencies)
               .build();
-      log.info("Gradle Build Config: [{}]", buildGradleConfigs);
     } catch (IOException e) {
       log.error("Error reading build.gradle: {}", repository);
     }
+    return null;
   }
 
   private GradleConfigBlock getPluginsBlock(final List<String> allLines) {
