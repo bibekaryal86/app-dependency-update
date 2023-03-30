@@ -22,14 +22,19 @@ public class CommonUtil {
   // constants
   public static final String PATH_DELIMITER = "/";
   public static final String GRADLE_WRAPPER_REGEX = "(?<=\\-)(.*?)(?=\\-)";
+  public static final String GRADLE_BUILD_BLOCK_END_REGEX = "([a-z]+\\s\\{)";
+  public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
+  public static final String GRADLE_BUILD_DEFINITION_REGEX = "\\w+\\s+\\w+";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");
+  public static final String APP_MAIN_MODULE = "app";
   public static final String NPM = "npm";
   public static final String GRADLE = "gradle";
   public static final String WRAPPER = "wrapper";
   public static final String GRADLE_WRAPPER_PROPERTIES = GRADLE + "-" + WRAPPER + ".properties";
+  public static final String BUILD_GRADLE = "build." + GRADLE;
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String APP_INIT_DATA_MAP = "APP_INIT_DATA";
 
@@ -121,6 +126,10 @@ public class CommonUtil {
       return false;
     }
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
+  }
+
+  public static String leftTrim(final String line) {
+    return line.replaceAll("^\\s+", "");
   }
 
   public static Gson getGson() {
