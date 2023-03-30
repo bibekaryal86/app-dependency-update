@@ -31,7 +31,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
     log.info("Finish SchedulerJobMavenRepoDependencies...");
   }
 
-  public List<MongoDependency> findMongoDependenciesToUpdate() {
+  private List<MongoDependency> findMongoDependenciesToUpdate() {
     // get the dependencies, best to get it from mongo than from local Map
     List<MongoDependency> mongoDependencies = MongoUtil.retrieveDependencies();
     List<MongoDependency> mongoDependenciesToUpdate = new ArrayList<>();
