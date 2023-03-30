@@ -27,7 +27,7 @@ fi
 
 # Create new branch for updates
 echo Creating new branch
-branch_name="update_dependencies_"$(date +%F)
+branch_name="update_wrapper_"$(date +%F)
 git checkout -b "$branch_name"
 echo Running Gradle Wrapper Update
 chmod +x gradlew
