@@ -1,6 +1,9 @@
 package app.dependency.update.app.execute;
 
-import app.dependency.update.app.model.MavenDoc;
+import app.dependency.update.app.model.BuildGradleConfigs;
+import app.dependency.update.app.model.GradleConfigBlock;
+import app.dependency.update.app.model.GradleDefinition;
+import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.CommonUtil;
 import java.io.IOException;
@@ -14,14 +17,12 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ParseBuildGradle {
+public class ReadBuildGradle {
 
-  private final List<Repository> repositories;
-  private final Map<String, String> argsMap;
+  private final Repository repository;
 
-  public ParseBuildGradle(final List<Repository> repositories, final Map<String, String> argsMap) {
-    this.repositories = repositories;
-    this.argsMap = argsMap;
+  public ReadBuildGradle(final Repository repository) {
+    this.repository = repository;
   }
 
   private void setTempPluginsMap() {
@@ -32,25 +33,30 @@ public class ParseBuildGradle {
     CommonUtil.setPluginsMap(map);
   }
 
-  public void readBuildGradle(final Repository repository) {
+  public void readBuildGradle() {
     setTempPluginsMap();
-    log.debug("{},{}", this.repositories, this.argsMap);
+    log.debug("[{}]", this.repository);
     Path buildGradlePath = Path.of("C:\\dev\\prj\\app-dependency-update\\app\\build.gradle_temp");
     // Path tmp = Path.of("C:\\dev\\prj\\app-dependency-update\\app\\build.gradle_Temp");
     try {
       List<String> allLines = Files.readAllLines(buildGradlePath);
-      Map<String, MavenDoc> pluginsMap = getPluginsBlock(allLines);
-      log.info("Plugins Map: [{}]", pluginsMap);
-      Map<String, MavenDoc> dependenciesMap = getDependenciesBlock(allLines);
-      log.info("Dependencies Map: [{}]", dependenciesMap);
+      GradleConfigBlock plugins = getPluginsBlock(allLines);
+      GradleConfigBlock dependencies = getDependenciesBlock(allLines);
+      BuildGradleConfigs buildGradleConfigs =
+          BuildGradleConfigs.builder()
+                  .originals(allLines)
+                  .plugins(plugins)
+                  .dependencies(dependencies)
+                  .build();
+      log.info("Gradle Build Config: [{}]", buildGradleConfigs);
       // Files.write(tmp, allLines, java.nio.charset.StandardCharsets.UTF_8);
     } catch (IOException e) {
       log.error("Error reading build.gradle: {}", repository);
     }
   }
 
-  private Map<String, MavenDoc> getPluginsBlock(final List<String> allLines) {
-    Map<String, MavenDoc> pluginsMap = new HashMap<>();
+  private GradleConfigBlock getPluginsBlock(final List<String> allLines) {
+    List<GradleDependency> plugins = new ArrayList<>();
     int pluginsBeginPosition = allLines.indexOf("plugins {");
 
     if (pluginsBeginPosition >= 0) {
@@ -72,17 +78,27 @@ public class ParseBuildGradle {
         String group = pluginArray[1].replaceAll("'", "");
         String version = pluginArray[3].replaceAll("'", "");
         String artifact = CommonUtil.getPluginsMap().get(group);
-        pluginsMap.put(plugin, MavenDoc.builder().g(group).a(artifact).v(version).build());
+        plugins.add(
+            GradleDependency.builder()
+                .original(plugin)
+                .group(group)
+                .artifact(artifact)
+                .version(version)
+                .build());
       }
     } else {
       log.info("No plugins in the project...");
     }
 
-    return pluginsMap;
+    return GradleConfigBlock.builder()
+            .dependencies(plugins)
+            .build();
   }
 
-  private Map<String, MavenDoc> getDependenciesBlock(final List<String> allLines) {
-    Map<String, MavenDoc> dependenciesMap = new HashMap<>();
+  private GradleConfigBlock getDependenciesBlock(final List<String> allLines) {
+    List<GradleDefinition> gradleDefinitions = new ArrayList<>();
+    List<GradleDependency> gradleDependencies = new ArrayList<>();
+
     int dependenciesBeginPosition = allLines.indexOf("dependencies {");
 
     if (dependenciesBeginPosition >= 0) {
@@ -92,10 +108,6 @@ public class ParseBuildGradle {
         if (dependency.equals("}") && isEndOfABlock(allLines, i + 1)) {
           break;
         }
-        // ignore comments, empty lines and anything else that is not dependency
-        if (!isDependencyDeclaration(CommonUtil.leftTrim(dependency))) {
-          continue;
-        }
         // Examples from mvnrepository - Gradle: #1, Gradle (Short): #2, Gradle (Kotlin): #3
         // 1: implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
         // 2: implementation 'com.google.code.gson:gson:2.10.1'
@@ -103,26 +115,30 @@ public class ParseBuildGradle {
         // 4: testImplementation('org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE')
         //      { exclude group: 'org.junit.vintage', module: 'junit-vintage-engine' }
         // 5: implementation('org.slf4j:slf4j-api') { version { strictly '1.7.2' }}
-        if (dependency.contains("(") && dependency.contains(")")) {
-          dependency = dependency.replace("(", " ").replace(")", " ");
-        }
+        if (isDependencyDeclaration(CommonUtil.leftTrim(dependency))) {
+          if (dependency.contains("(") && dependency.contains(")")) {
+            dependency = dependency.replace("(", " ").replace(")", " ");
+          }
 
-        String formattedDependency = getFormattedDependencyString(dependency);
-        if (formattedDependency == null) {
-          continue;
+          GradleDependency gradleDependency = getGradleDependency(dependency);
+          if (gradleDependency != null) {
+            gradleDependencies.add(gradleDependency);
+          }
+        } else if (isDefinitionDeclaration(CommonUtil.leftTrim(dependency))) {
+          GradleDefinition gradleDefinition = getGradleDefinition(dependency);
+          if (gradleDefinition != null) {
+            gradleDefinitions.add(gradleDefinition);
+          }
         }
-        String[] formattedDependencyArray = formattedDependency.split(":");
-        if (formattedDependencyArray.length != 3) {
-          // From above examples - this matches #5, hence ignored
-          continue;
-        }
-        dependenciesMap.put(dependency, getDependency(formattedDependencyArray));
       }
     } else {
       log.info("No dependencies in the project...");
     }
 
-    return dependenciesMap;
+    return GradleConfigBlock.builder()
+            .definitions(gradleDefinitions)
+            .dependencies(gradleDependencies)
+            .build();
   }
 
   private boolean isDependencyDeclaration(final String dependency) {
@@ -139,7 +155,11 @@ public class ParseBuildGradle {
     return dependencyConfigurations.stream().anyMatch(dependency::startsWith);
   }
 
-  private String getFormattedDependencyString(final String dependency) {
+  private boolean isDefinitionDeclaration(final String dependency) {
+    return dependency.startsWith("def");
+  }
+
+  private GradleDependency getGradleDependency(final String dependency) {
     // Get between `'` or `"`
     Pattern pattern;
     if (dependency.contains("'") && !dependency.contains("\"")) {
@@ -157,7 +177,7 @@ public class ParseBuildGradle {
       String group = matcher.group();
       if (group.contains(":")) {
         // From above examples this matches - #2, #3 and #4
-        return group;
+        return getGradleDependency(group, null, dependency);
       } else {
         // From examples this matches - #1
         Stream<MatchResult> matcherResultStream = matcher.results();
@@ -172,19 +192,59 @@ public class ParseBuildGradle {
                     })
                 .filter(Objects::nonNull)
                 .toList();
-        return group + ":" + String.join(":", artifactVersion);
+        return getGradleDependency(group, artifactVersion, dependency);
       }
     }
 
     return null;
   }
 
-  private MavenDoc getDependency(final String[] formattedDependencyArray) {
-    return MavenDoc.builder()
-        .g(formattedDependencyArray[0])
-        .a(formattedDependencyArray[1])
-        .v(formattedDependencyArray[2])
-        .build();
+  private GradleDependency getGradleDependency(
+      final String group, final List<String> artifactVersion, final String original) {
+    String[] dependencyArray = new String[0];
+    if (artifactVersion == null) {
+      dependencyArray = group.split(":");
+    } else {
+      dependencyArray = (group + ":" + String.join(":", artifactVersion)).split(":");
+    }
+
+    if (dependencyArray.length == 3) {
+      return GradleDependency.builder()
+          .original(original)
+          .group(dependencyArray[0])
+          .artifact(dependencyArray[1])
+          .version(dependencyArray[2])
+          .build();
+    }
+
+    return null;
+  }
+
+  private GradleDefinition getGradleDefinition(final String dependency) {
+    Pattern pattern =
+        Pattern.compile(String.format(CommonUtil.GRADLE_BUILD_DEPENDENCIES_REGEX, "\"", "\""));
+    Matcher matcher = pattern.matcher(dependency);
+
+    if (matcher.find()) {
+      String value = matcher.group();
+      log.info("Definition Value: [{}]", value);
+
+      pattern = Pattern.compile(CommonUtil.GRADLE_BUILD_DEFINITION_REGEX);
+      matcher = pattern.matcher(dependency);
+
+      if (matcher.find()) {
+        String defName = matcher.group();
+        String[] defNameArray = defName.split(" ");
+        if (defNameArray.length == 2) {
+          return GradleDefinition.builder()
+              .original(dependency)
+              .name(defNameArray[1])
+              .value(value)
+              .build();
+        }
+      }
+    }
+    return null;
   }
 
   private boolean isEndOfABlock(final List<String> allLines, final int positionPlusOne) {
