@@ -41,6 +41,7 @@ public class ReadBuildGradle {
       GradleConfigBlock plugins = getPluginsBlock(allLines);
       GradleConfigBlock dependencies = getDependenciesBlock(allLines);
       return BuildGradleConfigs.builder()
+          .buildGradlePath(buildGradlePath)
           .originals(allLines)
           .plugins(plugins)
           .dependencies(dependencies)
@@ -74,6 +75,14 @@ public class ReadBuildGradle {
         String group = pluginArray[1].replaceAll("'", "");
         String version = pluginArray[3].replaceAll("'", "");
         String artifact = CommonUtil.getPluginsMap().get(group);
+
+        if (CommonUtil.isEmpty(artifact)) {
+          // It is likely plugin information is not available in the local repository
+          // Do not throw error, log the event and continue updating others
+          log.error("Plugin information missing in local repo: {}", group);
+          continue;
+        }
+
         plugins.add(
             GradleDependency.builder()
                 .original(plugin)
