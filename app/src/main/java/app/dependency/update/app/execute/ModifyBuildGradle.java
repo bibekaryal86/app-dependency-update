@@ -5,7 +5,8 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.util.CommonUtil;
-import java.io.IOException;import java.nio.file.Files;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,8 @@ public class ModifyBuildGradle {
     }
   }
 
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings("java:S3776")
   private void modifyConfigurations(
       final GradleConfigBlock dependenciesBlock, final List<String> originals) {
     List<String> updatedDefinitions = new ArrayList<>();
@@ -111,9 +114,15 @@ public class ModifyBuildGradle {
   private void writeToFile(List<String> updatedOriginals) {
     try {
       log.info("Writing to file: [{}]", this.buildGradleConfigs.getBuildGradlePath());
-      Files.write(this.buildGradleConfigs.getBuildGradlePath(), updatedOriginals, java.nio.charset.StandardCharsets.UTF_8);
+      Files.write(
+          this.buildGradleConfigs.getBuildGradlePath(),
+          updatedOriginals,
+          java.nio.charset.StandardCharsets.UTF_8);
     } catch (IOException ex) {
-      log.error("Error Saving Updated Build Gradle File: [{}]", this.buildGradleConfigs.getBuildGradlePath(), ex);
+      log.error(
+          "Error Saving Updated Build Gradle File: [{}]",
+          this.buildGradleConfigs.getBuildGradlePath(),
+          ex);
     }
   }
 }

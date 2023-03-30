@@ -52,6 +52,9 @@ public class ReadBuildGradle {
     return null;
   }
 
+  // suppressing sonarlint rule to not use more than break or continue statement
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings({"java:S135", "java:S3776"})
   private GradleConfigBlock getPluginsBlock(final List<String> allLines) {
     List<GradleDependency> plugins = new ArrayList<>();
     int pluginsBeginPosition = allLines.indexOf("plugins {");
@@ -72,8 +75,8 @@ public class ReadBuildGradle {
         if (pluginArray.length != 4) {
           continue;
         }
-        String group = pluginArray[1].replaceAll("'", "");
-        String version = pluginArray[3].replaceAll("'", "");
+        String group = pluginArray[1].replace("'", "");
+        String version = pluginArray[3].replace("'", "");
         String artifact = CommonUtil.getPluginsMap().get(group);
 
         if (CommonUtil.isEmpty(artifact)) {
@@ -98,6 +101,8 @@ public class ReadBuildGradle {
     return GradleConfigBlock.builder().dependencies(plugins).build();
   }
 
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings("java:S3776")
   private GradleConfigBlock getDependenciesBlock(final List<String> allLines) {
     List<GradleDefinition> gradleDefinitions = new ArrayList<>();
     List<GradleDependency> gradleDependencies = new ArrayList<>();
@@ -118,8 +123,7 @@ public class ReadBuildGradle {
         // 2: implementation 'com.google.code.gson:gson:2.10.1'
         // 3: implementation ('com.google.code.gson:gson:2.10.1')
         // 4: testImplementation('org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE')
-        //      { exclude group: 'org.junit.vintage', module: 'junit-vintage-engine' }
-        // 5: implementation('org.slf4j:slf4j-api') { version { strictly '1.7.2' }}
+        // 5: implementation('org.slf4j:slf4j-api') version set as strict or require or other
         if (isDependencyDeclaration(CommonUtil.leftTrim(dependency))) {
           if (dependency.contains("(") && dependency.contains(")")) {
             dependency = dependency.replace("(", " ").replace(")", " ");
