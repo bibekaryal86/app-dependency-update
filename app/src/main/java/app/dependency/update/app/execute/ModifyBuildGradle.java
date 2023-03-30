@@ -22,7 +22,6 @@ public class ModifyBuildGradle {
   }
 
   public void modifyBuildGradle() {
-    log.info("BEFORE CHANGE: [{}]", this.buildGradleConfigs.getOriginals());
     final List<String> originals = new ArrayList<>(this.buildGradleConfigs.getOriginals());
 
     final GradleConfigBlock pluginsBlock = this.buildGradleConfigs.getPlugins();
@@ -32,12 +31,10 @@ public class ModifyBuildGradle {
     modifyConfigurations(dependenciesBlock, originals);
 
     if (originals.equals(this.buildGradleConfigs.getOriginals())) {
-      log.info("Nothing to update: [{}]", this.buildGradleConfigs.getBuildGradlePath());
+      log.info("Nothing to Update: [{}]", this.buildGradleConfigs.getBuildGradlePath());
     } else {
       writeToFile(originals);
     }
-
-    log.info("AFTER CHANGE: [{}]", originals);
   }
 
   private void modifyConfigurations(
@@ -113,14 +110,11 @@ public class ModifyBuildGradle {
   }
 
   private void writeToFile(List<String> updatedOriginals) {
-    // first create a temp file
-    String tempFileLocation = this.buildGradleConfigs.getBuildGradlePath().toString() + "_temp";
-    Path tempFilePath = Path.of(tempFileLocation);
     try {
-      log.info("Writing to file: [{}]", tempFileLocation);
-      Files.write(tempFilePath, updatedOriginals, java.nio.charset.StandardCharsets.UTF_8);
+      log.info("Writing to file: [{}]", this.buildGradleConfigs.getBuildGradlePath());
+      Files.write(this.buildGradleConfigs.getBuildGradlePath(), updatedOriginals, java.nio.charset.StandardCharsets.UTF_8);
     } catch (IOException ex) {
-      log.error("Error Saving Updated Build Gradle File: [{}]", tempFileLocation);
+      log.error("Error Saving Updated Build Gradle File: [{}]", this.buildGradleConfigs.getBuildGradlePath(), ex);
     }
   }
 }
