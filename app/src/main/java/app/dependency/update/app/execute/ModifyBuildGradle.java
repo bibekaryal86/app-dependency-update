@@ -5,6 +5,8 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.util.CommonUtil;
+import java.io.IOException;import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +23,19 @@ public class ModifyBuildGradle {
 
   public void modifyBuildGradle() {
     log.info("BEFORE CHANGE: [{}]", this.buildGradleConfigs.getOriginals());
-    final List<String> originals = this.buildGradleConfigs.getOriginals();
+    final List<String> originals = new ArrayList<>(this.buildGradleConfigs.getOriginals());
 
     final GradleConfigBlock pluginsBlock = this.buildGradleConfigs.getPlugins();
     modifyConfigurations(pluginsBlock, originals);
 
     final GradleConfigBlock dependenciesBlock = this.buildGradleConfigs.getDependencies();
     modifyConfigurations(dependenciesBlock, originals);
+
+    if (originals.equals(this.buildGradleConfigs.getOriginals())) {
+      log.info("Nothing to update: [{}]", this.buildGradleConfigs.getBuildGradlePath());
+    } else {
+      writeToFile(originals);
+    }
 
     log.info("AFTER CHANGE: [{}]", originals);
   }
@@ -102,5 +110,17 @@ public class ModifyBuildGradle {
     }
 
     return null;
+  }
+
+  private void writeToFile(List<String> updatedOriginals) {
+    // first create a temp file
+    String tempFileLocation = this.buildGradleConfigs.getBuildGradlePath().toString() + "_temp";
+    Path tempFilePath = Path.of(tempFileLocation);
+    try {
+      log.info("Writing to file: [{}]", tempFileLocation);
+      Files.write(tempFilePath, updatedOriginals, java.nio.charset.StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      log.error("Error Saving Updated Build Gradle File: [{}]", tempFileLocation);
+    }
   }
 }
