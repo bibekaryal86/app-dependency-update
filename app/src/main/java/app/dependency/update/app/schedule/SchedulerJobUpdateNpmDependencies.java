@@ -5,8 +5,8 @@ import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -30,20 +30,19 @@ public class SchedulerJobUpdateNpmDependencies implements Job {
         appInitData.getRepositories().stream()
             .filter(repository -> CommonUtil.NPM.equals(repository.getType()))
             .toList();
-    List<ScriptFile> npmScripts =
+    Optional<ScriptFile> npmScriptFile =
         appInitData.getScriptFiles().stream()
             .filter(scriptFile -> CommonUtil.NPM.equals(scriptFile.getType()))
-            .sorted(Comparator.comparingInt(ScriptFile::getStep))
-            .toList();
+            .findFirst();
 
-    if (npmRepositories.isEmpty() || npmScripts.isEmpty()) {
+    if (npmRepositories.isEmpty() || npmScriptFile.isEmpty()) {
       log.info(
-          "NPM Repositories [{}] and/or NPM Scripts [{}] are empty!",
+          "NPM Repositories [{}] and/or NPM Script [{}] is empty!",
           npmRepositories.isEmpty(),
-          npmScripts.isEmpty());
+          npmScriptFile.isEmpty());
     } else {
       log.info("Updating NPM repositories: {}", npmRepositories);
-      new UpdateNpmDependencies(npmRepositories, npmScripts, appInitData.getArgsMap())
+      new UpdateNpmDependencies(npmRepositories, npmScriptFile.get(), appInitData.getArgsMap())
           .updateNpmDependencies();
     }
     log.info("Finish SchedulerJobUpdateNpmDependencies...");
