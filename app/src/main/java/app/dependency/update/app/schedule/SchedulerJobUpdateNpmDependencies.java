@@ -44,7 +44,7 @@ public class SchedulerJobUpdateNpmDependencies implements Job {
     } else {
       log.info("Updating NPM repositories: {}", npmRepositories);
       new UpdateNpmDependencies(npmRepositories, npmScripts, appInitData.getArgsMap())
-          .updateDependenciesNpm();
+          .updateNpmDependencies();
     }
     log.info("Finish SchedulerJobUpdateNpmDependencies...");
   }

@@ -24,7 +24,7 @@ public class UpdateNpmDependencies {
     this.argsMap = argsMap;
   }
 
-  public void updateDependenciesNpm() {
+  public void updateNpmDependencies() {
     // updating NPM dependencies is fairly straightforward because everything is done by the npm
     // script, we just need to execute it for each repository
     this.repositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
