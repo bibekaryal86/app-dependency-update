@@ -18,18 +18,21 @@ public class ModifyBuildGradle {
 
   public void modifyBuildGradle() {
     log.info("BEFORE CHANGE: [{}]", this.buildGradleConfigs.getOriginals());
-
     final List<String> originals = this.buildGradleConfigs.getOriginals();
+
     final GradleConfigBlock pluginsBlock = this.buildGradleConfigs.getPlugins();
-    updatePlugins(pluginsBlock, originals);
+    updateDependencies(pluginsBlock, originals);
+
+    final GradleConfigBlock dependenciesBlock = this.buildGradleConfigs.getDependencies();
+    updateDependencies(dependenciesBlock, originals);
 
     log.info("AFTER CHANGE: [{}]", originals);
   }
 
-  private void updatePlugins(final GradleConfigBlock pluginsBlock, final List<String> originals) {
-    if (pluginsBlock != null && !pluginsBlock.getDependencies().isEmpty()) {
-      for (final GradleDependency gradleDependency : pluginsBlock.getDependencies()) {
-        String updatedOriginal = updatePlugin(gradleDependency);
+  private void updateDependencies(final GradleConfigBlock dependenciesBlock, final List<String> originals) {
+    if (dependenciesBlock != null && !dependenciesBlock.getDependencies().isEmpty()) {
+      for (final GradleDependency gradleDependency: dependenciesBlock.getDependencies()) {
+        String updatedOriginal = updateDependency(gradleDependency);
         if (updatedOriginal != null) {
           int index = originals.indexOf(gradleDependency.getOriginal());
           if (index >= 0) {
@@ -40,7 +43,7 @@ public class ModifyBuildGradle {
     }
   }
 
-  private String updatePlugin(final GradleDependency gradleDependency) {
+  private String updateDependency(final GradleDependency gradleDependency) {
     String latestVersion =
         new MavenRepo()
             .getLatestVersion(
