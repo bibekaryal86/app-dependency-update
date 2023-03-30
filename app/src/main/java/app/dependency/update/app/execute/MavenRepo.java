@@ -40,21 +40,7 @@ public class MavenRepo {
       final String artifact,
       final String currentVersion,
       final boolean forceRemote) {
-    // plugins do not have artifact information, so get artifact from pluginsMap
-    String localArtifact = artifact;
-    if (CommonUtil.isEmpty(artifact)) {
-      localArtifact = CommonUtil.getPluginsMap().get(group);
-
-      // check again
-      if (CommonUtil.isEmpty(localArtifact)) {
-        // Still nothing? it is likely plugin information is not available in the local repository
-        // Do not throw error, log the event and continue updating others
-        log.error("Plugin information missing: {}", group);
-        return currentVersion;
-      }
-    }
-
-    String mavenId = group + ":" + localArtifact;
+    String mavenId = group + ":" + artifact;
 
     if (!forceRemote && CommonUtil.getDependenciesMap().get(mavenId) != null) {
       // return from dependencies map from local repo
