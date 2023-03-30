@@ -57,7 +57,7 @@ public class ReadBuildGradle {
 
     if (pluginsBeginPosition >= 0) {
       for (int i = pluginsBeginPosition + 1; i < allLines.size(); i++) {
-        String plugin = allLines.get(i);
+        final String plugin = allLines.get(i);
         // check if this is the end of the block
         if (plugin.equals("}") && isEndOfABlock(allLines, i + 1)) {
           break;
@@ -97,7 +97,7 @@ public class ReadBuildGradle {
 
     if (dependenciesBeginPosition >= 0) {
       for (int i = dependenciesBeginPosition + 1; i < allLines.size(); i++) {
-        String original = allLines.get(i);
+        final String original = allLines.get(i);
         // There is a chance `dependency` could be modified, so keep `original` untouched
         String dependency = allLines.get(i);
         // check if this is the end of the block
