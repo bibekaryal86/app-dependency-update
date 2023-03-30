@@ -41,10 +41,10 @@ public class ReadBuildGradle {
       GradleConfigBlock plugins = getPluginsBlock(allLines);
       GradleConfigBlock dependencies = getDependenciesBlock(allLines);
       return BuildGradleConfigs.builder()
-              .originals(allLines)
-              .plugins(plugins)
-              .dependencies(dependencies)
-              .build();
+          .originals(allLines)
+          .plugins(plugins)
+          .dependencies(dependencies)
+          .build();
     } catch (IOException e) {
       log.error("Error reading build.gradle: {}", repository);
     }
@@ -97,6 +97,8 @@ public class ReadBuildGradle {
 
     if (dependenciesBeginPosition >= 0) {
       for (int i = dependenciesBeginPosition + 1; i < allLines.size(); i++) {
+        String original = allLines.get(i);
+        // There is a chance `dependency` could be modified, so keep `original` untouched
         String dependency = allLines.get(i);
         // check if this is the end of the block
         if (dependency.equals("}") && isEndOfABlock(allLines, i + 1)) {
@@ -114,7 +116,7 @@ public class ReadBuildGradle {
             dependency = dependency.replace("(", " ").replace(")", " ");
           }
 
-          GradleDependency gradleDependency = getGradleDependency(dependency);
+          GradleDependency gradleDependency = getGradleDependency(dependency, original);
           if (gradleDependency != null) {
             gradleDependencies.add(gradleDependency);
           }
@@ -153,7 +155,7 @@ public class ReadBuildGradle {
     return dependency.startsWith("def");
   }
 
-  private GradleDependency getGradleDependency(final String dependency) {
+  private GradleDependency getGradleDependency(final String dependency, final String original) {
     // Get between `'` or `"`
     Pattern pattern;
     if (dependency.contains("'") && !dependency.contains("\"")) {
@@ -171,7 +173,7 @@ public class ReadBuildGradle {
       String group = matcher.group();
       if (group.contains(":")) {
         // From above examples this matches - #2, #3 and #4
-        return getGradleDependency(group, null, dependency);
+        return getGradleDependency(group, null, original);
       } else {
         // From examples this matches - #1
         Stream<MatchResult> matcherResultStream = matcher.results();
@@ -186,7 +188,7 @@ public class ReadBuildGradle {
                     })
                 .filter(Objects::nonNull)
                 .toList();
-        return getGradleDependency(group, artifactVersion, dependency);
+        return getGradleDependency(group, artifactVersion, original);
       }
     }
 
@@ -195,7 +197,7 @@ public class ReadBuildGradle {
 
   private GradleDependency getGradleDependency(
       final String group, final List<String> artifactVersion, final String original) {
-    String[] dependencyArray = new String[0];
+    String[] dependencyArray;
     if (artifactVersion == null) {
       dependencyArray = group.split(":");
     } else {
