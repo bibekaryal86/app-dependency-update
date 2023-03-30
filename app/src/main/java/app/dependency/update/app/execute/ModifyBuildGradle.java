@@ -5,6 +5,7 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.util.CommonUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +34,20 @@ public class ModifyBuildGradle {
 
   private void modifyConfigurations(
       final GradleConfigBlock dependenciesBlock, final List<String> originals) {
+    List<String> updatedDefinitions = new ArrayList<>();
     if (dependenciesBlock != null && !dependenciesBlock.getDependencies().isEmpty()) {
       for (final GradleDependency gradleDependency : dependenciesBlock.getDependencies()) {
         if (gradleDependency.getVersion().startsWith("$")) {
           // this updates definition
-          String defName = gradleDependency.getVersion().replace("$", "");
+          String definitionName = gradleDependency.getVersion().replace("$", "");
+
+          if (updatedDefinitions.contains(definitionName)) {
+            continue;
+          }
+
           Optional<GradleDefinition> gradleDefinitionOptional =
               dependenciesBlock.getDefinitions().stream()
-                  .filter(gradleDefinition -> gradleDefinition.getName().equals(defName))
+                  .filter(gradleDefinition -> gradleDefinition.getName().equals(definitionName))
                   .findFirst();
           if (gradleDefinitionOptional.isPresent()) {
             GradleDefinition gradleDefinition = gradleDefinitionOptional.get();
@@ -59,6 +66,7 @@ public class ModifyBuildGradle {
               int index = originals.indexOf(gradleDefinition.getOriginal());
               if (index >= 0) {
                 originals.set(index, updatedOriginal);
+                updatedDefinitions.add(definitionName);
               }
             }
           }
