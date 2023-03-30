@@ -25,31 +25,28 @@ public class ReadBuildGradle {
     this.repository = repository;
   }
 
-  private void setTempPluginsMap() {
-    Map<String, String> map = new HashMap<>();
-    map.put("io.freefair.lombok", "io.freefair.lombok.gradle.plugin");
-    map.put("com.diffplug.spotless", "spotless-plugin-gradle");
-    map.put("org.springframework.boot", "spring-boot-gradle-plugin");
-    CommonUtil.setPluginsMap(map);
-  }
-
   public void readBuildGradle() {
-    setTempPluginsMap();
-    log.debug("[{}]", this.repository);
-    Path buildGradlePath = Path.of("C:\\dev\\prj\\app-dependency-update\\app\\build.gradle_temp");
-    // Path tmp = Path.of("C:\\dev\\prj\\app-dependency-update\\app\\build.gradle_Temp");
+    Path buildGradlePath =
+        Path.of(
+            repository
+                .getRepoPath()
+                .toString()
+                .concat(CommonUtil.PATH_DELIMITER)
+                .concat(CommonUtil.APP_MAIN_MODULE)
+                .concat(CommonUtil.PATH_DELIMITER)
+                .concat(CommonUtil.BUILD_GRADLE));
+
     try {
       List<String> allLines = Files.readAllLines(buildGradlePath);
       GradleConfigBlock plugins = getPluginsBlock(allLines);
       GradleConfigBlock dependencies = getDependenciesBlock(allLines);
       BuildGradleConfigs buildGradleConfigs =
           BuildGradleConfigs.builder()
-                  .originals(allLines)
-                  .plugins(plugins)
-                  .dependencies(dependencies)
-                  .build();
+              .originals(allLines)
+              .plugins(plugins)
+              .dependencies(dependencies)
+              .build();
       log.info("Gradle Build Config: [{}]", buildGradleConfigs);
-      // Files.write(tmp, allLines, java.nio.charset.StandardCharsets.UTF_8);
     } catch (IOException e) {
       log.error("Error reading build.gradle: {}", repository);
     }
@@ -90,9 +87,7 @@ public class ReadBuildGradle {
       log.info("No plugins in the project...");
     }
 
-    return GradleConfigBlock.builder()
-            .dependencies(plugins)
-            .build();
+    return GradleConfigBlock.builder().dependencies(plugins).build();
   }
 
   private GradleConfigBlock getDependenciesBlock(final List<String> allLines) {
@@ -136,9 +131,9 @@ public class ReadBuildGradle {
     }
 
     return GradleConfigBlock.builder()
-            .definitions(gradleDefinitions)
-            .dependencies(gradleDependencies)
-            .build();
+        .definitions(gradleDefinitions)
+        .dependencies(gradleDependencies)
+        .build();
   }
 
   private boolean isDependencyDeclaration(final String dependency) {
