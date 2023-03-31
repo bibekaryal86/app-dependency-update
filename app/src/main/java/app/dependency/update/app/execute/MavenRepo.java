@@ -69,7 +69,11 @@ public class MavenRepo {
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
     log.info(
-        "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]", group, artifact, mavenDoc, mavenSearchResponse);
+        "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
+        group,
+        artifact,
+        mavenDoc,
+        mavenSearchResponse);
     return mavenDoc;
   }
 

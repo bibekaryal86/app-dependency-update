@@ -48,7 +48,7 @@ public class UpdateGradleBuildFile implements Runnable {
               writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
 
           if (isWriteToFile) {
-            new ExecuteScriptFile(threadName + "_Execute", this.scriptFile, this.arguments).start();
+            new ExecuteScriptFile(threadName + "_", this.scriptFile, this.arguments).start();
           } else {
             log.info(
                 "Build Gradle Changes Not Written to File: [ {} ]", this.repository.getRepoPath());
