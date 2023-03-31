@@ -1,7 +1,12 @@
 package app.dependency.update.app.schedule;
 
+import app.dependency.update.app.execute.UpdateGradleDependencies;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -20,8 +25,28 @@ public class SchedulerJobUpdateGradleDependencies implements Job {
   }
 
   private void updateGradleDependencies(final AppInitData appInitData) {
+    List<Repository> gradleRepositories =
+        appInitData.getRepositories().stream()
+            .filter(repository -> CommonUtil.GRADLE.equals(repository.getType()))
+            .toList();
+    Optional<ScriptFile> gradleScriptFile =
+        appInitData.getScriptFiles().stream()
+            .filter(
+                scriptFile ->
+                    CommonUtil.GRADLE.equals(scriptFile.getType()) && scriptFile.getStep() == 2)
+            .findFirst();
 
-    // TODO
+    if (gradleRepositories.isEmpty() || gradleScriptFile.isEmpty()) {
+      log.info(
+          "Gradle Repositories [ {} ] and/or Gradle Script [ {} ] is empty!",
+          gradleRepositories.isEmpty(),
+          gradleScriptFile.isEmpty());
+    } else {
+      log.info("Updating Gradle repositories: {}", gradleRepositories);
+      new UpdateGradleDependencies(
+              gradleRepositories, gradleScriptFile.get(), appInitData.getArgsMap())
+          .updateDependenciesGradle();
+    }
     log.info("Finish SchedulerJobUpdateGradleDependencies...");
   }
 }

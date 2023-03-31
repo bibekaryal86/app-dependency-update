@@ -6,6 +6,7 @@ import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.util.CommonUtil;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class ModifyBuildGradle {
 
     if (originals.equals(this.buildGradleConfigs.getOriginals())) {
       log.info("Nothing to Update: [ {} ]", this.buildGradleConfigs.getBuildGradlePath());
-      return null;
+      return Collections.emptyList();
     } else {
       return originals;
     }

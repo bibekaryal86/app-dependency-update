@@ -80,7 +80,7 @@ public class ThreadMonitor {
             .map(Repository::getRepoName)
             .toList();
     // gradle threads from ExecuteScriptFile
-    List<String> gradleThreadNames_ =
+    List<String> gradleThreadNamesUnderscore =
         gradleThreadNames.stream().map(gradleThreadName -> gradleThreadName + "_").toList();
 
     // gradle threads
@@ -89,7 +89,7 @@ public class ThreadMonitor {
             .filter(
                 thread ->
                     gradleThreadNames.contains(thread.getName())
-                        || gradleThreadNames_.contains(thread.getName()))
+                        || gradleThreadNamesUnderscore.contains(thread.getName()))
             .toList();
 
     // gradle threads with status
