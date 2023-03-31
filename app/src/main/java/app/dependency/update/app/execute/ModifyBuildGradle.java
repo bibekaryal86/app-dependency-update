@@ -5,8 +5,6 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.util.CommonUtil;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +19,7 @@ public class ModifyBuildGradle {
     this.buildGradleConfigs = buildGradleConfigs;
   }
 
-  public void modifyBuildGradle() {
+  public List<String> modifyBuildGradle() {
     final List<String> originals = new ArrayList<>(this.buildGradleConfigs.getOriginals());
 
     final GradleConfigBlock pluginsBlock = this.buildGradleConfigs.getPlugins();
@@ -32,8 +30,9 @@ public class ModifyBuildGradle {
 
     if (originals.equals(this.buildGradleConfigs.getOriginals())) {
       log.info("Nothing to Update: [{}]", this.buildGradleConfigs.getBuildGradlePath());
+      return null;
     } else {
-      writeToFile(originals);
+      return originals;
     }
   }
 
@@ -109,20 +108,5 @@ public class ModifyBuildGradle {
     }
 
     return null;
-  }
-
-  private void writeToFile(List<String> updatedOriginals) {
-    try {
-      log.info("Writing to file: [{}]", this.buildGradleConfigs.getBuildGradlePath());
-      Files.write(
-          this.buildGradleConfigs.getBuildGradlePath(),
-          updatedOriginals,
-          java.nio.charset.StandardCharsets.UTF_8);
-    } catch (IOException ex) {
-      log.error(
-          "Error Saving Updated Build Gradle File: [{}]",
-          this.buildGradleConfigs.getBuildGradlePath(),
-          ex);
-    }
   }
 }
