@@ -23,16 +23,16 @@ public class DeleteTempScriptFiles {
         }
       }
     } catch (IOException ex) {
-      log.error("Quiet cleanup error: {}", ex.getMessage(), ex);
+      log.error("Quiet cleanup error: [ {} ]", ex.getMessage(), ex);
     }
   }
 
   public void delete(final Path path) {
     try {
       boolean isDeleted = Files.deleteIfExists(path);
-      log.info("Delete: {} | {}", path, isDeleted);
+      log.info("Delete: [ {} ] | [ {} ]", path, isDeleted);
     } catch (IOException ex) {
-      log.info("Quiet cleanup delete error: {}", path, ex);
+      log.info("Quiet cleanup delete error: [ {} ]", path, ex);
     }
   }
 }

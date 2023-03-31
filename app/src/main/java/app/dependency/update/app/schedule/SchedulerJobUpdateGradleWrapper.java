@@ -38,7 +38,7 @@ public class SchedulerJobUpdateGradleWrapper implements Job {
 
     if (gradleRepositories.isEmpty() || gradleWrapperScriptFile.isEmpty()) {
       log.info(
-          "Gradle Repositories [{}] and/or Gradle Wrapper Script [{}] is empty!",
+          "Gradle Repositories [ {} ] and/or Gradle Wrapper Script [ {} ] is empty!",
           gradleRepositories.isEmpty(),
           gradleWrapperScriptFile.isEmpty());
     } else {

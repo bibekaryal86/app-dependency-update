@@ -29,7 +29,7 @@ public class ModifyBuildGradle {
     modifyConfigurations(dependenciesBlock, originals);
 
     if (originals.equals(this.buildGradleConfigs.getOriginals())) {
-      log.info("Nothing to Update: [{}]", this.buildGradleConfigs.getBuildGradlePath());
+      log.info("Nothing to Update: [ {} ]", this.buildGradleConfigs.getBuildGradlePath());
       return null;
     } else {
       return originals;

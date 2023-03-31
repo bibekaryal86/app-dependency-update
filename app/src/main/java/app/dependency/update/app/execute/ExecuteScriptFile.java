@@ -59,7 +59,7 @@ public class ExecuteScriptFile implements Runnable {
 
   private Process startProcess(final String script)
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
-    log.info("Starting process: {}", script == null ? this.scriptPath : script);
+    log.info("Starting process: [ {} ]", script == null ? this.scriptPath : script);
     try {
       Process process;
       if (script == null) {
@@ -71,9 +71,9 @@ public class ExecuteScriptFile implements Runnable {
       } else {
         process = new ProcessBuilder(this.commandPath, script).start();
       }
-      log.info("Waiting process: {}", script == null ? this.scriptPath : script);
+      log.info("Waiting process: [ {} ]", script == null ? this.scriptPath : script);
       process.waitFor();
-      log.info("Finished process: {}", script == null ? this.scriptPath : script);
+      log.info("Finished process: [ {} ]", script == null ? this.scriptPath : script);
       return process;
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
@@ -85,7 +85,7 @@ public class ExecuteScriptFile implements Runnable {
 
   private void displayStreamOutput(final String script, final InputStream inputStream)
       throws AppDependencyUpdateIOException {
-    log.info("Display stream output: {}", script);
+    log.info("Display stream output: [ {} ]", script);
     StringBuilder stringBuilder = new StringBuilder();
     String line;
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -93,7 +93,7 @@ public class ExecuteScriptFile implements Runnable {
         stringBuilder.append(line).append("\n");
       }
 
-      log.info("Display stream output: {}\n{}\n", script, stringBuilder);
+      log.info("Display stream output: [ {} ]\n[ {} ]\n", script, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());

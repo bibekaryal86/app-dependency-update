@@ -40,7 +40,7 @@ public class UpdateGradleWrapper {
   public void updateGradleWrapper() {
     List<Repository> gradleRepositories =
         getGradleRepositoriesWithGradleWrapperStatus(getLatestGradleVersion());
-    log.info("Gradle Repositories with Gradle Wrapper Status: {}", gradleRepositories);
+    log.info("Gradle Repositories with Gradle Wrapper Status: [ {} ]", gradleRepositories);
 
     gradleRepositories.forEach(this::executeUpdate);
   }
@@ -55,7 +55,7 @@ public class UpdateGradleWrapper {
             .max(Comparator.comparing(GradleReleaseResponse::getName));
 
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: {}", optionalLatestGradleRelease);
+    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
 
     if (latestGradleRelease == null) {
       throw new AppDependencyUpdateRuntimeException("Latest Gradle Release Retrieve Error...");
@@ -120,7 +120,7 @@ public class UpdateGradleWrapper {
         return parseDistributionUrlForGradleVersion(distributionUrl);
       }
     } catch (IOException e) {
-      log.error("Error reading gradle-wrapper.properties: {}", repository);
+      log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return null;
   }
@@ -138,7 +138,7 @@ public class UpdateGradleWrapper {
   }
 
   private void executeUpdate(final Repository repository) {
-    log.info("Execute Gradle Update on: {}", repository);
+    log.info("Execute Gradle Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());

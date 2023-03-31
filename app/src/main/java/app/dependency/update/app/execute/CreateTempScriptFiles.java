@@ -30,7 +30,7 @@ public class CreateTempScriptFiles {
           "Unable to create temp directory to store scripts...");
     }
 
-    for (ScriptFile scriptFile : this.scriptFiles) {
+    for (final ScriptFile scriptFile : this.scriptFiles) {
       isError = createTempScriptFile(scriptFile);
       if (isError) {
         throw new AppDependencyUpdateRuntimeException(
@@ -45,7 +45,7 @@ public class CreateTempScriptFiles {
 
     try {
       if (!Files.exists(path)) {
-        log.info("Creating temp script directory: {}", path);
+        log.info("Creating temp script directory: [ {} ]", path);
         Files.createDirectory(path);
       }
       return false;
@@ -71,11 +71,11 @@ public class CreateTempScriptFiles {
               .getResourceAsStream(this.scriptsDirectory + "/" + scriptFile.getScriptFileName())) {
         assert inputStream != null;
         Files.write(filePath, inputStream.readAllBytes(), StandardOpenOption.WRITE);
-        log.info("Written to file: {}", filePath);
+        log.info("Written to file: [ {} ]", filePath);
         return false;
       }
     } catch (IOException | NullPointerException ex) {
-      log.error("Error creating temp script file: {}", scriptFile, ex);
+      log.error("Error creating temp script file: [ {} ]", scriptFile, ex);
       return true;
     }
   }

@@ -73,7 +73,7 @@ public class MongoUtil {
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       InsertManyResult insertManyResult =
           getMongoCollectionDependencies(mongoClient).insertMany(mongoDependencies);
-      log.info("Insert Dependencies Result: {}", insertManyResult.getInsertedIds());
+      log.info("Insert Dependencies Result: [ {} ]", insertManyResult.getInsertedIds());
     } catch (Exception ex) {
       log.error("Insert Dependencies Error: ", ex);
     }
@@ -88,7 +88,7 @@ public class MongoUtil {
             UpdateResult updateResult =
                 getMongoCollectionDependencies(mongoClient).updateOne(filter, update);
             log.info(
-                "Update Dependency Result: {} | {}",
+                "Update Dependency Result: [ {} ] | [ {} ]",
                 updateResult.getModifiedCount(),
                 mongoDependency);
           });

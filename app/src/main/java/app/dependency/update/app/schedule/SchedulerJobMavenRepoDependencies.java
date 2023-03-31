@@ -55,7 +55,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
         });
 
     log.info(
-        "Mongo Dependencies to Update: {}\n{}",
+        "Mongo Dependencies to Update: [{}]\n[{}]",
         mongoDependenciesToUpdate.size(),
         mongoDependenciesToUpdate);
 

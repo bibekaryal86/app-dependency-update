@@ -37,7 +37,7 @@ public class SchedulerJobUpdateNpmDependencies implements Job {
 
     if (npmRepositories.isEmpty() || npmScriptFile.isEmpty()) {
       log.info(
-          "NPM Repositories [{}] and/or NPM Script [{}] is empty!",
+          "NPM Repositories [ {} ] and/or NPM Script [ {} ] is empty!",
           npmRepositories.isEmpty(),
           npmScriptFile.isEmpty());
     } else {

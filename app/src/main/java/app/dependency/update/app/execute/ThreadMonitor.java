@@ -29,7 +29,7 @@ public class ThreadMonitor {
     threadStatusMap.putAll(monitorGradleDependenciesThreads(appInitData, threads));
 
     if (threadStatusMap.size() > 0) {
-      log.warn("Current Threads Executing Updates: {}", threadStatusMap);
+      log.warn("Current Threads Executing Updates: [ {} ]", threadStatusMap);
     } else {
       maybeAnimation();
     }

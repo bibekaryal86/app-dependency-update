@@ -36,13 +36,13 @@ public class UpdateGradleBuildFile implements Runnable {
       BuildGradleConfigs buildGradleConfigs =
           new ReadBuildGradle(this.repository).readBuildGradle();
       if (buildGradleConfigs == null) {
-        log.error("Build Gradle Configs is null: [{}]", this.repository.getRepoPath());
+        log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
       } else {
         List<String> buildGradleContent =
             new ModifyBuildGradle(buildGradleConfigs).modifyBuildGradle();
 
         if (CommonUtil.isEmpty(buildGradleContent)) {
-          log.info("Build Gradle Configs not updated: [{}]", this.repository.getRepoPath());
+          log.info("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
         } else {
           boolean isWriteToFile =
               writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
@@ -51,22 +51,22 @@ public class UpdateGradleBuildFile implements Runnable {
             new ExecuteScriptFile(threadName + "_Execute", this.scriptFile, this.arguments).start();
           } else {
             log.info(
-                "Build Gradle Changes Not Written to File: [{}]", this.repository.getRepoPath());
+                "Build Gradle Changes Not Written to File: [ {} ]", this.repository.getRepoPath());
           }
         }
       }
-    } catch (Exception e) {
-      log.error("Error in Execute Build Gradle Update: ", e);
+    } catch (Exception ex) {
+      log.error("Error in Execute Build Gradle Update: ", ex);
     }
   }
 
-  private boolean writeToFile(Path buildGradlePath, List<String> buildGradleContent) {
+  private boolean writeToFile(final Path buildGradlePath, final List<String> buildGradleContent) {
     try {
-      log.info("Writing to build.gradle file: [{}]", buildGradlePath);
+      log.info("Writing to build.gradle file: [ {} ]", buildGradlePath);
       Files.write(buildGradlePath, buildGradleContent, java.nio.charset.StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      log.error("Error Saving Updated Build Gradle File: [{}]", buildGradlePath, ex);
+      log.error("Error Saving Updated Build Gradle File: [ {} ]", buildGradlePath, ex);
       return false;
     }
   }

@@ -29,7 +29,7 @@ public class UpdateGradleDependencies {
   }
 
   private void executeUpdate(final Repository repository) {
-    log.info("Execute build.gradle Update on: {}", repository);
+    log.info("Execute build.gradle Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());

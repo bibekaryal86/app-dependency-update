@@ -43,7 +43,7 @@ public class SetAppInitData {
   }
 
   private Map<String, String> makeArgsMap() {
-    log.info("Args Before Conversion: {}", Arrays.asList(args));
+    log.info("Args Before Conversion: [ {} ]", Arrays.asList(args));
     Map<String, String> map = new HashMap<>();
 
     if (CommonUtil.getSystemEnvProperty(CommonUtil.PARAM_REPO_HOME, null) == null) {
@@ -69,7 +69,7 @@ public class SetAppInitData {
           CommonUtil.getSystemEnvProperty(CommonUtil.ENV_MONGO_PASSWORD, null));
     }
 
-    log.info("Args Map After Conversion: {}", map);
+    log.info("Args Map After Conversion: [ {} ]", map);
     return map;
   }
 
@@ -106,7 +106,7 @@ public class SetAppInitData {
       throw new AppDependencyUpdateRuntimeException("Script files not found in resources");
     }
 
-    log.info("Script files: {}", scriptFiles);
+    log.info("Script files: [ {} ]", scriptFiles);
     return scriptFiles;
   }
 
@@ -149,7 +149,7 @@ public class SetAppInitData {
       }
     }
 
-    log.info("Repository list: {}", repositories);
+    log.info("Repository list: [ {} ]", repositories);
     return repositories;
   }
 }
