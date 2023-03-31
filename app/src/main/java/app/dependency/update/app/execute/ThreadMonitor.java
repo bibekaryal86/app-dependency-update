@@ -29,7 +29,7 @@ public class ThreadMonitor {
     threadStatusMap.putAll(monitorGradleDependenciesThreads(appInitData, threads));
 
     if (threadStatusMap.size() > 0) {
-      log.warn("Current Threads Executing Updates: {}", threadStatusMap);
+      log.warn("Current Threads Executing Updates: [ {} ]", threadStatusMap);
     } else {
       maybeAnimation();
     }
@@ -73,15 +73,24 @@ public class ThreadMonitor {
 
   private Map<String, Thread.State> monitorGradleDependenciesThreads(
       final AppInitData appInitData, final Set<Thread> threads) {
+    // gradle threads from UpdateGradleBuildFile
     List<String> gradleThreadNames =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(CommonUtil.GRADLE))
             .map(Repository::getRepoName)
             .toList();
+    // gradle threads from ExecuteScriptFile
+    List<String> gradleThreadNamesUnderscore =
+        gradleThreadNames.stream().map(gradleThreadName -> gradleThreadName + "_").toList();
 
     // gradle threads
     List<Thread> gradleThreads =
-        threads.stream().filter(thread -> gradleThreadNames.contains(thread.getName())).toList();
+        threads.stream()
+            .filter(
+                thread ->
+                    gradleThreadNames.contains(thread.getName())
+                        || gradleThreadNamesUnderscore.contains(thread.getName()))
+            .toList();
 
     // gradle threads with status
     return gradleThreads.stream().collect(Collectors.toMap(Thread::getName, Thread::getState));

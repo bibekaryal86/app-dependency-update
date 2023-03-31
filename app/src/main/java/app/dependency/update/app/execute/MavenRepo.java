@@ -23,7 +23,7 @@ public class MavenRepo {
         mongoPlugins.stream()
             .collect(Collectors.toMap(MongoPlugin::getGroup, MongoPlugin::getArtifact));
     CommonUtil.setPluginsMap(pluginsMap);
-    log.info("Set Plugin Map: {}", pluginsMap.size());
+    log.info("Set Plugin Map: [ {} ]", pluginsMap.size());
   }
 
   public void setDependenciesMap() {
@@ -32,7 +32,7 @@ public class MavenRepo {
         mongoDependencies.stream()
             .collect(Collectors.toMap(MongoDependency::getId, MongoDependency::getLatestVersion));
     CommonUtil.setDependenciesMap(dependenciesMap);
-    log.info("Set Dependencies Map: {}", dependenciesMap.size());
+    log.info("Set Dependencies Map: [ {} ]", dependenciesMap.size());
   }
 
   public String getLatestVersion(
@@ -69,7 +69,11 @@ public class MavenRepo {
     MavenSearchResponse mavenSearchResponse = getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
     log.info(
-        "Maven Search Response: [{}:{}], [{}:{}]", group, artifact, mavenDoc, mavenSearchResponse);
+        "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
+        group,
+        artifact,
+        mavenDoc,
+        mavenSearchResponse);
     return mavenDoc;
   }
 

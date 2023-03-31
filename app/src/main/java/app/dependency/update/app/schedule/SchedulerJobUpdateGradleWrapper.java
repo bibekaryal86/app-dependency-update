@@ -5,8 +5,8 @@ import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -29,20 +29,22 @@ public class SchedulerJobUpdateGradleWrapper implements Job {
         appInitData.getRepositories().stream()
             .filter(repository -> CommonUtil.GRADLE.equals(repository.getType()))
             .toList();
-    List<ScriptFile> gradleScripts =
+    Optional<ScriptFile> gradleWrapperScriptFile =
         appInitData.getScriptFiles().stream()
-            .filter(scriptFile -> CommonUtil.GRADLE.equals(scriptFile.getType()))
-            .sorted(Comparator.comparingInt(ScriptFile::getStep))
-            .toList();
+            .filter(
+                scriptFile ->
+                    CommonUtil.GRADLE.equals(scriptFile.getType()) && scriptFile.getStep() == 1)
+            .findFirst();
 
-    if (gradleRepositories.isEmpty() || gradleScripts.isEmpty()) {
+    if (gradleRepositories.isEmpty() || gradleWrapperScriptFile.isEmpty()) {
       log.info(
-          "Gradle Repositories [{}] and/or Gradle Scripts [{}] are empty!",
+          "Gradle Repositories [ {} ] and/or Gradle Wrapper Script [ {} ] is empty!",
           gradleRepositories.isEmpty(),
-          gradleScripts.isEmpty());
+          gradleWrapperScriptFile.isEmpty());
     } else {
       log.info("Updating Gradle repositories for Wrapper: {}", gradleRepositories);
-      new UpdateGradleWrapper(gradleRepositories, gradleScripts, appInitData.getArgsMap())
+      new UpdateGradleWrapper(
+              gradleRepositories, gradleWrapperScriptFile.get(), appInitData.getArgsMap())
           .updateGradleWrapper();
     }
     log.info("Finish SchedulerJobUpdateGradleWrapper...");

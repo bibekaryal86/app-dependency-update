@@ -1,7 +1,6 @@
 # dependencies-updater
 
 * Things to update:
-    * Gradle Dependencies Update
     * Currently directly `app` module is loaded for build.gradle, instead do this:
       * check settings.gradle for modules and update build.gradle from there
       * include('app') or include 'app' both works

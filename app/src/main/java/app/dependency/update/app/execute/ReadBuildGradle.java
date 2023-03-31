@@ -47,7 +47,7 @@ public class ReadBuildGradle {
           .dependencies(dependencies)
           .build();
     } catch (IOException e) {
-      log.error("Error reading build.gradle: {}", repository);
+      log.error("Error reading build.gradle: [ {} ]", repository);
     }
     return null;
   }
@@ -82,7 +82,7 @@ public class ReadBuildGradle {
         if (CommonUtil.isEmpty(artifact)) {
           // It is likely plugin information is not available in the local repository
           // Do not throw error, log the event and continue updating others
-          log.error("Plugin information missing in local repo: {}", group);
+          log.error("Plugin information missing in local repo: [ {} ]", group);
           continue;
         }
 
@@ -236,7 +236,7 @@ public class ReadBuildGradle {
 
     if (matcher.find()) {
       String value = matcher.group();
-      log.info("Definition Value: [{}]", value);
+      log.info("Definition Value: [ {} ]", value);
 
       pattern = Pattern.compile(CommonUtil.GRADLE_BUILD_DEFINITION_REGEX);
       matcher = pattern.matcher(dependency);

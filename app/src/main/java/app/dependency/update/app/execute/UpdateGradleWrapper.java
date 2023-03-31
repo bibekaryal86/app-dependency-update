@@ -25,24 +25,24 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateGradleWrapper {
 
   private final List<Repository> repositories;
-  private final List<ScriptFile> scriptFiles;
+  private final ScriptFile scriptFile;
   private final Map<String, String> argsMap;
 
   public UpdateGradleWrapper(
       final List<Repository> repositories,
-      final List<ScriptFile> scriptFiles,
+      final ScriptFile scriptFile,
       final Map<String, String> argsMap) {
     this.repositories = repositories;
-    this.scriptFiles = scriptFiles;
+    this.scriptFile = scriptFile;
     this.argsMap = argsMap;
   }
 
   public void updateGradleWrapper() {
     List<Repository> gradleRepositories =
         getGradleRepositoriesWithGradleWrapperStatus(getLatestGradleVersion());
-    log.info("Gradle Repositories with Gradle Wrapper Status: {}", gradleRepositories);
+    log.info("Gradle Repositories with Gradle Wrapper Status: [ {} ]", gradleRepositories);
 
-    gradleRepositories.forEach(repository -> executeUpdate(repository, this.scriptFiles.get(0)));
+    gradleRepositories.forEach(this::executeUpdate);
   }
 
   private String getLatestGradleVersion() {
@@ -55,7 +55,7 @@ public class UpdateGradleWrapper {
             .max(Comparator.comparing(GradleReleaseResponse::getName));
 
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: {}", optionalLatestGradleRelease);
+    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
 
     if (latestGradleRelease == null) {
       throw new AppDependencyUpdateRuntimeException("Latest Gradle Release Retrieve Error...");
@@ -120,7 +120,7 @@ public class UpdateGradleWrapper {
         return parseDistributionUrlForGradleVersion(distributionUrl);
       }
     } catch (IOException e) {
-      log.error("Error reading gradle-wrapper.properties: {}", repository);
+      log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return null;
   }
@@ -137,14 +137,14 @@ public class UpdateGradleWrapper {
     }
   }
 
-  private void executeUpdate(final Repository repository, final ScriptFile scriptFile) {
-    log.info("Execute Gradle Update on: {}", repository);
+  private void executeUpdate(final Repository repository) {
+    log.info("Execute Gradle Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
     arguments.add(repository.getRepoName());
     arguments.add(repository.getGradleVersion());
     new ExecuteScriptFile(
-            repository.getRepoName() + "_" + CommonUtil.WRAPPER, scriptFile, arguments)
+            repository.getRepoName() + "_" + CommonUtil.WRAPPER, this.scriptFile, arguments)
         .start();
   }
 }
