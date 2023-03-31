@@ -236,8 +236,6 @@ public class ReadBuildGradle {
 
     if (matcher.find()) {
       String value = matcher.group();
-      log.info("Definition Value: [ {} ]", value);
-
       pattern = Pattern.compile(CommonUtil.GRADLE_BUILD_DEFINITION_REGEX);
       matcher = pattern.matcher(dependency);
 

@@ -34,7 +34,7 @@ echo Committing and pushing
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
-	git commit -am 'App Dependencies Updated'
+	git commit -am 'Dependencies Updated'
 	git push origin -u "$branch_name"
 	create_pr="yes"
 fi
@@ -42,7 +42,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo Creating PR
-	gh pr create -a "@me" -B "main" -H "$branch_name" -t "App Dependencies Updated" -b "App Dependencies Updated"
+	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated" -b "Dependencies Updated"
 fi
 
 # Cleanup

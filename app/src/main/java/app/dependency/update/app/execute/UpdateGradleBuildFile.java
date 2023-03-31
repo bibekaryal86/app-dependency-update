@@ -31,6 +31,13 @@ public class UpdateGradleBuildFile implements Runnable {
     executeBuildGradleUpdate();
   }
 
+  public void start() {
+    if (thread == null) {
+      thread = new Thread(this, threadName);
+      thread.start();
+    }
+  }
+
   private void executeBuildGradleUpdate() {
     try {
       BuildGradleConfigs buildGradleConfigs =
@@ -68,13 +75,6 @@ public class UpdateGradleBuildFile implements Runnable {
     } catch (IOException ex) {
       log.error("Error Saving Updated Build Gradle File: [ {} ]", buildGradlePath, ex);
       return false;
-    }
-  }
-
-  public void start() {
-    if (thread == null) {
-      thread = new Thread(this, threadName);
-      thread.start();
     }
   }
 }

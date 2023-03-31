@@ -38,6 +38,13 @@ public class ExecuteScriptFile implements Runnable {
     executeScript();
   }
 
+  public void start() {
+    if (thread == null) {
+      thread = new Thread(this, threadName);
+      thread.start();
+    }
+  }
+
   private void executeScript() {
     try {
       Process processChmod = startProcess(CommonUtil.CHMOD_COMMAND + this.scriptPath);
@@ -97,13 +104,6 @@ public class ExecuteScriptFile implements Runnable {
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + script, ex.getCause());
-    }
-  }
-
-  public void start() {
-    if (thread == null) {
-      thread = new Thread(this, threadName);
-      thread.start();
     }
   }
 }
