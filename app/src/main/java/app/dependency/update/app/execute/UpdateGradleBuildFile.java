@@ -13,24 +13,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UpdateGradleBuildFile implements Runnable {
   private final String threadName;
-  private final String commandPath;
-  private final String scriptPath;
-  private final List<String> arguments;
   private final Repository repository;
+  private final ScriptFile scriptFile;
+  private final List<String> arguments;
   private Thread thread;
 
   public UpdateGradleBuildFile(
       final Repository repository, final ScriptFile scriptFile, final List<String> arguments) {
     this.repository = repository;
+    this.scriptFile = scriptFile;
     this.threadName = repository.getRepoName();
     this.arguments = arguments;
-    this.commandPath = CommonUtil.COMMAND_PATH;
-    this.scriptPath =
-        CommonUtil.JAVA_SYSTEM_TMPDIR
-            + CommonUtil.PATH_DELIMITER
-            + CommonUtil.SCRIPTS_DIRECTORY
-            + CommonUtil.PATH_DELIMITER
-            + scriptFile.getScriptFileName();
   }
 
   @Override
@@ -55,13 +48,13 @@ public class UpdateGradleBuildFile implements Runnable {
               writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
 
           if (isWriteToFile) {
-            
+            new ExecuteScriptFile(threadName + "_Execute", this.scriptFile, this.arguments).start();
           } else {
-            log.info("Build Gradle CHanges Not Written to File: [{}]", this.repository.getRepoPath());
+            log.info(
+                "Build Gradle Changes Not Written to File: [{}]", this.repository.getRepoPath());
           }
         }
       }
-
     } catch (Exception e) {
       log.error("Error in Execute Build Gradle Update: ", e);
     }
