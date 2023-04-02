@@ -31,28 +31,34 @@ public class AppScheduler {
               CronScheduleBuilder.dailyAtHourAndMinute(10, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 0)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 5)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 1)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10)),
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 10)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 15)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 20)),
+              CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 25)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 5)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 10)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 15)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 25)),
+          new AbstractMap.SimpleEntry<>(
+              SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 40)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 30)));
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 59)));
 
   public void startSchedulers() {
     // start scheduler to periodically check and set app init data
@@ -164,15 +170,6 @@ public class AppScheduler {
       Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
       scheduler.start();
 
-      // schedule to update NPM dependencies
-      JobDetail jobDetailUpdateNpmDependencies = getJobDetailUpdateNpmDependencies(appInitData);
-      Trigger triggerUpdateNpmDependencies =
-          getTrigger(
-              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateNpmDependencies.class.getSimpleName()));
-      scheduler.scheduleJob(jobDetailUpdateNpmDependencies, triggerUpdateNpmDependencies);
-
       // schedule to update Gradle wrapper
       JobDetail jobDetailUpdateGradleWrapper = getJobDetailUpdateGradleWrapper(appInitData);
       Trigger triggerUpdateGradleWrapper =
@@ -181,6 +178,15 @@ public class AppScheduler {
               SCHEDULER_CRON_BUILDER_MAP.get(
                   SchedulerJobUpdateGradleWrapper.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleWrapper, triggerUpdateGradleWrapper);
+
+      // schedule to update NPM dependencies
+      JobDetail jobDetailUpdateNpmDependencies = getJobDetailUpdateNpmDependencies(appInitData);
+      Trigger triggerUpdateNpmDependencies =
+          getTrigger(
+              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateNpmDependencies.class.getSimpleName()));
+      scheduler.scheduleJob(jobDetailUpdateNpmDependencies, triggerUpdateNpmDependencies);
 
       // schedule to update Gradle dependencies
       JobDetail jobDetailUpdateGradleDependencies =
@@ -191,6 +197,30 @@ public class AppScheduler {
               SCHEDULER_CRON_BUILDER_MAP.get(
                   SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
+
+      // scheduler to update Github Pull Request (gradle and npm)
+      JobDetail jobDetailUpdateGithubPullRequests =
+          getJobDetailUpdateGithubPullRequests("", appInitData);
+      Trigger triggerUpdateGithubPullRequests =
+          getTrigger(
+              SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateGithubPullRequests.class.getSimpleName()));
+      scheduler.scheduleJob(jobDetailUpdateGithubPullRequests, triggerUpdateGithubPullRequests);
+
+      // scheduler to update Github Pull Request (gradle wrapper)
+      JobDetail jobDetailUpdateGithubPullRequestsGradleWrapper =
+          getJobDetailUpdateGithubPullRequests("_" + CommonUtil.WRAPPER, appInitData);
+      Trigger triggerUpdateGithubPullRequestsGradleWrapper =
+          getTrigger(
+              SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
+              SCHEDULER_CRON_BUILDER_MAP.get(
+                  SchedulerJobUpdateGithubPullRequests.class.getSimpleName()
+                      + "_"
+                      + CommonUtil.WRAPPER));
+      scheduler.scheduleJob(
+          jobDetailUpdateGithubPullRequestsGradleWrapper,
+          triggerUpdateGithubPullRequestsGradleWrapper);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
     }
@@ -237,6 +267,15 @@ public class AppScheduler {
         .build();
   }
 
+  private JobDetail getJobDetailUpdateGradleDependencies(final AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobUpdateGradleDependencies.class)
+        .withIdentity(SchedulerJobUpdateGradleDependencies.class.getSimpleName())
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
   private JobDetail getJobDetailUpdateNpmDependencies(final AppInitData appInitData) {
     JobDataMap jobDataMap = new JobDataMap();
     jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
@@ -255,11 +294,13 @@ public class AppScheduler {
         .build();
   }
 
-  private JobDetail getJobDetailUpdateGradleDependencies(final AppInitData appInitData) {
+  private JobDetail getJobDetailUpdateGithubPullRequests(
+      final String identitySuffix, final AppInitData appInitData) {
     JobDataMap jobDataMap = new JobDataMap();
     jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
-    return JobBuilder.newJob(SchedulerJobUpdateGradleDependencies.class)
-        .withIdentity(SchedulerJobUpdateGradleDependencies.class.getSimpleName())
+    jobDataMap.put(CommonUtil.WRAPPER, !identitySuffix.isEmpty());
+    return JobBuilder.newJob(SchedulerJobUpdateGithubPullRequests.class)
+        .withIdentity(SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + identitySuffix)
         .usingJobData(jobDataMap)
         .build();
   }

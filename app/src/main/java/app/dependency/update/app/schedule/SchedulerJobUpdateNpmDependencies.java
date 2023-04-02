@@ -42,8 +42,7 @@ public class SchedulerJobUpdateNpmDependencies implements Job {
           npmScriptFile.isEmpty());
     } else {
       log.info("Updating NPM repositories: {}", npmRepositories);
-      new UpdateNpmDependencies(npmRepositories, npmScriptFile.get(), appInitData.getArgsMap())
-          .updateNpmDependencies();
+      new UpdateNpmDependencies(npmRepositories, npmScriptFile.get()).updateNpmDependencies();
     }
     log.info("Finish SchedulerJobUpdateNpmDependencies...");
   }

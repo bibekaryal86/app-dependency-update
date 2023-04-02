@@ -27,9 +27,10 @@ public class ThreadMonitor {
     threadStatusMap.putAll(monitorNpmThreads(appInitData, threads));
     threadStatusMap.putAll(monitorGradleWrapperThreads(appInitData, threads));
     threadStatusMap.putAll(monitorGradleDependenciesThreads(appInitData, threads));
+    threadStatusMap.putAll(monitorGithubPullRequestThreads(appInitData, threads));
 
     if (threadStatusMap.size() > 0) {
-      log.warn("Current Threads Executing Updates: [ {} ]", threadStatusMap);
+      log.info("Current Threads Executing Updates: [ {} ]", threadStatusMap);
     }
   }
 
@@ -52,6 +53,7 @@ public class ThreadMonitor {
 
   private Map<String, Thread.State> monitorGradleWrapperThreads(
       final AppInitData appInitData, final Set<Thread> threads) {
+    // thread names are set as repository names plus `_wrapper`
     List<String> gradleWrapperThreadNames =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(CommonUtil.GRADLE))
@@ -92,5 +94,24 @@ public class ThreadMonitor {
 
     // gradle threads with status
     return gradleThreads.stream().collect(Collectors.toMap(Thread::getName, Thread::getState));
+  }
+
+  private Map<String, Thread.State> monitorGithubPullRequestThreads(
+      final AppInitData appInitData, final Set<Thread> threads) {
+    // thread names are set as repository names plus `_github` for all repo types
+    List<String> githubPullRequestThreadNames =
+        appInitData.getRepositories().stream()
+            .map(repository -> repository.getRepoName() + "_" + CommonUtil.GITHUB)
+            .toList();
+
+    // github pull request threads
+    List<Thread> githubPullRequestThreads =
+        threads.stream()
+            .filter(thread -> githubPullRequestThreadNames.contains(thread.getName()))
+            .toList();
+
+    // github pull request threads with status
+    return githubPullRequestThreads.stream()
+        .collect(Collectors.toMap(Thread::getName, Thread::getState));
   }
 }

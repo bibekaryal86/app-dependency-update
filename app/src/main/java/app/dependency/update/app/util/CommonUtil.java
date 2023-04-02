@@ -33,10 +33,13 @@ public class CommonUtil {
   public static final String NPM = "npm";
   public static final String GRADLE = "gradle";
   public static final String WRAPPER = "wrapper";
+  public static final String GITHUB = "github";
   public static final String GRADLE_WRAPPER_PROPERTIES = GRADLE + "-" + WRAPPER + ".properties";
   public static final String BUILD_GRADLE = "build." + GRADLE;
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String APP_INIT_DATA_MAP = "APP_INIT_DATA";
+  public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
+  public static final String BRANCH_UPDATE_WRAPPER = "update_wrapper_%s";
 
   // provided at runtime
   public static final String PARAM_REPO_HOME = "repo_home";

@@ -3,9 +3,8 @@
 
 # Location of the repo
 echo Process Id--$$
-repo_loc="$1/$2"
-echo Repo Home from Input Parameter--"$1"
-echo Repo Name from Input Parameter--"$2"
+repo_loc="$1"
+branch_name="$2"
 
 # Give access to current user
 current_user=$(whoami)
@@ -17,6 +16,7 @@ cd "$repo_loc" || { echo Repo Location Not Found; exit 1; }
 echo Current User--"$current_user"
 echo Current Location--"$PWD"
 echo Repo Location--"$repo_loc"
+echo Branch Name--"$branch_name"
 
 # Keeping this as fallback check
 if [ "$PWD" != "$repo_loc" ]; then
@@ -26,7 +26,6 @@ fi
 
 # Create new branch for updates
 echo Creating new branch
-branch_name="update_dependencies_"$(date +%F)
 git checkout -b "$branch_name"
 
 # Update dependencies

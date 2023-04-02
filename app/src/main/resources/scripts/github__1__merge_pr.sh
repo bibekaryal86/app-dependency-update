@@ -24,29 +24,13 @@ if [ "$PWD" != "$repo_loc" ]; then
     exit 1
 fi
 
-# Create new branch for updates
-echo Creating new branch
-git checkout -b "$branch_name"
+# Check if build passed for PR of the branch
+echo "Checking if all checks/workflows have completed"
+pr_check=$(gh pr checks "$branch_name")
+echo "$pr_check"
 
-# Commit and push
-echo Committing and pushing
-create_pr="no"
-if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
-	git add .
-	git commit -am 'Dependencies Updated'
-	git push origin -u "$branch_name"
-	create_pr="yes"
+# Check `build` and `pass` separately because `build pass` never worked
+if [[ ("$pr_check" = *"build"*) && ("$pr_check" = *"pass"*) ]]; then
+	pr_merge=$(gh pr merge "$branch_name" -s -d)
+	echo "$pr_merge"
 fi
-
-# Create PR
-if [ $create_pr = "yes" ]; then
-	echo Creating PR
-	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated" -b "Dependencies Updated"
-fi
-
-# Cleanup
-echo Cleaning up
-git checkout main
-git branch -D "$branch_name"
-
-echo Finished
