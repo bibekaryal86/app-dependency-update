@@ -167,7 +167,7 @@ public class SetAppInitData {
               line -> {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
-                  return matcher.group();
+                  return matcher.group().replace(":", "");
                 }
                 return null;
               })
