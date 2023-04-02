@@ -10,11 +10,11 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -26,15 +26,10 @@ public class UpdateGradleWrapper {
 
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
-  private final Map<String, String> argsMap;
 
-  public UpdateGradleWrapper(
-      final List<Repository> repositories,
-      final ScriptFile scriptFile,
-      final Map<String, String> argsMap) {
+  public UpdateGradleWrapper(final List<Repository> repositories, final ScriptFile scriptFile) {
     this.repositories = repositories;
     this.scriptFile = scriptFile;
-    this.argsMap = argsMap;
   }
 
   public void updateGradleWrapper() {
@@ -140,8 +135,8 @@ public class UpdateGradleWrapper {
   private void executeUpdate(final Repository repository) {
     log.info("Execute Gradle Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
-    arguments.add(this.argsMap.get(CommonUtil.PARAM_REPO_HOME));
-    arguments.add(repository.getRepoName());
+    arguments.add(repository.getRepoPath().toString());
+    arguments.add(String.format(CommonUtil.BRANCH_UPDATE_WRAPPER, LocalDate.now()));
     arguments.add(repository.getGradleVersion());
     new ExecuteScriptFile(
             repository.getRepoName() + "_" + CommonUtil.WRAPPER, this.scriptFile, arguments)

@@ -6,7 +6,6 @@ import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteScriptFile implements Runnable {
   private final String threadName;
-  private final String commandPath;
   private final String scriptPath;
   private final List<String> arguments;
   private Thread thread;
@@ -24,7 +22,6 @@ public class ExecuteScriptFile implements Runnable {
       final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
-    this.commandPath = CommonUtil.COMMAND_PATH;
     this.scriptPath =
         CommonUtil.JAVA_SYSTEM_TMPDIR
             + CommonUtil.PATH_DELIMITER
@@ -47,40 +44,24 @@ public class ExecuteScriptFile implements Runnable {
 
   private void executeScript() {
     try {
-      Process processChmod = startProcess(CommonUtil.CHMOD_COMMAND + this.scriptPath);
-      try (InputStream errorStream = processChmod.getErrorStream()) {
-        displayStreamOutput(CommonUtil.CHMOD_COMMAND, errorStream);
-      }
-
-      Process processExecuteScript = startProcess(null);
-      try (InputStream errorStream = processExecuteScript.getErrorStream()) {
-        displayStreamOutput(this.scriptPath, errorStream);
-      }
-      try (InputStream inputStream = processExecuteScript.getInputStream()) {
-        displayStreamOutput(this.scriptPath, inputStream);
-      }
-    } catch (Exception e) {
-      log.error("Error in Execute Script: ", e);
+      Process process = startProcess();
+      processOutput(process);
+    } catch (Exception ex) {
+      log.error("Error in Execute Script: ", ex);
     }
   }
 
-  private Process startProcess(final String script)
+  private Process startProcess()
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
-    log.info("Starting process: [ {} ]", script == null ? this.scriptPath : script);
+    log.info("Starting process: [ {} ]", this.scriptPath);
     try {
-      Process process;
-      if (script == null) {
-        List<String> command = new LinkedList<>();
-        command.add(this.commandPath);
-        command.add(this.scriptPath);
-        command.addAll(this.arguments);
-        process = new ProcessBuilder(command).start();
-      } else {
-        process = new ProcessBuilder(this.commandPath, script).start();
-      }
-      log.info("Waiting process: [ {} ]", script == null ? this.scriptPath : script);
+      List<String> command = new LinkedList<>();
+      command.add(CommonUtil.COMMAND_PATH);
+      command.add(this.scriptPath);
+      command.addAll(this.arguments);
+      Process process = new ProcessBuilder(command).start();
       process.waitFor();
-      log.info("Finished process: [ {} ]", script == null ? this.scriptPath : script);
+      log.info("Finished process: [ {} ]", this.scriptPath);
       return process;
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
@@ -90,20 +71,28 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private void displayStreamOutput(final String script, final InputStream inputStream)
-      throws AppDependencyUpdateIOException {
-    log.info("Display stream output: [ {} ]", script);
+  private void processOutput(final Process process) throws AppDependencyUpdateIOException {
+    log.info("Process output: [ {} ]", this.scriptPath);
     StringBuilder stringBuilder = new StringBuilder();
     String line;
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line).append("\n");
+
+    try (BufferedReader readerError =
+        new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+      while ((line = readerError.readLine()) != null) {
+        stringBuilder.append("ERROR-- ").append(line).append("\n");
       }
 
-      log.info("Display stream output: [ {} ]\n[ {} ]\n", script, stringBuilder);
+      try (BufferedReader readerInput =
+          new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        while ((line = readerInput.readLine()) != null) {
+          stringBuilder.append(line).append("\n");
+        }
+      }
+
+      log.info("Process output: [ {} ]\n[ {} ]\n", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
-          "Error in Display Stream Output: " + script, ex.getCause());
+          "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());
     }
   }
 }

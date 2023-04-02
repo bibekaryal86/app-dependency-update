@@ -13,14 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CreateTempScriptFiles {
-  private final String scriptsDirectory;
-  private final String tmpdir;
   private final List<ScriptFile> scriptFiles;
 
   public CreateTempScriptFiles(final List<ScriptFile> scriptFiles) {
     this.scriptFiles = scriptFiles;
-    this.scriptsDirectory = CommonUtil.SCRIPTS_DIRECTORY;
-    this.tmpdir = CommonUtil.JAVA_SYSTEM_TMPDIR;
   }
 
   public void createTempScriptFiles() {
@@ -36,12 +32,18 @@ public class CreateTempScriptFiles {
         throw new AppDependencyUpdateRuntimeException(
             String.format(
                 "Unable to create and temp script file %s...", scriptFile.getScriptFileName()));
+      } else {
+        giveExecutePermissionToFile(scriptFile);
       }
     }
   }
 
   private boolean createTempScriptsDirectory() {
-    Path path = Path.of(this.tmpdir + CommonUtil.PATH_DELIMITER + this.scriptsDirectory);
+    Path path =
+        Path.of(
+            CommonUtil.JAVA_SYSTEM_TMPDIR
+                + CommonUtil.PATH_DELIMITER
+                + CommonUtil.SCRIPTS_DIRECTORY);
 
     try {
       if (!Files.exists(path)) {
@@ -60,15 +62,16 @@ public class CreateTempScriptFiles {
       Path filePath =
           Files.createFile(
               Path.of(
-                  this.tmpdir
+                  CommonUtil.JAVA_SYSTEM_TMPDIR
                       + CommonUtil.PATH_DELIMITER
-                      + this.scriptsDirectory
+                      + CommonUtil.SCRIPTS_DIRECTORY
                       + CommonUtil.PATH_DELIMITER
                       + scriptFile.getScriptFileName()));
       try (InputStream inputStream =
           getClass()
               .getClassLoader()
-              .getResourceAsStream(this.scriptsDirectory + "/" + scriptFile.getScriptFileName())) {
+              .getResourceAsStream(
+                  CommonUtil.SCRIPTS_DIRECTORY + "/" + scriptFile.getScriptFileName())) {
         assert inputStream != null;
         Files.write(filePath, inputStream.readAllBytes(), StandardOpenOption.WRITE);
         log.info("Written to file: [ {} ]", filePath);
@@ -77,6 +80,21 @@ public class CreateTempScriptFiles {
     } catch (IOException | NullPointerException ex) {
       log.error("Error creating temp script file: [ {} ]", scriptFile, ex);
       return true;
+    }
+  }
+
+  private void giveExecutePermissionToFile(final ScriptFile scriptFile) {
+    try {
+      String scriptPath =
+          CommonUtil.JAVA_SYSTEM_TMPDIR
+              + CommonUtil.PATH_DELIMITER
+              + CommonUtil.SCRIPTS_DIRECTORY
+              + CommonUtil.PATH_DELIMITER
+              + scriptFile.getScriptFileName();
+      new ProcessBuilder(CommonUtil.COMMAND_PATH, CommonUtil.CHMOD_COMMAND + scriptPath).start();
+    } catch (IOException ex) {
+      log.error(
+          "Error on Give Execute Permission to File: [ {} ]", scriptFile.getScriptFileName(), ex);
     }
   }
 }

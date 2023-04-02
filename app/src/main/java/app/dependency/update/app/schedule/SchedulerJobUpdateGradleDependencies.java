@@ -43,8 +43,7 @@ public class SchedulerJobUpdateGradleDependencies implements Job {
           gradleScriptFile.isEmpty());
     } else {
       log.info("Updating Gradle repositories: {}", gradleRepositories);
-      new UpdateGradleDependencies(
-              gradleRepositories, gradleScriptFile.get(), appInitData.getArgsMap())
+      new UpdateGradleDependencies(gradleRepositories, gradleScriptFile.get())
           .updateDependenciesGradle();
     }
     log.info("Finish SchedulerJobUpdateGradleDependencies...");
