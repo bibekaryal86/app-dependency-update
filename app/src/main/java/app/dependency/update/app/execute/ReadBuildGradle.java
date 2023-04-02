@@ -49,7 +49,10 @@ public class ReadBuildGradle {
           .dependencies(dependencies)
           .build();
     } catch (IOException e) {
-      log.error("Error reading build.gradle: [ {} ] [ {} ]", this.repository.getRepoName(), this.gradleModule);
+      log.error(
+          "Error reading build.gradle: [ {} ] [ {} ]",
+          this.repository.getRepoName(),
+          this.gradleModule);
     }
     return null;
   }
