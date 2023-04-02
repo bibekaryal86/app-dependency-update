@@ -81,6 +81,7 @@ public class UpdateGradleWrapper {
                 return new Repository(
                     repository.getRepoPath(),
                     repository.getType(),
+                    repository.getGradleModules(),
                     CommonUtil.isRequiresUpdate(currentVersion, latestVersion)
                         ? latestVersion
                         : null);
