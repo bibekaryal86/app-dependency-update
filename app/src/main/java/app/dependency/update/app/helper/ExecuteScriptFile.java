@@ -1,4 +1,4 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.helper;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;

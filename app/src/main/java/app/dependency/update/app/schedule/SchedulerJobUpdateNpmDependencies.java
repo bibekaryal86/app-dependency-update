@@ -1,6 +1,6 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.UpdateNpmDependencies;
+import app.dependency.update.app.update.UpdateNpmDependencies;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;

@@ -1,6 +1,6 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.UpdateGithubPullRequests;
+import app.dependency.update.app.update.UpdateGithubPullRequests;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;

@@ -1,6 +1,6 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.UpdateGradleDependencies;
+import app.dependency.update.app.update.UpdateGradleDependencies;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;

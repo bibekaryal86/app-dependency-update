@@ -1,4 +1,4 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.helper;
 
 import static app.dependency.update.app.util.CommonUtil.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.CommonUtil.SCRIPTS_DIRECTORY;

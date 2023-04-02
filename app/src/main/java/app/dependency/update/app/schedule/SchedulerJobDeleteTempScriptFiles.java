@@ -1,6 +1,6 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.DeleteTempScriptFiles;
+import app.dependency.update.app.helper.DeleteTempScriptFiles;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
