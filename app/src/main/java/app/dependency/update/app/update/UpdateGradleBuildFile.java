@@ -1,5 +1,8 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.update;
 
+import app.dependency.update.app.helper.ExecuteScriptFile;
+import app.dependency.update.app.helper.ModifyBuildGradle;
+import app.dependency.update.app.helper.ReadBuildGradle;
 import app.dependency.update.app.model.BuildGradleConfigs;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
@@ -40,28 +43,37 @@ public class UpdateGradleBuildFile implements Runnable {
 
   private void executeBuildGradleUpdate() {
     try {
-      BuildGradleConfigs buildGradleConfigs =
-          new ReadBuildGradle(this.repository).readBuildGradle();
-      if (buildGradleConfigs == null) {
-        log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
-      } else {
-        List<String> buildGradleContent =
-            new ModifyBuildGradle(buildGradleConfigs).modifyBuildGradle();
-
-        if (CommonUtil.isEmpty(buildGradleContent)) {
-          log.info("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
+      List<String> gradleModules = this.repository.getGradleModules();
+      for (String gradleModule : gradleModules) {
+        log.info(
+            "Update Gradle Build File for Module: [ {} ] [ {} ]",
+            this.repository.getRepoName(),
+            gradleModule);
+        BuildGradleConfigs buildGradleConfigs =
+            new ReadBuildGradle(this.repository, gradleModule).readBuildGradle();
+        if (buildGradleConfigs == null) {
+          log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
         } else {
-          boolean isWriteToFile =
-              writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
+          List<String> buildGradleContent =
+              new ModifyBuildGradle(buildGradleConfigs).modifyBuildGradle();
 
-          if (isWriteToFile) {
-            new ExecuteScriptFile(threadName + "_", this.scriptFile, this.arguments).start();
+          if (CommonUtil.isEmpty(buildGradleContent)) {
+            log.info("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
           } else {
-            log.info(
-                "Build Gradle Changes Not Written to File: [ {} ]", this.repository.getRepoPath());
+            boolean isWriteToFile =
+                writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
+
+            if (isWriteToFile) {
+              new ExecuteScriptFile(threadName + "_", this.scriptFile, this.arguments).start();
+            } else {
+              log.info(
+                  "Build Gradle Changes Not Written to File: [ {} ]",
+                  this.repository.getRepoPath());
+            }
           }
         }
       }
+
     } catch (Exception ex) {
       log.error("Error in Execute Build Gradle Update: ", ex);
     }

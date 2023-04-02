@@ -31,10 +31,10 @@ public class AppScheduler {
               CronScheduleBuilder.dailyAtHourAndMinute(10, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 0)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 1)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 1)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
               CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
@@ -43,22 +43,22 @@ public class AppScheduler {
               CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 5)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 5)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 10)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 10)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 15)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 15)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 25)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 30)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 40)),
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 45)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.SUNDAY, 10, 59)));
+              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 59)));
 
   public void startSchedulers() {
     // start scheduler to periodically check and set app init data

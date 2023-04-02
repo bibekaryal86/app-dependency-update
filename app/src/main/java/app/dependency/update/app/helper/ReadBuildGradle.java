@@ -1,4 +1,4 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.helper;
 
 import app.dependency.update.app.model.BuildGradleConfigs;
 import app.dependency.update.app.model.GradleConfigBlock;
@@ -20,9 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ReadBuildGradle {
 
   private final Repository repository;
+  private final String gradleModule;
 
-  public ReadBuildGradle(final Repository repository) {
+  public ReadBuildGradle(final Repository repository, final String gradleModule) {
     this.repository = repository;
+    this.gradleModule = gradleModule;
   }
 
   public BuildGradleConfigs readBuildGradle() {
@@ -32,7 +34,7 @@ public class ReadBuildGradle {
                 .getRepoPath()
                 .toString()
                 .concat(CommonUtil.PATH_DELIMITER)
-                .concat(CommonUtil.APP_MAIN_MODULE)
+                .concat(this.gradleModule)
                 .concat(CommonUtil.PATH_DELIMITER)
                 .concat(CommonUtil.BUILD_GRADLE));
 
@@ -47,7 +49,10 @@ public class ReadBuildGradle {
           .dependencies(dependencies)
           .build();
     } catch (IOException e) {
-      log.error("Error reading build.gradle: [ {} ]", repository);
+      log.error(
+          "Error reading build.gradle: [ {} ] [ {} ]",
+          this.repository.getRepoName(),
+          this.gradleModule);
     }
     return null;
   }

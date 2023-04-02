@@ -1,4 +1,4 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.helper;
 
 import static app.dependency.update.app.util.CommonUtil.PARAM_REPO_HOME;
 import static app.dependency.update.app.util.CommonUtil.SCRIPTS_DIRECTORY;
@@ -7,18 +7,16 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -141,7 +139,11 @@ public class SetAppInitData {
         repositories.addAll(
             pathStream
                 .filter(stream -> "settings.gradle".equals(stream.getFileName().toString()))
-                .map(mapper -> new Repository(path, CommonUtil.GRADLE))
+                .map(
+                    mapper -> {
+                      List<String> gradleModules = readGradleModules(mapper);
+                      return new Repository(path, CommonUtil.GRADLE, gradleModules);
+                    })
                 .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
@@ -151,5 +153,29 @@ public class SetAppInitData {
 
     log.info("Repository list: [ {} ]", repositories);
     return repositories;
+  }
+
+  private List<String> readGradleModules(Path settingsGradlePath) {
+    try {
+      List<String> allLines = Files.readAllLines(settingsGradlePath);
+      Pattern pattern =
+          Pattern.compile(String.format(CommonUtil.GRADLE_BUILD_DEPENDENCIES_REGEX, "'", "'"));
+
+      return allLines.stream()
+          .filter(line -> line.contains("include"))
+          .map(
+              line -> {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                  return matcher.group().replace(":", "");
+                }
+                return null;
+              })
+          .filter(Objects::nonNull)
+          .toList();
+    } catch (IOException ex) {
+      log.error("Error in Read Gradle Modules: [ {} ]", settingsGradlePath, ex);
+      return Collections.singletonList(CommonUtil.APP_MAIN_MODULE);
+    }
   }
 }

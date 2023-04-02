@@ -1,6 +1,7 @@
-package app.dependency.update.app.execute;
+package app.dependency.update.app.update;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.helper.ExecuteScriptFile;
 import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
@@ -81,6 +82,7 @@ public class UpdateGradleWrapper {
                 return new Repository(
                     repository.getRepoPath(),
                     repository.getType(),
+                    repository.getGradleModules(),
                     CommonUtil.isRequiresUpdate(currentVersion, latestVersion)
                         ? latestVersion
                         : null);

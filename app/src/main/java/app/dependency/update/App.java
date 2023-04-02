@@ -3,9 +3,9 @@
  */
 package app.dependency.update;
 
-import app.dependency.update.app.execute.MavenRepo;
-import app.dependency.update.app.execute.SetAppInitData;
-import app.dependency.update.app.execute.ThreadMonitor;
+import app.dependency.update.app.helper.MavenRepo;
+import app.dependency.update.app.helper.SetAppInitData;
+import app.dependency.update.app.helper.ThreadMonitor;
 import app.dependency.update.app.schedule.AppScheduler;
 import lombok.extern.slf4j.Slf4j;
 

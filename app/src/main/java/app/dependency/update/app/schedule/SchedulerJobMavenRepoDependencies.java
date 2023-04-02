@@ -1,6 +1,6 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.MavenRepo;
+import app.dependency.update.app.helper.MavenRepo;
 import app.dependency.update.app.model.MongoDependency;
 import app.dependency.update.app.util.CommonUtil;
 import app.dependency.update.app.util.MongoUtil;

@@ -1,9 +1,9 @@
 package app.dependency.update.app.schedule;
 
-import app.dependency.update.app.execute.UpdateGradleWrapper;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.update.UpdateGradleWrapper;
 import app.dependency.update.app.util.CommonUtil;
 import java.util.List;
 import java.util.Optional;
