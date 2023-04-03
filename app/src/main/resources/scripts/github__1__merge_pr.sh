@@ -29,8 +29,7 @@ echo "Checking if all checks/workflows have completed"
 pr_check=$(gh pr checks "$branch_name")
 echo "$pr_check"
 
-# Check `build` and `pass` separately because `build pass` never worked
-if [[ ("$pr_check" = *"build"*) && ("$pr_check" = *"pass"*) ]]; then
+if [[ ("$pr_check" != *"fail"*) ]]; then
 	pr_merge=$(gh pr merge "$branch_name" -s -d)
 	echo "$pr_merge"
 fi
