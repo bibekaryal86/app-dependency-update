@@ -32,10 +32,10 @@ public class SetAppInitData {
     log.info("Set App Init Data...");
     // get the input arguments
     Map<String, String> argsMap = makeArgsMap();
-    // get the scripts included in resources folder
-    List<ScriptFile> scriptFiles = getScriptsInResources();
     // get the list of repositories and their type
     List<Repository> repositories = getRepositoryLocations(argsMap);
+    // get the scripts included in resources folder
+    List<ScriptFile> scriptFiles = getScriptsInResources();
     // set app init data
     CommonUtil.setAppInitData(argsMap, scriptFiles, repositories);
   }
@@ -71,47 +71,10 @@ public class SetAppInitData {
     return map;
   }
 
-  private List<ScriptFile> getScriptsInResources() {
-    log.info("Get Scripts in Resources...");
-    List<ScriptFile> scriptFiles;
-
-    try {
-      // get path of the current running JAR
-      String jarPath =
-          SetAppInitData.class
-              .getProtectionDomain()
-              .getCodeSource()
-              .getLocation()
-              .toURI()
-              .getPath();
-
-      // file walks JAR
-      URI uri = URI.create("jar:file:" + jarPath);
-      try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-        try (Stream<Path> streamPath = Files.walk(fs.getPath(SCRIPTS_DIRECTORY), 1)) {
-          scriptFiles =
-              streamPath
-                  .filter(Files::isRegularFile)
-                  .map(path -> new ScriptFile(path.getFileName().toString()))
-                  .toList();
-        }
-      }
-    } catch (Exception ex) {
-      throw new AppDependencyUpdateRuntimeException("Error reading script files in resources", ex);
-    }
-
-    if (scriptFiles.isEmpty()) {
-      throw new AppDependencyUpdateRuntimeException("Script files not found in resources");
-    }
-
-    log.info("Script files: [ {} ]", scriptFiles);
-    return scriptFiles;
-  }
-
   private List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
     log.info("Get Repository Locations...");
     List<Path> repoPaths;
-    try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 1)) {
+    try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 2)) {
       repoPaths = pathStream.filter(Files::isDirectory).toList();
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(
@@ -177,5 +140,42 @@ public class SetAppInitData {
       log.error("Error in Read Gradle Modules: [ {} ]", settingsGradlePath, ex);
       return Collections.singletonList(CommonUtil.APP_MAIN_MODULE);
     }
+  }
+
+  private List<ScriptFile> getScriptsInResources() {
+    log.info("Get Scripts in Resources...");
+    List<ScriptFile> scriptFiles;
+
+    try {
+      // get path of the current running JAR
+      String jarPath =
+          SetAppInitData.class
+              .getProtectionDomain()
+              .getCodeSource()
+              .getLocation()
+              .toURI()
+              .getPath();
+
+      // file walks JAR
+      URI uri = URI.create("jar:file:" + jarPath);
+      try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+        try (Stream<Path> streamPath = Files.walk(fs.getPath(SCRIPTS_DIRECTORY), 1)) {
+          scriptFiles =
+              streamPath
+                  .filter(Files::isRegularFile)
+                  .map(path -> new ScriptFile(path.getFileName().toString()))
+                  .toList();
+        }
+      }
+    } catch (Exception ex) {
+      throw new AppDependencyUpdateRuntimeException("Error reading script files in resources", ex);
+    }
+
+    if (scriptFiles.isEmpty()) {
+      throw new AppDependencyUpdateRuntimeException("Script files not found in resources");
+    }
+
+    log.info("Script files: [ {} ]", scriptFiles);
+    return scriptFiles;
   }
 }
