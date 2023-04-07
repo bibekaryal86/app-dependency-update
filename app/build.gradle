@@ -10,8 +10,8 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     id 'java'
-    id 'io.freefair.lombok' version '6.6.3'
-    id 'com.diffplug.spotless' version '6.17.0'
+    id 'io.freefair.lombok' version '8.0.1'
+    id 'com.diffplug.spotless' version '6.18.0'
 }
 
 java {
@@ -27,10 +27,10 @@ repositories {
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'org.mongodb:mongodb-driver-sync:4.9.0'
+    implementation 'org.mongodb:mongodb-driver-sync:4.9.1'
     implementation 'org.quartz-scheduler:quartz:2.3.2'
-    implementation 'org.slf4j:slf4j-api:2.0.6'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.6'
 }
 
 application {
