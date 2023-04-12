@@ -38,6 +38,8 @@ public class SetAppInitData {
     List<ScriptFile> scriptFiles = getScriptsInResources();
     // set app init data
     CommonUtil.setAppInitData(argsMap, scriptFiles, repositories);
+    // set schedule begin hour
+    CommonUtil.setSchedulerBegin();
   }
 
   private Map<String, String> makeArgsMap() {
