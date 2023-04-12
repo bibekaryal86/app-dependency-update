@@ -40,7 +40,7 @@ echo Committing and pushing
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
-	git commit -am 'Gradle Wrapper Updated'
+	git commit -am 'Gradle Wrapper Updated (Auto)'
 	git push origin -u "$branch_name"
 	create_pr="yes"
 fi
@@ -48,7 +48,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo Creating PR
-	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Gradle Wrapper Updated" -b "Gradle Wrapper Updated"
+	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Gradle Wrapper Updated (Auto)" -b "Gradle Wrapper Updated (Auto)"
 fi
 
 # Cleanup

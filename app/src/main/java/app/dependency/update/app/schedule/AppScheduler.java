@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronScheduleBuilder;
-import org.quartz.DateBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -24,41 +23,42 @@ public class AppScheduler {
   private static final String BEGIN = "Begin";
   private static final String END = "End";
   private static final String INIT_ERROR = " Scheduler Initialization Error...";
+  private static final Integer HOUR = 10;
   private static final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
       Map.ofEntries(
           new AbstractMap.SimpleEntry<>(
               SchedulerJobAppInitData.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 0)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 0)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 1)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 1)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(10, 2)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 5)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 5)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 10)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 10)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 15)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 15)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 30)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 30)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 45)),
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 45)),
           new AbstractMap.SimpleEntry<>(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              CronScheduleBuilder.weeklyOnDayAndHourAndMinute(DateBuilder.FRIDAY, 10, 59)));
+              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 59)));
 
   public void startSchedulers() {
     // start scheduler to periodically check and set app init data

@@ -8,6 +8,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.CommonUtil;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -82,7 +83,7 @@ public class UpdateGradleBuildFile implements Runnable {
   private boolean writeToFile(final Path buildGradlePath, final List<String> buildGradleContent) {
     try {
       log.info("Writing to build.gradle file: [ {} ]", buildGradlePath);
-      Files.write(buildGradlePath, buildGradleContent, java.nio.charset.StandardCharsets.UTF_8);
+      Files.write(buildGradlePath, buildGradleContent, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
       log.error("Error Saving Updated Build Gradle File: [ {} ]", buildGradlePath, ex);
