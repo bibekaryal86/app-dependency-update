@@ -16,14 +16,12 @@
 
     <appender name="FILELOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${repo_home}${LOG_FILE}.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <FileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}_%i.log</FileNamePattern>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- keep 14 days' worth of history -->
             <maxHistory>14</maxHistory>
-            <!-- Single file size limit -->
-            <maxFileSize>5MB</maxFileSize>
             <!-- Total files size limit -->
-            <totalSizeCap>100MB</totalSizeCap>
+            <totalSizeCap>10MB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
