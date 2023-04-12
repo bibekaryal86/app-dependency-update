@@ -24,41 +24,43 @@ public class AppScheduler {
   private static final String END = "End";
   private static final String INIT_ERROR = " Scheduler Initialization Error...";
   private static final Integer HOUR = 10;
-  private static final Map<String, CronScheduleBuilder> SCHEDULER_CRON_BUILDER_MAP =
-      Map.ofEntries(
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobAppInitData.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 1)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 5)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 10)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 15)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 30)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 45)),
-          new AbstractMap.SimpleEntry<>(
-              SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 59)));
+
+  private static Map<String, CronScheduleBuilder> getSchedulerCronBuilderMap() {
+    return Map.ofEntries(
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobAppInitData.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 1)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobMavenRepoPlugins.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobMavenRepoDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 5)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 10)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 15)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 30)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 45)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
+            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 59)));
+  }
 
   public void startSchedulers() {
     // start scheduler to periodically check and set app init data
@@ -84,7 +86,7 @@ public class AppScheduler {
       Trigger triggerAppInitData =
           getTrigger(
               SchedulerJobAppInitData.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(SchedulerJobAppInitData.class.getSimpleName()));
+              getSchedulerCronBuilderMap().get(SchedulerJobAppInitData.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailAppInitData, triggerAppInitData);
 
     } catch (SchedulerException ex) {
@@ -105,7 +107,7 @@ public class AppScheduler {
       Trigger triggerMavenRepoPlugins =
           getTrigger(
               SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(SchedulerJobMavenRepoPlugins.class.getSimpleName()));
+              getSchedulerCronBuilderMap().get(SchedulerJobMavenRepoPlugins.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoPlugins, triggerMavenRepoPlugins);
 
       // scheduler to get/save dependencies for local maven repo and set the Map in CommonUtil
@@ -113,8 +115,8 @@ public class AppScheduler {
       Trigger triggerMavenRepoDependencies =
           getTrigger(
               SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobMavenRepoDependencies.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobMavenRepoDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailMavenRepoDependencies, triggerMavenRepoDependencies);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
@@ -135,8 +137,8 @@ public class AppScheduler {
       Trigger triggerDeleteTempScriptFiles =
           getTrigger(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // schedule to delete temp script files after running scripts
@@ -144,8 +146,8 @@ public class AppScheduler {
       triggerDeleteTempScriptFiles =
           getTrigger(
               SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END));
       scheduler.scheduleJob(jobDetailDeleteTempScriptFiles, triggerDeleteTempScriptFiles);
 
       // scheduler to create temp script files
@@ -153,8 +155,8 @@ public class AppScheduler {
       Trigger triggerCreateTempScriptFiles =
           getTrigger(
               SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobCreateTempScriptFiles.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobCreateTempScriptFiles.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailCreateTempScriptFiles, triggerCreateTempScriptFiles);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
@@ -175,8 +177,8 @@ public class AppScheduler {
       Trigger triggerUpdateGradleWrapper =
           getTrigger(
               SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateGradleWrapper.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGradleWrapper.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleWrapper, triggerUpdateGradleWrapper);
 
       // schedule to update NPM dependencies
@@ -184,8 +186,8 @@ public class AppScheduler {
       Trigger triggerUpdateNpmDependencies =
           getTrigger(
               SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateNpmDependencies.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateNpmDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateNpmDependencies, triggerUpdateNpmDependencies);
 
       // schedule to update Gradle dependencies
@@ -194,8 +196,8 @@ public class AppScheduler {
       Trigger triggerUpdateGradleDependencies =
           getTrigger(
               SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
 
       // scheduler to update Github Pull Request (gradle and npm)
@@ -204,8 +206,8 @@ public class AppScheduler {
       Trigger triggerUpdateGithubPullRequests =
           getTrigger(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateGithubPullRequests.class.getSimpleName()));
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGithubPullRequests.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGithubPullRequests, triggerUpdateGithubPullRequests);
 
       // scheduler to update Github Pull Request (gradle wrapper)
@@ -214,10 +216,11 @@ public class AppScheduler {
       Trigger triggerUpdateGithubPullRequestsGradleWrapper =
           getTrigger(
               SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-              SCHEDULER_CRON_BUILDER_MAP.get(
-                  SchedulerJobUpdateGithubPullRequests.class.getSimpleName()
-                      + "_"
-                      + CommonUtil.WRAPPER));
+              getSchedulerCronBuilderMap()
+                  .get(
+                      SchedulerJobUpdateGithubPullRequests.class.getSimpleName()
+                          + "_"
+                          + CommonUtil.WRAPPER));
       scheduler.scheduleJob(
           jobDetailUpdateGithubPullRequestsGradleWrapper,
           triggerUpdateGithubPullRequestsGradleWrapper);

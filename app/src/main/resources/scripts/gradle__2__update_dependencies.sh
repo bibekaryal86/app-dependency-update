@@ -11,7 +11,7 @@ current_user=$(whoami)
 chown -R "$current_user" "$repo_loc"
 
 # Go to repo location or exit with message
-cd "$repo_loc" || { echo Repo Location Not Found; exit 1; }
+cd "$repo_loc" || { echo "Repo Location Not Found"; exit 1; }
 
 echo Current User--"$current_user"
 echo Current Location--"$PWD"
@@ -20,16 +20,19 @@ echo Branch Name--"$branch_name"
 
 # Keeping this as fallback check
 if [ "$PWD" != "$repo_loc" ]; then
-    echo Current Location and Repo Location are different
+    echo "Current Location and Repo Location are different"
     exit 1
 fi
 
+echo "Pulling new changes"
+git pull
+
 # Create new branch for updates
-echo Creating new branch
+echo "Creating new branch"
 git checkout -b "$branch_name"
 
 # Commit and push
-echo Committing and pushing
+echo "Committing and pushing"
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
@@ -40,13 +43,13 @@ fi
 
 # Create PR
 if [ $create_pr = "yes" ]; then
-	echo Creating PR
+	echo "Creating PR"
 	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated (Auto)" -b "Dependencies Updated (Auto)"
 fi
 
 # Cleanup
-echo Cleaning up
+echo "Cleaning up"
 git checkout main
 git branch -D "$branch_name"
 
-echo Finished
+echo "Finished"
