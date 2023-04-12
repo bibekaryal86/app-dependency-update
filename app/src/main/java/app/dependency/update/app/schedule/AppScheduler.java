@@ -23,43 +23,42 @@ public class AppScheduler {
   private static final String BEGIN = "Begin";
   private static final String END = "End";
   private static final String INIT_ERROR = " Scheduler Initialization Error...";
-  private static final Integer HOUR = 10;
 
   private static Map<String, CronScheduleBuilder> getSchedulerCronBuilderMap() {
     return Map.ofEntries(
         new AbstractMap.SimpleEntry<>(
             SchedulerJobAppInitData.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 0)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 0)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 0)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 1)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 1)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobMavenRepoPlugins.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 2)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 2)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 2)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 5)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 5)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 10)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 10)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 15)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 15)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 30)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 30)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 45)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 45)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
-            CronScheduleBuilder.dailyAtHourAndMinute(HOUR, 59)));
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 59)));
   }
 
   public void startSchedulers() {

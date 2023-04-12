@@ -7,6 +7,7 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -45,6 +46,7 @@ public class CommonUtil {
   public static final String PARAM_REPO_HOME = "repo_home";
   public static final String ENV_MONGO_USERNAME = "mongo_user";
   public static final String ENV_MONGO_PASSWORD = "mongo_pwd";
+  public static final String SCHEDULER_BEGIN = "sch_hour";
 
   // endpoints
   public static final String GRADLE_RELEASES_ENDPOINT =
@@ -53,9 +55,20 @@ public class CommonUtil {
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
 
   // caches
+  private static Integer schedulerBegin = null;
   private static AppInitData appInitData = null;
   private static Map<String, String> pluginsMap = null;
   private static Map<String, String> dependenciesMap = null;
+
+  public static Integer getSchedulerBegin() {
+    return schedulerBegin;
+  }
+
+  public static void setSchedulerBegin() {
+    schedulerBegin =
+        Integer.parseInt(
+            getSystemEnvProperty(SCHEDULER_BEGIN, String.valueOf(LocalDateTime.now().getHour())));
+  }
 
   public static AppInitData getAppInitData() {
     return appInitData;
