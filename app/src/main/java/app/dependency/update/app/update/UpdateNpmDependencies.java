@@ -31,6 +31,8 @@ public class UpdateNpmDependencies {
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(CommonUtil.BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    new ExecuteScriptFile(repository.getRepoName(), this.scriptFile, arguments).start();
+    new ExecuteScriptFile(
+            repository.getRepoName() + this.getClass().getSimpleName(), this.scriptFile, arguments)
+        .start();
   }
 }

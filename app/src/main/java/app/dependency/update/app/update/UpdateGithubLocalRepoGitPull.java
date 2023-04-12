@@ -29,6 +29,8 @@ public class UpdateGithubLocalRepoGitPull {
     log.info("Execute Github Pull Repo Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
-    new ExecuteScriptFile(repository.getRepoName(), this.scriptFile, arguments).start();
+    new ExecuteScriptFile(
+            repository.getRepoName() + this.getClass().getSimpleName(), this.scriptFile, arguments)
+        .start();
   }
 }
