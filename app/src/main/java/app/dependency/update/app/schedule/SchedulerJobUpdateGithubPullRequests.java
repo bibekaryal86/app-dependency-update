@@ -28,7 +28,7 @@ public class SchedulerJobUpdateGithubPullRequests implements Job {
       final AppInitData appInitData, final boolean isWrapperMerge) {
     Optional<ScriptFile> githubScriptFile =
         appInitData.getScriptFiles().stream()
-            .filter(scriptFile -> CommonUtil.GITHUB.equals(scriptFile.getType()))
+            .filter(scriptFile -> CommonUtil.GITHUB.equals(scriptFile.getType()) && scriptFile.getStep() == 2)
             .findFirst();
 
     if (appInitData.getRepositories().isEmpty() || githubScriptFile.isEmpty()) {

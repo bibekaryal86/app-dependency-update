@@ -19,24 +19,24 @@ public class SchedulerJobUpdateGithubLocalRepoGitPull implements Job {
     log.info("Start SchedulerJobUpdateGithubLocalRepoGitPull...");
     final AppInitData appInitData =
         (AppInitData) context.getJobDetail().getJobDataMap().get(CommonUtil.APP_INIT_DATA_MAP);
-    CompletableFuture.runAsync(() -> updateGithubPullRequests(appInitData));
+    CompletableFuture.runAsync(() -> updateGithubLocalRepoPullRequests(appInitData));
   }
 
-  private void updateGithubPullRequests(final AppInitData appInitData) {
+  private void updateGithubLocalRepoPullRequests(final AppInitData appInitData) {
     Optional<ScriptFile> githubScriptFile =
         appInitData.getScriptFiles().stream()
             .filter(
                 scriptFile ->
-                    CommonUtil.GITHUB.equals(scriptFile.getType()) & scriptFile.getStep() == 2)
+                    CommonUtil.GITHUB.equals(scriptFile.getType()) & scriptFile.getStep() == 1)
             .findFirst();
 
     if (appInitData.getRepositories().isEmpty() || githubScriptFile.isEmpty()) {
       log.info(
-          "All Repositories [ {} ] and/or Github Pull Script [ {} ] is empty!",
+          "All Repositories [ {} ] and/or Github Local Pull Script [ {} ] is empty!",
           appInitData.getRepositories().isEmpty(),
           githubScriptFile.isEmpty());
     } else {
-      log.info("Updating All Repositories for Github Pull...");
+      log.info("Updating All Repositories for Github Local Pull...");
       new UpdateGithubLocalRepoGitPull(appInitData.getRepositories(), githubScriptFile.get())
           .updateGithubPullRepo();
     }
