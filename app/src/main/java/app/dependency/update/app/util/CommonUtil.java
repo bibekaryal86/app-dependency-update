@@ -65,9 +65,9 @@ public class CommonUtil {
   }
 
   public static void setSchedulerBegin() {
+    int currentHour = LocalDateTime.now().getHour() == 23 ? 0 : LocalDateTime.now().getHour() + 1;
     schedulerBegin =
-        Integer.parseInt(
-            getSystemEnvProperty(SCHEDULER_BEGIN, String.valueOf(LocalDateTime.now().getHour())));
+        Integer.parseInt(getSystemEnvProperty(SCHEDULER_BEGIN, String.valueOf(currentHour)));
   }
 
   public static AppInitData getAppInitData() {

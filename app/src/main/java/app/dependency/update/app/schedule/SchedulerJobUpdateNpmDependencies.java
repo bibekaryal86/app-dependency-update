@@ -32,7 +32,9 @@ public class SchedulerJobUpdateNpmDependencies implements Job {
             .toList();
     Optional<ScriptFile> npmScriptFile =
         appInitData.getScriptFiles().stream()
-            .filter(scriptFile -> CommonUtil.NPM.equals(scriptFile.getType()))
+            .filter(
+                scriptFile ->
+                    CommonUtil.NPM.equals(scriptFile.getType()) & scriptFile.getStep() == 1)
             .findFirst();
 
     if (npmRepositories.isEmpty() || npmScriptFile.isEmpty()) {

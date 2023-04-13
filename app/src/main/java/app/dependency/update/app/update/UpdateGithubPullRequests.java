@@ -39,10 +39,18 @@ public class UpdateGithubPullRequests {
 
     if (!this.isWrapperMerge) {
       arguments.add(String.format(CommonUtil.BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-      new ExecuteScriptFile(repository.getRepoName(), this.scriptFile, arguments).start();
+      new ExecuteScriptFile(
+              repository.getRepoName() + this.getClass().getSimpleName(),
+              this.scriptFile,
+              arguments)
+          .start();
     } else if (repository.getType().equals(CommonUtil.GRADLE)) {
       arguments.add(String.format(CommonUtil.BRANCH_UPDATE_WRAPPER, LocalDate.now()));
-      new ExecuteScriptFile(repository.getRepoName(), this.scriptFile, arguments).start();
+      new ExecuteScriptFile(
+              repository.getRepoName() + this.getClass().getSimpleName(),
+              this.scriptFile,
+              arguments)
+          .start();
     }
   }
 }

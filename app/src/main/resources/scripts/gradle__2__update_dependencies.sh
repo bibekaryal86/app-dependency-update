@@ -24,9 +24,6 @@ if [ "$PWD" != "$repo_loc" ]; then
     exit 1
 fi
 
-echo "Pulling new changes 1"
-git pull
-
 # Create new branch for updates
 echo "Creating new branch"
 git checkout -b "$branch_name"
@@ -51,8 +48,5 @@ fi
 echo "Cleaning up"
 git checkout main
 git branch -D "$branch_name"
-
-echo "Pulling new changes 2"
-git pull
 
 echo "Finished"

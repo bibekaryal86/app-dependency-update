@@ -141,7 +141,7 @@ public class UpdateGradleWrapper {
     arguments.add(String.format(CommonUtil.BRANCH_UPDATE_WRAPPER, LocalDate.now()));
     arguments.add(repository.getGradleVersion());
     new ExecuteScriptFile(
-            repository.getRepoName() + "_" + CommonUtil.WRAPPER, this.scriptFile, arguments)
+            repository.getRepoName() + this.getClass().getSimpleName(), this.scriptFile, arguments)
         .start();
   }
 }

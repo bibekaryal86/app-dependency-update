@@ -26,7 +26,7 @@ public class UpdateGradleBuildFile implements Runnable {
       final Repository repository, final ScriptFile scriptFile, final List<String> arguments) {
     this.repository = repository;
     this.scriptFile = scriptFile;
-    this.threadName = repository.getRepoName();
+    this.threadName = repository.getRepoName() + this.getClass().getSimpleName();
     this.arguments = arguments;
   }
 

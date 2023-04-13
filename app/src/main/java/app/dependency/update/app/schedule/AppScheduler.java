@@ -21,6 +21,7 @@ import org.quartz.impl.StdSchedulerFactory;
 public class AppScheduler {
 
   private static final String BEGIN = "Begin";
+  private static final String MIDDLE = "Middle";
   private static final String END = "End";
   private static final String INIT_ERROR = " Scheduler Initialization Error...";
 
@@ -30,32 +31,41 @@ public class AppScheduler {
             SchedulerJobAppInitData.class.getSimpleName(),
             CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 0)),
         new AbstractMap.SimpleEntry<>(
-            SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
+            SchedulerJobMavenRepoPlugins.class.getSimpleName(),
             CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 0)),
         new AbstractMap.SimpleEntry<>(
-            SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
+            SchedulerJobMavenRepoDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 0)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + BEGIN,
             CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 1)),
         new AbstractMap.SimpleEntry<>(
-            SchedulerJobMavenRepoPlugins.class.getSimpleName(),
+            SchedulerJobCreateTempScriptFiles.class.getSimpleName(),
             CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 2)),
         new AbstractMap.SimpleEntry<>(
-            SchedulerJobMavenRepoDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 2)),
-        new AbstractMap.SimpleEntry<>(
-            SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 5)),
-        new AbstractMap.SimpleEntry<>(
-            SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 10)),
+            SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + BEGIN,
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 3)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGradleWrapper.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 15)),
-        new AbstractMap.SimpleEntry<>(
-            SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 30)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 5)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + "_" + CommonUtil.WRAPPER,
-            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 45)),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 20)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + MIDDLE,
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 25)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateNpmDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 30)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGradleDependencies.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 35)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGithubPullRequests.class.getSimpleName(),
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 50)),
+        new AbstractMap.SimpleEntry<>(
+            SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + END,
+            CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 55)),
         new AbstractMap.SimpleEntry<>(
             SchedulerJobDeleteTempScriptFiles.class.getSimpleName() + END,
             CronScheduleBuilder.dailyAtHourAndMinute(CommonUtil.getSchedulerBegin(), 59)));
@@ -70,6 +80,8 @@ public class AppScheduler {
     this.startFileSystemScheduler();
     // start scheduler to update dependencies
     this.startUpdateProjectDependenciesScheduler();
+    // start scheduler for github related actions
+    this.startGithubActionsScheduler();
   }
 
   private void startAppInitDataScheduler() {
@@ -198,6 +210,19 @@ public class AppScheduler {
               getSchedulerCronBuilderMap()
                   .get(SchedulerJobUpdateGradleDependencies.class.getSimpleName()));
       scheduler.scheduleJob(jobDetailUpdateGradleDependencies, triggerUpdateGradleDependencies);
+    } catch (SchedulerException ex) {
+      throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
+    }
+  }
+
+  private void startGithubActionsScheduler() {
+    log.info("Start Github Actions Scheduler...");
+    String schedulerName = "GithubActions";
+    final AppInitData appInitData = CommonUtil.getAppInitData();
+
+    try {
+      Scheduler scheduler = new StdSchedulerFactory(getProperties(schedulerName)).getScheduler();
+      scheduler.start();
 
       // scheduler to update Github Pull Request (gradle and npm)
       JobDetail jobDetailUpdateGithubPullRequests =
@@ -223,6 +248,39 @@ public class AppScheduler {
       scheduler.scheduleJob(
           jobDetailUpdateGithubPullRequestsGradleWrapper,
           triggerUpdateGithubPullRequestsGradleWrapper);
+
+      // scheduler for git pull (begin)
+      JobDetail jobDetailUpdateGithubLocalRepoGitPullBegin =
+          getJobDetailUpdateGithubLocalRepoGitPull(BEGIN, appInitData);
+      Trigger triggerUpdateGithubLocalRepoGitPullBegin =
+          getTrigger(
+              SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + BEGIN,
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + BEGIN));
+      scheduler.scheduleJob(
+          jobDetailUpdateGithubLocalRepoGitPullBegin, triggerUpdateGithubLocalRepoGitPullBegin);
+
+      // scheduler for git pull (middle)
+      JobDetail jobDetailUpdateGithubLocalRepoGitPullMiddle =
+          getJobDetailUpdateGithubLocalRepoGitPull(MIDDLE, appInitData);
+      Trigger triggerUpdateGithubLocalRepoGitPullMiddle =
+          getTrigger(
+              SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + MIDDLE,
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + MIDDLE));
+      scheduler.scheduleJob(
+          jobDetailUpdateGithubLocalRepoGitPullMiddle, triggerUpdateGithubLocalRepoGitPullMiddle);
+
+      // scheduler for git pull (end)
+      JobDetail jobDetailUpdateGithubLocalRepoGitPullEnd =
+          getJobDetailUpdateGithubLocalRepoGitPull(END, appInitData);
+      Trigger triggerUpdateGithubLocalRepoGitPullEnd =
+          getTrigger(
+              SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + END,
+              getSchedulerCronBuilderMap()
+                  .get(SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + END));
+      scheduler.scheduleJob(
+          jobDetailUpdateGithubLocalRepoGitPullEnd, triggerUpdateGithubLocalRepoGitPullEnd);
     } catch (SchedulerException ex) {
       throw new AppDependencyUpdateRuntimeException(schedulerName + INIT_ERROR, ex);
     }
@@ -303,6 +361,17 @@ public class AppScheduler {
     jobDataMap.put(CommonUtil.WRAPPER, !identitySuffix.isEmpty());
     return JobBuilder.newJob(SchedulerJobUpdateGithubPullRequests.class)
         .withIdentity(SchedulerJobUpdateGithubPullRequests.class.getSimpleName() + identitySuffix)
+        .usingJobData(jobDataMap)
+        .build();
+  }
+
+  private JobDetail getJobDetailUpdateGithubLocalRepoGitPull(
+      final String identitySuffix, final AppInitData appInitData) {
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put(CommonUtil.APP_INIT_DATA_MAP, appInitData);
+    return JobBuilder.newJob(SchedulerJobUpdateGithubLocalRepoGitPull.class)
+        .withIdentity(
+            SchedulerJobUpdateGithubLocalRepoGitPull.class.getSimpleName() + identitySuffix)
         .usingJobData(jobDataMap)
         .build();
   }
