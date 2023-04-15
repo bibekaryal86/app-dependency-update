@@ -25,7 +25,7 @@ public class ThreadMonitor {
     Map<String, Thread.State> threadStatusMap = monitorThreads(appInitData, threads);
 
     if (threadStatusMap.size() > 0) {
-      log.info("Current Threads Executing Updates: [ {} ]", threadStatusMap);
+      log.debug("Current Threads Executing Updates: [ {} ]", threadStatusMap);
     }
   }
 

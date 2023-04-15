@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
 
 <configuration debug="false">
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+    <import class="ch.qos.logback.core.rolling.RollingFileAppender"/>
+    <import class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy"/>
+    <import class="ch.qos.logback.classic.filter.ThresholdFilter"/>
+    <import class="ch.qos.logback.core.ConsoleAppender"/>
+
     <property name="LOG_FILE" value="/logs/app-dependency-update/app-dependency-update"/>
     <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}] [%thread] [%level] [%c{0}]--- %msg%n"/>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <appender name="STDOUT" class="ConsoleAppender">
+        <filter class="ThresholdFilter">
             <level>WARN</level>
         </filter>
         <encoder>
@@ -14,13 +21,12 @@
         </encoder>
     </appender>
 
-    <appender name="FILELOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILELOG" class="RollingFileAppender">
         <file>${repo_home}${LOG_FILE}.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- keep 14 days' worth of history -->
+        <rollingPolicy class="SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
             <maxHistory>14</maxHistory>
-            <!-- Total files size limit -->
             <totalSizeCap>10MB</totalSizeCap>
         </rollingPolicy>
         <encoder>
@@ -43,5 +49,4 @@
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILELOG"/>
     </root>
-
 </configuration>
