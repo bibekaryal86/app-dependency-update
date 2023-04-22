@@ -30,7 +30,8 @@ public class MavenRepo {
     List<MongoDependency> mongoDependencies = MongoUtil.retrieveDependencies();
     Map<String, String> dependenciesMap =
         mongoDependencies.stream()
-            .collect(Collectors.toMap(MongoDependency::getId, MongoDependency::getLatestVersion));
+            .collect(
+                Collectors.toMap(MongoDependency::getMavenId, MongoDependency::getLatestVersion));
     CommonUtil.setDependenciesMap(dependenciesMap);
     log.info("Set Dependencies Map: [ {} ]", dependenciesMap.size());
   }
@@ -59,7 +60,10 @@ public class MavenRepo {
     if (!forceRemote) {
       MongoUtil.insertDependencies(
           Collections.singletonList(
-              MongoDependency.builder().id(mavenId).latestVersion(latestVersion.getV()).build()));
+              MongoDependency.builder()
+                  .mavenId(mavenId)
+                  .latestVersion(latestVersion.getV())
+                  .build()));
     }
 
     return latestVersion.getV();

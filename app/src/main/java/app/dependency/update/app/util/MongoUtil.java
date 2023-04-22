@@ -69,7 +69,7 @@ public class MongoUtil {
   }
 
   public static void insertDependencies(final List<MongoDependency> mongoDependencies) {
-    // unique index for `id` is added to mongodb collection
+    // unique index for `mavenId` is added to mongodb collection
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       InsertManyResult insertManyResult =
           getMongoCollectionDependencies(mongoClient).insertMany(mongoDependencies);
@@ -83,7 +83,7 @@ public class MongoUtil {
     try (MongoClient mongoClient = MongoClients.create(getMongoClientSettings())) {
       mongoDependencies.forEach(
           mongoDependency -> {
-            Bson filter = Filters.eq("id", mongoDependency.getId());
+            Bson filter = Filters.eq("mavenId", mongoDependency.getMavenId());
             Bson update = Updates.set("latestVersion", mongoDependency.getLatestVersion());
             UpdateResult updateResult =
                 getMongoCollectionDependencies(mongoClient).updateOne(filter, update);
