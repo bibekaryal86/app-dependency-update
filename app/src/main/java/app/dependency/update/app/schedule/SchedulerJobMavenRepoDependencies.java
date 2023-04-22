@@ -38,7 +38,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
 
     mongoDependencies.forEach(
         mongoDependency -> {
-          String[] mavenIdArray = mongoDependency.getId().split(":");
+          String[] mavenIdArray = mongoDependency.getMavenId().split(":");
           String currentVersion = mongoDependency.getLatestVersion();
           // get current version from Maven Central Repository
           String latestVersion =
@@ -48,7 +48,7 @@ public class SchedulerJobMavenRepoDependencies implements Job {
           if (CommonUtil.isRequiresUpdate(currentVersion, latestVersion)) {
             mongoDependenciesToUpdate.add(
                 MongoDependency.builder()
-                    .id(mongoDependency.getId())
+                    .mavenId(mongoDependency.getMavenId())
                     .latestVersion(latestVersion)
                     .build());
           }
