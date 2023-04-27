@@ -75,49 +75,49 @@ public class SchedulerConfig {
   // fourth minute
   @Scheduled(cron = "0 4 20 * * *")
   private void schedulerGithubLocalPullBegin() {
-    updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null);
+    updateRepoService.updateRepos(UpdateType.GITHUB_PULL);
   }
 
   // fifth minute
   @Scheduled(cron = "0 5 20 * * *")
   private void schedulerGradleWrapperUpdate() {
-    updateRepoService.updateRepos(UpdateType.GRADLE_WRAPPER, false, null);
+    updateRepoService.updateRepos(UpdateType.GRADLE_WRAPPER);
   }
 
   // twenty-second minute
   @Scheduled(cron = "0 22 20 * * *")
   private void schedulerGithubPullRequestMergeWrapper() {
-    updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, false, null);
+    updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, true);
   }
 
   // twenty-fifth minute
   @Scheduled(cron = "0 25 20 * * *")
   private void schedulerGithubLocalPullMiddle() {
-    updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null);
+    updateRepoService.updateRepos(UpdateType.GITHUB_PULL);
   }
 
   // thirtieth minute
   @Scheduled(cron = "0 30 20 * * *")
   private void schedulerNpmDependenciesUpdate() {
-    updateRepoService.updateRepos(UpdateType.NPM_DEPENDENCIES, false, null);
+    updateRepoService.updateRepos(UpdateType.NPM_DEPENDENCIES);
   }
 
   // thirty-fifth minute
   @Scheduled(cron = "0 35 20 * * *")
   private void schedulerGradleDependenciesUpdate() {
-    updateRepoService.updateRepos(UpdateType.GRADLE_DEPENDENCIES, false, null);
+    updateRepoService.updateRepos(UpdateType.GRADLE_DEPENDENCIES);
   }
 
   // fifty-second minute
   @Scheduled(cron = "0 52 20 * * *")
   private void schedulerGithubPullRequestMergeDependencies() {
-    updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, false, null);
+    updateRepoService.updateRepos(UpdateType.GITHUB_MERGE);
   }
 
   // fifty-fifth minute
   @Scheduled(cron = "0 55 20 * * *")
   private void schedulerGithubLocalPullEnd() {
-    updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null);
+    updateRepoService.updateRepos(UpdateType.GITHUB_PULL);
   }
 
   // fifty-ninth minute

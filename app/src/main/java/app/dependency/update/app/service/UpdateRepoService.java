@@ -45,7 +45,19 @@ public class UpdateRepoService {
     this.gradleConnector = gradleConnector;
   }
 
-  public void updateRepos(
+  public void updateRepos(final UpdateType updateType) {
+    updateRepos(updateType, false, null);
+  }
+
+  public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
+    updateRepos(updateType, isWrapperMerge, null);
+  }
+
+  public void updateRepos(final UpdateType updateType, final String branchName) {
+    updateRepos(updateType, false, branchName);
+  }
+
+  private void updateRepos(
       final UpdateType updateType, final boolean isWrapperMerge, final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
     switch (updateType) {

@@ -1,6 +1,7 @@
 package app.dependency.update.app.controller;
 
 import static app.dependency.update.app.util.CommonUtils.*;
+import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.service.ScriptFilesService;
 import app.dependency.update.app.service.UpdateRepoService;
@@ -49,11 +50,12 @@ public class UpdateRepoController {
       if (isInvalidBranchDate(branchDate)) {
         return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
       }
-      updateRepoServiceOnDemand.updateNpmSnapshot(branchDate);
+      updateRepoServiceOnDemand.updateNpmSnapshot(
+          String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
     } else {
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
-      updateRepoService.updateRepos(updateType, isWrapperMerge, branchDate);
+      updateRepoService.updateRepos(updateType, isWrapperMerge);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }

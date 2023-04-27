@@ -50,51 +50,51 @@ public class UpdateRepoServiceOnDemand {
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL),
         instant(1, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GRADLE_WRAPPER, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GRADLE_WRAPPER),
         instant(3, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, true),
         instant(13, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL),
         instant(16, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.NPM_DEPENDENCIES, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.NPM_DEPENDENCIES),
         instant(19, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GRADLE_DEPENDENCIES, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GRADLE_DEPENDENCIES),
         instant(23, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE),
         instant(33, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL),
         instant(36, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFiles, instant(39, ChronoUnit.MINUTES));
   }
 
   @Async
-  public void updateNpmSnapshot(final String branchDate) {
+  public void updateNpmSnapshot(final String branchName) {
 
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL),
         instant(1, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.NPM_SNAPSHOT, false, branchDate),
+        () -> updateRepoService.updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
         instant(3, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_MERGE),
         instant(13, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepoService.updateRepos(UpdateType.GITHUB_PULL),
         instant(17, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFiles, instant(20, ChronoUnit.SECONDS));
