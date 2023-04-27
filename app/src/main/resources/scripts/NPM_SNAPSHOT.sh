@@ -24,25 +24,27 @@ if [ "$PWD" != "$repo_loc" ]; then
     exit 1
 fi
 
-# Create new branch for updates
+# Git pull
+git pull
+
+# Checkout branch
 echo "Checking out branch"
-git checkout "$branch_name"
+branch_checkout=$(git checkout "$branch_name")
+echo "$branch_checkout"
 
-# Update dependencies
-echo "Running npm test update"
-npm run test:u
+if [[ ("$branch_checkout" = *"set up to track remote branch"*) ]]; then
+	echo "Run NPM Tests"
+	npm run test:u
 
-# Commit and push
-echo "Committing and pushing"
-if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
-	git add .
-	git commit -am 'Dependencies Updated (Auto)'
-	git push origin "$branch_name"
+	if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
+		git add .
+		git commit -am 'Dependencies Updated (Auto)'
+		git push origin "$branch_name"
+	fi
+
+	echo "Cleaning up"
+	git checkout main
+	git branch -D "$branch_name"
 fi
-
-# Cleanup
-echo "Cleaning up"
-git checkout main
-git branch -D "$branch_name"
 
 echo "Finished"
