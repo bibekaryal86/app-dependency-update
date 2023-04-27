@@ -37,7 +37,7 @@ echo "Committing and pushing"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
 	git commit -am 'Dependencies Updated (Auto)'
-	git push origin -u "$branch_name"
+	git push origin "$branch_name"
 fi
 
 # Cleanup

@@ -60,49 +60,44 @@ public class UpdateRepoService {
   private void updateRepos(
       final UpdateType updateType, final boolean isWrapperMerge, final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
+    ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
+    List<Repository> repositories = getRepositories(updateType, appInitData.getRepositories());
+    List<String> arguments = new LinkedList<>();
     switch (updateType) {
       case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
-      case GITHUB_PULL -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        appInitData
-            .getRepositories()
-            .forEach(repository -> executeGithubLocalPull(repository, scriptFile));
-      }
-      case GITHUB_MERGE -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        appInitData
-            .getRepositories()
-            .forEach(
-                repository ->
-                    executeGithubPullRequestMerge(repository, scriptFile, isWrapperMerge));
-      }
-      case GRADLE_WRAPPER -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        List<Repository> repositories =
-            getRepositories(UpdateType.GRADLE_DEPENDENCIES, appInitData.getRepositories());
-        final List<Repository> repositoryList =
-            getGradleRepositoriesWithGradleWrapperStatus(repositories, getLatestGradleVersion());
-        repositoryList.forEach(repository -> executeGradleWrapperUpdate(repository, scriptFile));
-      }
-      case GRADLE_DEPENDENCIES -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        List<Repository> repositories =
-            getRepositories(UpdateType.GRADLE_DEPENDENCIES, appInitData.getRepositories());
-        repositories.forEach(repository -> executeGradleDependenciesUpdate(repository, scriptFile));
-      }
-      case NPM_DEPENDENCIES -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        List<Repository> repositories =
-            getRepositories(UpdateType.NPM_DEPENDENCIES, appInitData.getRepositories());
-        repositories.forEach(repository -> executeNpmDependenciesUpdate(repository, scriptFile));
-      }
-      case NPM_SNAPSHOT -> {
-        ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-        List<Repository> repositories =
-            getRepositories(UpdateType.NPM_SNAPSHOT, appInitData.getRepositories());
-        repositories.forEach(
-            repository -> executeNpmSnapshotUpdate(repository, scriptFile, branchName));
-      }
+      case GITHUB_PULL -> repositories.forEach(
+          repository -> {
+            arguments.add(repository.getRepoPath().toString());
+            updateRepo(repository, scriptFile, arguments);
+          });
+      case GITHUB_MERGE -> repositories.forEach(
+          repository -> {
+            arguments.add(repository.getRepoPath().toString());
+            arguments.add(
+                isWrapperMerge
+                    ? String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now())
+                    : String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
+            updateRepo(repository, scriptFile, arguments);
+          });
+      case GRADLE_WRAPPER -> repositories.forEach(
+          repository -> {
+            arguments.add(repository.getRepoPath().toString());
+            arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
+            arguments.add(repository.getGradleVersion());
+            updateRepo(repository, scriptFile, arguments);
+          });
+      case GRADLE_DEPENDENCIES, NPM_DEPENDENCIES -> repositories.forEach(
+          repository -> {
+            arguments.add(repository.getRepoPath().toString());
+            arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
+            updateRepo(repository, scriptFile, arguments);
+          });
+      case NPM_SNAPSHOT -> repositories.forEach(
+          repository -> {
+            arguments.add(repository.getRepoPath().toString());
+            arguments.add(branchName);
+            updateRepo(repository, scriptFile, arguments);
+          });
     }
   }
 
@@ -117,69 +112,36 @@ public class UpdateRepoService {
   }
 
   private List<Repository> getRepositories(
-      final UpdateType type, final List<Repository> repositories) {
-    return repositories.stream().filter(repository -> type.equals(repository.getType())).toList();
-  }
-
-  private void executeGithubLocalPull(final Repository repository, final ScriptFile scriptFile) {
-    log.info("Execute Github Pull on: [ {} ]", repository);
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-    new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
-  }
-
-  private void executeGithubPullRequestMerge(
-      final Repository repository, final ScriptFile scriptFile, final boolean isWrapperMerge) {
-    log.info("Execute Github Pull Request Merge on: [ {} ]", repository);
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-
-    if (isWrapperMerge) {
-      arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
-    } else {
-      arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
+      final UpdateType updateType, final List<Repository> repositories) {
+    if (updateType.equals(UpdateType.GITHUB_PULL) || updateType.equals(UpdateType.GITHUB_MERGE)) {
+      return repositories;
     }
-    new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
+
+    if (updateType.equals(UpdateType.GRADLE_WRAPPER)) {
+      return getGradleRepositoriesWithGradleWrapperStatus(repositories, getLatestGradleVersion());
+    } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
+      return repositories.stream()
+          .filter(repository -> UpdateType.NPM_DEPENDENCIES.equals(repository.getType()))
+          .toList();
+    }
+
+    return repositories.stream()
+        .filter(repository -> updateType.equals(repository.getType()))
+        .toList();
   }
 
-  private void executeGradleDependenciesUpdate(
-      final Repository repository, final ScriptFile scriptFile) {
-    log.info("Execute Gradle Dependencies Update on: [ {} ]", repository);
-    Map<String, Plugins> pluginsMap = mavenRepoService.pluginsMap();
-    Map<String, Dependencies> dependenciesMap = mavenRepoService.dependenciesMap();
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-    arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    new ExecuteBuildGradleUpdate(repository, scriptFile, arguments, pluginsMap, dependenciesMap)
-        .start();
-  }
+  private void updateRepo(
+      final Repository repository, final ScriptFile scriptFile, List<String> arguments) {
+    log.info("Execute Update: [ {} ] [ {} ] [ {} ]", repository, scriptFile, arguments);
 
-  private void executeNpmDependenciesUpdate(
-      final Repository repository, final ScriptFile scriptFile) {
-    log.info("Execute NPM Dependencies Update on: [ {} ]", repository);
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-    arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
-  }
-
-  private void executeGradleWrapperUpdate(
-      final Repository repository, final ScriptFile scriptFile) {
-    log.info("Execute Gradle Wrapper Update on: [ {} ]", repository);
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-    arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
-    arguments.add(repository.getGradleVersion());
-    new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
-  }
-
-  private void executeNpmSnapshotUpdate(
-      final Repository repository, final ScriptFile scriptFile, final String branchName) {
-    log.info("Execute NPM Snapshot Update on [ {} ]", repository);
-    List<String> arguments = new LinkedList<>();
-    arguments.add(repository.getRepoPath().toString());
-    arguments.add(branchName);
-    new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
+    if (scriptFile.getType().equals(UpdateType.GRADLE_DEPENDENCIES)) {
+      Map<String, Plugins> pluginsMap = mavenRepoService.pluginsMap();
+      Map<String, Dependencies> dependenciesMap = mavenRepoService.dependenciesMap();
+      new ExecuteBuildGradleUpdate(repository, scriptFile, arguments, pluginsMap, dependenciesMap)
+          .start();
+    } else {
+      new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
+    }
   }
 
   private String getLatestGradleVersion() {
