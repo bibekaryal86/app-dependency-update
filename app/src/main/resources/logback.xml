@@ -15,7 +15,7 @@
         <filter class="ThresholdFilter">
             <level>WARN</level>
         </filter>
-        <encoder>
+        <encoder class="PatternLayoutEncoder">
             <pattern>${LOG_PATTERN}</pattern>
             <charset>utf8</charset>
         </encoder>
@@ -24,12 +24,12 @@
     <appender name="FILELOG" class="RollingFileAppender">
         <file>${repo_home}${LOG_FILE}.log</file>
         <rollingPolicy class="SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_FILE}_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <fileNamePattern>${repo_home}${LOG_FILE}_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
             <maxFileSize>1MB</maxFileSize>
             <maxHistory>14</maxHistory>
-            <totalSizeCap>10MB</totalSizeCap>
+            <totalSizeCap>14MB</totalSizeCap>
         </rollingPolicy>
-        <encoder>
+        <encoder class="PatternLayoutEncoder">
             <pattern>${LOG_PATTERN}</pattern>
             <charset>utf8</charset>
         </encoder>

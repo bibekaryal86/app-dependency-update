@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+@SuppressWarnings("ClassCanBeRecord")
 @Data
 @Builder
 @AllArgsConstructor
