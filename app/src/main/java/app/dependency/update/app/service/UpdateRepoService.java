@@ -137,7 +137,7 @@ public class UpdateRepoService {
 
   private void updateRepo(
       final Repository repository, final ScriptFile scriptFile, List<String> arguments) {
-    log.info("Execute Update: [ {} ] [ {} ] [ {} ]", repository, scriptFile, arguments);
+    log.info("Update Repo: [ {} ] [ {} ] [ {} ]", repository, scriptFile, arguments);
 
     if (scriptFile.getType().equals(UpdateType.GRADLE_DEPENDENCIES)) {
       Map<String, Plugins> pluginsMap = mavenRepoService.pluginsMap();

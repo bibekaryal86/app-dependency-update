@@ -54,7 +54,6 @@ public class ExecuteScriptFile implements Runnable {
 
   private Process startProcess()
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
-    log.info("Starting process: [ {} ]", this.scriptPath);
     try {
       List<String> command = new LinkedList<>();
       command.add(COMMAND_PATH);
@@ -62,7 +61,6 @@ public class ExecuteScriptFile implements Runnable {
       command.addAll(this.arguments);
       Process process = new ProcessBuilder(command).start();
       process.waitFor();
-      log.info("Finished process: [ {} ]", this.scriptPath);
       return process;
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
@@ -89,7 +87,7 @@ public class ExecuteScriptFile implements Runnable {
         }
       }
 
-      log.info("Process output: [ {} ]\n[ {} ]\n", this.scriptPath, stringBuilder);
+      log.info("Process output: [ {} ]\n[ {} ]", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());
