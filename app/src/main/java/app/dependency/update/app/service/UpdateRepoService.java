@@ -67,11 +67,13 @@ public class UpdateRepoService {
       case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
       case GITHUB_PULL -> repositories.forEach(
           repository -> {
+            arguments.clear();
             arguments.add(repository.getRepoPath().toString());
             updateRepo(repository, scriptFile, arguments);
           });
       case GITHUB_MERGE -> repositories.forEach(
           repository -> {
+            arguments.clear();
             arguments.add(repository.getRepoPath().toString());
             arguments.add(
                 isWrapperMerge
@@ -81,6 +83,7 @@ public class UpdateRepoService {
           });
       case GRADLE_WRAPPER -> repositories.forEach(
           repository -> {
+            arguments.clear();
             arguments.add(repository.getRepoPath().toString());
             arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
             arguments.add(repository.getGradleVersion());
@@ -88,12 +91,14 @@ public class UpdateRepoService {
           });
       case GRADLE_DEPENDENCIES, NPM_DEPENDENCIES -> repositories.forEach(
           repository -> {
+            arguments.clear();
             arguments.add(repository.getRepoPath().toString());
             arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
             updateRepo(repository, scriptFile, arguments);
           });
       case NPM_SNAPSHOT -> repositories.forEach(
           repository -> {
+            arguments.clear();
             arguments.add(repository.getRepoPath().toString());
             arguments.add(branchName);
             updateRepo(repository, scriptFile, arguments);
