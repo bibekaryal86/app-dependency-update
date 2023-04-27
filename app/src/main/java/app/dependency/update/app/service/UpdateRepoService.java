@@ -174,11 +174,11 @@ public class UpdateRepoService {
   }
 
   private void executeNpmSnapshotUpdate(
-      final Repository repository, final ScriptFile scriptFile, final String branchDate) {
+      final Repository repository, final ScriptFile scriptFile, final String branchName) {
     log.info("Execute NPM Snapshot Update on [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
-    arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
+    arguments.add(branchName);
     new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
   }
 
