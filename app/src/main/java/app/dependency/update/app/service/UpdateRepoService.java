@@ -63,7 +63,7 @@ public class UpdateRepoService {
   @Scheduled(cron = "0 0 20 * * *")
   public void updateRepos() {
     if (getPseudoSemaphore() > 0) {
-        log.info("Something is already running, trying in 60 minutes...");
+        log.info("Something is already running, trying again in 60 minutes...");
         taskScheduler.schedule(this::updateRepos, instant(SCHED_BEGIN + 60, ChronoUnit.MINUTES));
     } else {
         setPseudoSemaphore(1);
