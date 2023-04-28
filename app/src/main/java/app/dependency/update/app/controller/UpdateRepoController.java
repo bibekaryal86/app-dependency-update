@@ -3,7 +3,7 @@ package app.dependency.update.app.controller;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.service.UpdateRepoServiceOnDemand;
+import app.dependency.update.app.service.UpdateRepoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/update-repo")
 public class UpdateRepoController {
 
-  private final UpdateRepoServiceOnDemand updateRepoServiceOnDemand;
+  private final UpdateRepoService updateRepoService;
 
-  public UpdateRepoController(final UpdateRepoServiceOnDemand updateRepoServiceOnDemand) {
-    this.updateRepoServiceOnDemand = updateRepoServiceOnDemand;
+  public UpdateRepoController(final UpdateRepoService updateRepoService) {
+    this.updateRepoService = updateRepoService;
   }
 
   @Operation(summary = "On-demand Update Repos")
@@ -35,16 +35,19 @@ public class UpdateRepoController {
       @RequestParam(defaultValue = "false") final boolean isWrapperMerge,
       @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
           final String branchDate) {
-    if (updateType.equals(UpdateType.ALL)) {
-      updateRepoServiceOnDemand.updateRepoOnDemand();
-    } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
-      if (isInvalidBranchDate(branchDate)) {
-        return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
-      }
-      updateRepoServiceOnDemand.updateRepoOnDemand(
-          String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
+    if (getPseudoSemaphore() > 0) {
+      return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
-      updateRepoServiceOnDemand.updateRepoOnDemand(updateType, isWrapperMerge);
+      if (updateType.equals(UpdateType.ALL)) {
+        updateRepoService.updateRepos();
+      } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
+        if (isInvalidBranchDate(branchDate)) {
+          return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
+        }
+        updateRepoService.updateRepos(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
+      } else {
+        updateRepoService.updateRepos(updateType, isWrapperMerge);
+      }
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }

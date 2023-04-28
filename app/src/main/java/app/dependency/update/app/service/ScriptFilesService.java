@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.setPseudoSemaphore;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -24,8 +25,17 @@ public class ScriptFilesService {
     this.scriptFiles = appInitDataService.appInitData().getScriptFiles();
   }
 
-  public void deleteTempScriptFiles() {
-    log.info("Delete Temp Script Files...");
+  public void deleteTempScriptFilesBegin() {
+    deleteTempScriptFiles("begin");
+  }
+
+  public void deleteTempScriptFilesEnd() {
+    deleteTempScriptFiles("end");
+    setPseudoSemaphore(0);
+  }
+
+  public void deleteTempScriptFiles(String beginEnd) {
+    log.info("Delete Temp Script Files: [ {} ]", beginEnd);
 
     try {
       Path tempScriptsDirectory = Path.of(JAVA_SYSTEM_TMPDIR + "/" + SCRIPTS_DIRECTORY);

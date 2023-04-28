@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -20,7 +21,9 @@ public class ThreadMonitor {
     this.appInitDataService = appInitDataService;
   }
 
-  public void monitorThreads() {
+  // run every five seconds
+  @Scheduled(cron = "5 * * * * *")
+  private void monitorThreads() {
     final AppInitData appInitData = appInitDataService.appInitData();
     final Set<Thread> threads = Thread.getAllStackTraces().keySet();
     Map<String, Thread.State> threadStatusMap = monitorThreads(appInitData, threads);
@@ -39,6 +42,9 @@ public class ThreadMonitor {
     // running threads that match thread names pattern
     List<Thread> runningThreads =
         threads.stream()
+            .filter(
+                thread ->
+                    thread.getName().startsWith("sched") || thread.getName().startsWith("pool"))
             .filter(
                 thread ->
                     threadNames.stream()
