@@ -172,6 +172,7 @@ public class UpdateRepoService {
   private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(
       final List<Repository> repositories, final String latestVersion) {
     return repositories.stream()
+        .filter(repository -> repository.getType().equals(UpdateType.GRADLE_DEPENDENCIES))
         .map(
             repository -> {
               String currentVersion = getCurrentGradleVersionInRepo(repository);
