@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 
 @NoArgsConstructor
 public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInterceptor {
+  private static final String EXCLUDED = "[EXCLUDED]";
   private final Logger requestLogger =
       LoggerFactory.getLogger("spring.web.client.MessageTracing.sent");
   private final Logger responseLogger =
@@ -43,11 +44,11 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
             .append("]");
 
     if (this.hasTextBody(request.getHeaders())) {
-      stringBuilder.append(" [Headers] ").append("[EXCLUDED]"); // request.getHeaders());
+      stringBuilder.append(" [Headers] ").append(EXCLUDED);
     }
 
     if (body.length > 0) {
-      stringBuilder.append(" [Body] ").append("[EXCLUDED]");
+      stringBuilder.append(" [Body] ").append(EXCLUDED);
     }
 
     String requestLog = stringBuilder.toString();
@@ -70,8 +71,8 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
 
       if (contentLength != 0L) {
         if (this.hasTextBody(httpHeaders)) {
-          stringBuilder.append(" [Headers] ").append("[EXCLUDED]"); // httpHeaders);
-          stringBuilder.append(" [Body] ").append("[EXCLUDED]");
+          stringBuilder.append(" [Headers] ").append(EXCLUDED);
+          stringBuilder.append(" [Body] ").append(EXCLUDED);
         } else {
           stringBuilder
               .append(" [Content Type] [ ")

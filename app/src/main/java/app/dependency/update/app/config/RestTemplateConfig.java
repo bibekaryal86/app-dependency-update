@@ -2,10 +2,8 @@ package app.dependency.update.app.config;
 
 import app.dependency.update.app.util.InterceptorUtilsLoggingRestTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
@@ -29,15 +27,16 @@ public class RestTemplateConfig {
 
   private ClientHttpRequestFactory clientHttpRequestFactory() {
     HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-    SocketConfig socketConfig =
-        SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(Timeout.ofSeconds(15)).build();
-    HttpClientConnectionManager httpClientConnectionManager =
-        PoolingHttpClientConnectionManagerBuilder.create()
-            .setDefaultSocketConfig(socketConfig)
-            .build();
-    HttpClient httpClient =
-        HttpClientBuilder.create().setConnectionManager(httpClientConnectionManager).build();
-    factory.setHttpClient(httpClient);
+    factory.setHttpClient(
+        HttpClientBuilder.create()
+            .setConnectionManager(
+                PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultSocketConfig(
+                        SocketConfig.copy(SocketConfig.DEFAULT)
+                            .setSoTimeout(Timeout.ofSeconds(15))
+                            .build())
+                    .build())
+            .build());
     factory.setConnectTimeout(15000);
     return factory;
   }
