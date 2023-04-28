@@ -16,45 +16,122 @@ import app.dependency.update.app.runnable.ExecuteScriptFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class UpdateRepoService {
 
+  private final TaskScheduler taskScheduler;
   private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
   private final GradleConnector gradleConnector;
+  private final ScriptFilesService scriptFilesService;
 
   public UpdateRepoService(
       final AppInitDataService appInitDataService,
       final MavenRepoService mavenRepoService,
-      final GradleConnector gradleConnector) {
+      final GradleConnector gradleConnector,
+      final ScriptFilesService scriptFilesService) {
+    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(100));
     this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
     this.gradleConnector = gradleConnector;
+    this.scriptFilesService = scriptFilesService;
   }
 
-  public void updateRepos(final UpdateType updateType) {
-    updateRepos(updateType, false, null);
+  @Async
+  @Scheduled(cron = "0 0 20 * * *")
+  public void updateRepos() {
+    // clear caches
+    taskScheduler.schedule(
+        () -> {
+          appInitDataService.clearAppInitData();
+          mavenRepoService.clearPluginsMap();
+          mavenRepoService.clearDependenciesMap();
+        },
+        instant(15, ChronoUnit.SECONDS));
+
+    taskScheduler.schedule(appInitDataService::appInitData, instant(30, ChronoUnit.SECONDS));
+    taskScheduler.schedule(mavenRepoService::pluginsMap, instant(35, ChronoUnit.SECONDS));
+    taskScheduler.schedule(mavenRepoService::dependenciesMap, instant(40, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(1, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GRADLE_WRAPPER, false, null), instant(3, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_MERGE, true, null), instant(13, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(16, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.NPM_DEPENDENCIES, false, null),
+        instant(19, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, false, null),
+        instant(23, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_MERGE, false, null), instant(33, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(36, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(39, ChronoUnit.MINUTES));
   }
 
+  @Async
   public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
-    updateRepos(updateType, isWrapperMerge, null);
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
+    if (isWrapperMerge) {
+      taskScheduler.schedule(
+          () -> updateRepos(updateType, true, null), instant(1, ChronoUnit.MINUTES));
+    } else {
+      taskScheduler.schedule(
+          () -> updateRepos(updateType, false, null), instant(1, ChronoUnit.MINUTES));
+    }
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(8, ChronoUnit.MINUTES));
   }
 
-  public void updateRepos(final UpdateType updateType, final String branchName) {
-    updateRepos(updateType, false, branchName);
+  @Async
+  public void updateRepos(final String branchName) {
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(1, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.NPM_SNAPSHOT, false, branchName),
+        instant(3, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_MERGE, false, null), instant(13, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(17, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(20, ChronoUnit.SECONDS));
   }
 
   private void updateRepos(
@@ -104,6 +181,10 @@ public class UpdateRepoService {
             updateRepo(repository, scriptFile, arguments);
           });
     }
+  }
+
+  private Instant instant(final long amountToAdd, ChronoUnit chronoUnit) {
+    return Instant.now().plus(amountToAdd, chronoUnit);
   }
 
   private ScriptFile getScriptFile(final UpdateType type, final List<ScriptFile> scriptFiles) {
