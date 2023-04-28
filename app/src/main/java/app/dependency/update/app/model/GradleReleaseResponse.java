@@ -1,14 +1,20 @@
 package app.dependency.update.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@ToString
+@Data
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GradleReleaseResponse {
-  private final String name;
-  private final boolean draft;
-  private final boolean prerelease;
+  private String name;
+  private boolean draft;
+  private boolean prerelease;
 }

@@ -3,32 +3,30 @@
  */
 package app.dependency.update;
 
-import app.dependency.update.app.helper.MavenRepo;
-import app.dependency.update.app.helper.SetAppInitData;
-import app.dependency.update.app.helper.ThreadMonitor;
-import app.dependency.update.app.schedule.AppScheduler;
+import static app.dependency.update.app.util.CommonUtils.*;
+import static app.dependency.update.app.util.ConstantUtils.*;
+
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Slf4j
+@SpringBootApplication
+@EnableCaching
+@EnableScheduling
+@EnableMongoRepositories
 public class App {
+
   public static void main(String[] args) {
-    log.warn("Begin app-dependency-update initialization...");
-
-    // set app init data
-    appInitData(args);
-    // start schedulers
-    new AppScheduler().startSchedulers();
-    // monitor threads
-    new ThreadMonitor();
-
-    log.warn("End app-dependency-update initialization...");
-  }
-
-  private static void appInitData(final String[] args) {
-    // set caches when the app runs for the first time
-    // these are later maintained by schedulers
-    new SetAppInitData(args).setAppInitData();
-    new MavenRepo().setPluginsMap();
-    new MavenRepo().setDependenciesMap();
+    log.info("Begin app-dependency-update initialization...");
+    SpringApplication app = new SpringApplication(App.class);
+    app.setDefaultProperties(
+        Collections.singletonMap("server.port", getSystemEnvProperty(SERVER_PORT, "8888")));
+    app.run(args);
+    log.info("End app-dependency-update initialization...");
   }
 }

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: app-dependency-update
+
+server:
+  servlet:
+    context-path: /app-dependency-update
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+        exclude: shutdown
+
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    disable-swagger-default-url: true
+    path: /swagger-ui
+    doc-expansion: none
