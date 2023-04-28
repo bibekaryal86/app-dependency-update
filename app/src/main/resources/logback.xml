@@ -40,11 +40,6 @@
         <appender-ref ref="FILELOG"/>
     </logger>
 
-    <logger name="org.quartz" level="WARN" additivity="false">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILELOG"/>
-    </logger>
-
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILELOG"/>
