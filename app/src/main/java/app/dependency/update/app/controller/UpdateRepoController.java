@@ -35,15 +35,19 @@ public class UpdateRepoController {
       @RequestParam(defaultValue = "false") final boolean isWrapperMerge,
       @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
           final String branchDate) {
-    if (updateType.equals(UpdateType.ALL)) {
-      updateRepoService.updateRepos();
-    } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
-      if (isInvalidBranchDate(branchDate)) {
-        return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
-      }
-      updateRepoService.updateRepos(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
+    if (getPseudoSemaphore() > 0) {
+      return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
-      updateRepoService.updateRepos(updateType, isWrapperMerge);
+      if (updateType.equals(UpdateType.ALL)) {
+        updateRepoService.updateRepos();
+      } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
+        if (isInvalidBranchDate(branchDate)) {
+          return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
+        }
+        updateRepoService.updateRepos(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
+      } else {
+        updateRepoService.updateRepos(updateType, isWrapperMerge);
+      }
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }

@@ -39,4 +39,6 @@ public class ConstantUtils {
       "https://api.github.com/repos/gradle/gradle/releases";
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
+
+  public static int PSEUDO_SEMAPHORE = 0;
 }

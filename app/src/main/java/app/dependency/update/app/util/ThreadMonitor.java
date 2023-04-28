@@ -44,6 +44,9 @@ public class ThreadMonitor {
         threads.stream()
             .filter(
                 thread ->
+                    thread.getName().startsWith("sched") || thread.getName().startsWith("pool"))
+            .filter(
+                thread ->
                     threadNames.stream()
                         .anyMatch(threadName -> thread.getName().startsWith(threadName)))
             .toList();

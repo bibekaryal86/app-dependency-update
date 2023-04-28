@@ -60,6 +60,10 @@ public class UpdateRepoService {
   @Async
   @Scheduled(cron = "0 0 20 * * *")
   public void updateRepos() {
+    if (getPseudoSemaphore() > 0) {
+      throw new AppDependencyUpdateRuntimeException("Thread to Update Already Running");
+    }
+    setPseudoSemaphore(1);
     // clear caches
     taskScheduler.schedule(
         () -> {
@@ -100,6 +104,7 @@ public class UpdateRepoService {
 
   @Async
   public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
+    setPseudoSemaphore(1);
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
@@ -117,6 +122,7 @@ public class UpdateRepoService {
 
   @Async
   public void updateRepos(final String branchName) {
+    setPseudoSemaphore(1);
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(

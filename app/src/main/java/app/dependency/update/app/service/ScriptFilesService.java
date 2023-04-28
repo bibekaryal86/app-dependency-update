@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.setPseudoSemaphore;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -11,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,25 +20,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
-  private final Semaphore semaphore;
 
   public ScriptFilesService(final AppInitDataService appInitDataService) {
     this.scriptFiles = appInitDataService.appInitData().getScriptFiles();
-    semaphore = new Semaphore(1);
   }
 
   public void deleteTempScriptFilesBegin() {
     deleteTempScriptFiles("begin");
-    try{
-      semaphore.acquire();
-    } catch (InterruptedException ex) {
-      Thread.currentThread().interrupt();
-    }
   }
 
   public void deleteTempScriptFilesEnd() {
     deleteTempScriptFiles("end");
-    semaphore.release();
+    setPseudoSemaphore(0);
   }
 
   public void deleteTempScriptFiles(String beginEnd) {
