@@ -3,8 +3,6 @@ package app.dependency.update.app.controller;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.service.ScriptFilesService;
-import app.dependency.update.app.service.UpdateRepoService;
 import app.dependency.update.app.service.UpdateRepoServiceOnDemand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,17 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/update-repo")
 public class UpdateRepoController {
 
-  private final UpdateRepoService updateRepoService;
   private final UpdateRepoServiceOnDemand updateRepoServiceOnDemand;
-  private final ScriptFilesService scriptFilesService;
 
-  public UpdateRepoController(
-      final UpdateRepoService updateRepoService,
-      final UpdateRepoServiceOnDemand updateRepoServiceOnDemand,
-      final ScriptFilesService scriptFilesService) {
-    this.updateRepoService = updateRepoService;
+  public UpdateRepoController(final UpdateRepoServiceOnDemand updateRepoServiceOnDemand) {
     this.updateRepoServiceOnDemand = updateRepoServiceOnDemand;
-    this.scriptFilesService = scriptFilesService;
   }
 
   @Operation(summary = "On-demand Update Repos")
@@ -50,12 +41,10 @@ public class UpdateRepoController {
       if (isInvalidBranchDate(branchDate)) {
         return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
       }
-      updateRepoServiceOnDemand.updateNpmSnapshot(
+      updateRepoServiceOnDemand.updateRepoOnDemand(
           String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
     } else {
-      scriptFilesService.deleteTempScriptFiles();
-      scriptFilesService.createTempScriptFiles();
-      updateRepoService.updateRepos(updateType, isWrapperMerge);
+      updateRepoServiceOnDemand.updateRepoOnDemand(updateType, isWrapperMerge);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
