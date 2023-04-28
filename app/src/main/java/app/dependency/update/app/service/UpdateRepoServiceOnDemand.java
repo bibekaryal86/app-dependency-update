@@ -78,8 +78,24 @@ public class UpdateRepoServiceOnDemand {
   }
 
   @Async
-  public void updateNpmSnapshot(final String branchName) {
+  public void updateRepoOnDemand(final UpdateType updateType, final boolean isWrapperMerge) {
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
+    if (isWrapperMerge) {
+      taskScheduler.schedule(
+          () -> updateRepoService.updateRepos(updateType, true), instant(1, ChronoUnit.MINUTES));
+    } else {
+      taskScheduler.schedule(
+          () -> updateRepoService.updateRepos(updateType), instant(1, ChronoUnit.MINUTES));
+    }
+    taskScheduler.schedule(
+        scriptFilesService::deleteTempScriptFiles, instant(8, ChronoUnit.MINUTES));
+  }
 
+  @Async
+  public void updateRepoOnDemand(final String branchName) {
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
