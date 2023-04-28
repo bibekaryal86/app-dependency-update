@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,13 +20,29 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
+  private final Semaphore semaphore;
 
   public ScriptFilesService(final AppInitDataService appInitDataService) {
     this.scriptFiles = appInitDataService.appInitData().getScriptFiles();
+    semaphore = new Semaphore(1);
   }
 
-  public void deleteTempScriptFiles() {
-    log.info("Delete Temp Script Files...");
+  public void deleteTempScriptFilesBegin() {
+    deleteTempScriptFiles("begin");
+    try{
+      semaphore.acquire();
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  public void deleteTempScriptFilesEnd() {
+    deleteTempScriptFiles("end");
+    semaphore.release();
+  }
+
+  public void deleteTempScriptFiles(String beginEnd) {
+    log.info("Delete Temp Script Files: [ {} ]", beginEnd);
 
     try {
       Path tempScriptsDirectory = Path.of(JAVA_SYSTEM_TMPDIR + "/" + SCRIPTS_DIRECTORY);

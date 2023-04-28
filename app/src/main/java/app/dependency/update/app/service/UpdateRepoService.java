@@ -73,7 +73,7 @@ public class UpdateRepoService {
     taskScheduler.schedule(mavenRepoService::pluginsMap, instant(35, ChronoUnit.SECONDS));
     taskScheduler.schedule(mavenRepoService::dependenciesMap, instant(40, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+        scriptFilesService::deleteTempScriptFilesBegin, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
     taskScheduler.schedule(
@@ -95,13 +95,13 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(36, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(39, ChronoUnit.MINUTES));
+        scriptFilesService::deleteTempScriptFilesEnd, instant(39, ChronoUnit.MINUTES));
   }
 
   @Async
   public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+        scriptFilesService::deleteTempScriptFilesBegin, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
     if (isWrapperMerge) {
@@ -112,13 +112,13 @@ public class UpdateRepoService {
           () -> updateRepos(updateType, false, null), instant(1, ChronoUnit.MINUTES));
     }
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(8, ChronoUnit.MINUTES));
+        scriptFilesService::deleteTempScriptFilesBegin, instant(8, ChronoUnit.MINUTES));
   }
 
   @Async
   public void updateRepos(final String branchName) {
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(45, ChronoUnit.SECONDS));
+        scriptFilesService::deleteTempScriptFilesBegin, instant(45, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(50, ChronoUnit.SECONDS));
     taskScheduler.schedule(
@@ -131,7 +131,7 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, false, null), instant(17, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFiles, instant(20, ChronoUnit.SECONDS));
+        scriptFilesService::deleteTempScriptFilesEnd, instant(20, ChronoUnit.SECONDS));
   }
 
   private void updateRepos(
