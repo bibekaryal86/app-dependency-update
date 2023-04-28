@@ -112,7 +112,7 @@ public class UpdateRepoService {
           () -> updateRepos(updateType, false, null), instant(1, ChronoUnit.MINUTES));
     }
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesBegin, instant(8, ChronoUnit.MINUTES));
+        scriptFilesService::deleteTempScriptFilesEnd, instant(8, ChronoUnit.MINUTES));
   }
 
   @Async
