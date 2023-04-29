@@ -71,7 +71,8 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private void processOutput(final Process process) throws AppDependencyUpdateIOException {
-    StringBuilder stringBuilder = new StringBuilder();
+    StringBuilder stringBuilder = new StringBuilder(this.threadName + "BEGIN\n");
+    stringBuilder.append(this.threadName).append("---BEGIN---").append("\n");
     String line;
 
     try (BufferedReader readerError =
@@ -87,6 +88,7 @@ public class ExecuteScriptFile implements Runnable {
         }
       }
 
+      stringBuilder.append(this.threadName).append("---END---");
       log.info("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
