@@ -23,6 +23,6 @@ if [ "$PWD" != "$repo_loc" ]; then
 fi
 
 echo "Pulling new changes"
-git pull
+git reset --hard
 
 echo "Finished"
