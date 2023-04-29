@@ -169,7 +169,7 @@ public class UpdateRepoService {
     List<String> arguments = new LinkedList<>();
     switch (updateType) {
       case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
-      case GITHUB_PULL -> repositories.forEach(
+      case GITHUB_PULL, GITHUB_RESET -> repositories.forEach(
           repository -> {
             arguments.clear();
             arguments.add(repository.getRepoPath().toString());
@@ -226,7 +226,9 @@ public class UpdateRepoService {
 
   private List<Repository> getRepositories(
       final UpdateType updateType, final List<Repository> repositories) {
-    if (updateType.equals(UpdateType.GITHUB_PULL) || updateType.equals(UpdateType.GITHUB_MERGE)) {
+    if (updateType.equals(UpdateType.GITHUB_PULL)
+        || updateType.equals(UpdateType.GITHUB_MERGE)
+        || updateType.equals(UpdateType.GITHUB_RESET)) {
       return repositories;
     }
 
