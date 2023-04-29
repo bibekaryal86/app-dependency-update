@@ -34,5 +34,4 @@ if [[ ("$pr_check" != *"fail"*) ]]; then
 	echo "$pr_merge"
 fi
 
-echo "Pulling new changes"
-git pull
+echo "Finished"
