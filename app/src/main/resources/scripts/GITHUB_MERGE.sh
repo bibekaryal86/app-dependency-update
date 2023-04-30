@@ -30,6 +30,7 @@ pr_check=$(gh pr checks "$branch_name")
 echo "$pr_check"
 
 if [[ ("$pr_check" != *"fail"*) ]]; then
+  echo "Merging pull request"
 	pr_merge=$(gh pr merge "$branch_name" -s -d)
 	echo "$pr_merge"
 fi
