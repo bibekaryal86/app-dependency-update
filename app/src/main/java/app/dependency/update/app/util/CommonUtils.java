@@ -31,8 +31,9 @@ public class CommonUtils {
     return line.replaceAll("^\\s+", "");
   }
 
-  public static String threadName(final Repository repository, final ScriptFile scriptFile) {
-    return repository.getRepoName() + "-" + scriptFile.getType();
+  public static String threadName(
+      final Repository repository, final ScriptFile scriptFile, final String className) {
+    return repository.getRepoName() + "-" + scriptFile.getType() + "-" + className;
   }
 
   public static String getVersionToCompare(final String version) {

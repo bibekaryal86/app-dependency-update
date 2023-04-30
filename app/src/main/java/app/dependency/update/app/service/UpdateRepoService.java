@@ -1,33 +1,24 @@
 package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
-import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.GradleReleaseResponse;
-import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.model.dto.Dependencies;
-import app.dependency.update.app.model.dto.Plugins;
-import app.dependency.update.app.runnable.ExecuteBuildGradleUpdate;
-import app.dependency.update.app.runnable.ExecuteScriptFile;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import app.dependency.update.app.runnable.UpdateGithubMerge;
+import app.dependency.update.app.runnable.UpdateGithubPull;
+import app.dependency.update.app.runnable.UpdateGithubReset;
+import app.dependency.update.app.runnable.UpdateGradleDependencies;
+import app.dependency.update.app.runnable.UpdateGradleWrapper;
+import app.dependency.update.app.runnable.UpdateNpmDependencies;
+import app.dependency.update.app.runnable.UpdateNpmSnapshots;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
@@ -125,13 +116,9 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + 1, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(SCHED_BEGIN + 2, ChronoUnit.MINUTES));
-    if (isWrapperMerge) {
-      taskScheduler.schedule(
-          () -> updateRepos(updateType, true, null), instant(SCHED_BEGIN + 3, ChronoUnit.MINUTES));
-    } else {
-      taskScheduler.schedule(
-          () -> updateRepos(updateType, false, null), instant(SCHED_BEGIN + 3, ChronoUnit.MINUTES));
-    }
+    taskScheduler.schedule(
+        () -> updateRepos(updateType, isWrapperMerge, null),
+        instant(SCHED_BEGIN + 3, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
         instant(SCHED_BEGIN + 10, ChronoUnit.MINUTES));
@@ -164,99 +151,23 @@ public class UpdateRepoService {
   private void updateRepos(
       final UpdateType updateType, final boolean isWrapperMerge, final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
-    ScriptFile scriptFile = getScriptFile(updateType, appInitData.getScriptFiles());
-    List<Repository> repositories = getRepositories(updateType, appInitData.getRepositories());
-    List<String> arguments = new LinkedList<>();
     switch (updateType) {
       case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
-      case GITHUB_PULL, GITHUB_RESET -> repositories.forEach(
-          repository -> {
-            arguments.clear();
-            arguments.add(repository.getRepoPath().toString());
-            updateRepo(repository, scriptFile, arguments);
-          });
-      case GITHUB_MERGE -> repositories.forEach(
-          repository -> {
-            arguments.clear();
-            arguments.add(repository.getRepoPath().toString());
-            arguments.add(
-                isWrapperMerge
-                    ? String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now())
-                    : String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-            updateRepo(repository, scriptFile, arguments);
-          });
-      case GRADLE_WRAPPER -> repositories.forEach(
-          repository -> {
-            arguments.clear();
-            arguments.add(repository.getRepoPath().toString());
-            arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
-            arguments.add(repository.getGradleVersion());
-            updateRepo(repository, scriptFile, arguments);
-          });
-      case GRADLE_DEPENDENCIES, NPM_DEPENDENCIES -> repositories.forEach(
-          repository -> {
-            arguments.clear();
-            arguments.add(repository.getRepoPath().toString());
-            arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-            updateRepo(repository, scriptFile, arguments);
-          });
-      case NPM_SNAPSHOT -> repositories.forEach(
-          repository -> {
-            arguments.clear();
-            arguments.add(repository.getRepoPath().toString());
-            arguments.add(branchName);
-            updateRepo(repository, scriptFile, arguments);
-          });
+      case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
+      case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
+      case GITHUB_MERGE -> new UpdateGithubMerge(appInitData, isWrapperMerge).updateGithubMerge();
+      case GRADLE_WRAPPER -> new UpdateGradleWrapper(appInitData, getLatestGradleVersion())
+          .updateGradleWrapper();
+      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(
+              appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
+          .updateGradleDependencies();
+      case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
+      case NPM_SNAPSHOT -> new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
     }
   }
 
   private Instant instant(final long amountToAdd, ChronoUnit chronoUnit) {
     return Instant.now().plus(amountToAdd, chronoUnit);
-  }
-
-  private ScriptFile getScriptFile(final UpdateType type, final List<ScriptFile> scriptFiles) {
-    Optional<ScriptFile> optionalScriptFile =
-        scriptFiles.stream().filter(scriptFile -> type.equals(scriptFile.getType())).findFirst();
-    if (optionalScriptFile.isEmpty()) {
-      throw new AppDependencyUpdateRuntimeException(
-          String.format("Script Not Found: [ %s ]", type));
-    }
-    return optionalScriptFile.get();
-  }
-
-  private List<Repository> getRepositories(
-      final UpdateType updateType, final List<Repository> repositories) {
-    if (updateType.equals(UpdateType.GITHUB_PULL)
-        || updateType.equals(UpdateType.GITHUB_MERGE)
-        || updateType.equals(UpdateType.GITHUB_RESET)) {
-      return repositories;
-    }
-
-    if (updateType.equals(UpdateType.GRADLE_WRAPPER)) {
-      return getGradleRepositoriesWithGradleWrapperStatus(repositories, getLatestGradleVersion());
-    } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
-      return repositories.stream()
-          .filter(repository -> UpdateType.NPM_DEPENDENCIES.equals(repository.getType()))
-          .toList();
-    }
-
-    return repositories.stream()
-        .filter(repository -> updateType.equals(repository.getType()))
-        .toList();
-  }
-
-  private void updateRepo(
-      final Repository repository, final ScriptFile scriptFile, List<String> arguments) {
-    log.info("Update Repo: [ {} ] [ {} ] [ {} ]", repository, scriptFile, arguments);
-
-    if (scriptFile.getType().equals(UpdateType.GRADLE_DEPENDENCIES)) {
-      Map<String, Plugins> pluginsMap = mavenRepoService.pluginsMap();
-      Map<String, Dependencies> dependenciesMap = mavenRepoService.dependenciesMap();
-      new ExecuteBuildGradleUpdate(repository, scriptFile, arguments, pluginsMap, dependenciesMap)
-          .start();
-    } else {
-      new ExecuteScriptFile(threadName(repository, scriptFile), scriptFile, arguments).start();
-    }
   }
 
   private String getLatestGradleVersion() {
@@ -277,58 +188,5 @@ public class UpdateRepoService {
     }
 
     return latestGradleRelease.getName();
-  }
-
-  private List<Repository> getGradleRepositoriesWithGradleWrapperStatus(
-      final List<Repository> repositories, final String latestVersion) {
-    return repositories.stream()
-        .filter(repository -> repository.getType().equals(UpdateType.GRADLE_DEPENDENCIES))
-        .map(
-            repository -> {
-              String currentVersion = getCurrentGradleVersionInRepo(repository);
-              boolean isRequiresUpdate = isRequiresUpdate(currentVersion, latestVersion);
-              if (isRequiresUpdate) {
-                return new Repository(
-                    repository.getRepoPath(),
-                    repository.getType(),
-                    repository.getGradleModules(),
-                    latestVersion);
-              }
-              return null;
-            })
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
-  private String getCurrentGradleVersionInRepo(final Repository repository) {
-    Path wrapperPath =
-        Path.of(repository.getRepoPath().toString().concat(GRADLE_WRAPPER_PROPERTIES));
-    try {
-      List<String> allLines = Files.readAllLines(wrapperPath);
-      String distributionUrl =
-          allLines.stream()
-              .filter(line -> line.startsWith("distributionUrl"))
-              .findFirst()
-              .orElse(null);
-
-      if (distributionUrl != null) {
-        return parseDistributionUrlForGradleVersion(distributionUrl);
-      }
-    } catch (IOException e) {
-      log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
-    }
-    return null;
-  }
-
-  private String parseDistributionUrlForGradleVersion(final String distributionUrl) {
-    // matches text between two hyphens
-    // eg: distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
-    Pattern pattern = Pattern.compile(GRADLE_WRAPPER_REGEX);
-    Matcher matcher = pattern.matcher(distributionUrl);
-    if (matcher.find()) {
-      return matcher.group();
-    } else {
-      return null;
-    }
   }
 }
