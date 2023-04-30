@@ -44,16 +44,12 @@ public class UpdateGithubMerge {
     if (!this.isWrapperMerge) {
       arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
       new ExecuteScriptFile(
-              threadName(repository, scriptFile, this.getClass().getSimpleName()),
-              this.scriptFile,
-              arguments)
+              threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
           .start();
     } else if (repository.getType().equals(UpdateType.GRADLE_DEPENDENCIES)) {
       arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
       new ExecuteScriptFile(
-              threadName(repository, scriptFile, this.getClass().getSimpleName()),
-              this.scriptFile,
-              arguments)
+              threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
           .start();
     }
   }

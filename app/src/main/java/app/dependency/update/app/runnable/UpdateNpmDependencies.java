@@ -44,9 +44,7 @@ public class UpdateNpmDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     new ExecuteScriptFile(
-            threadName(repository, scriptFile, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 }

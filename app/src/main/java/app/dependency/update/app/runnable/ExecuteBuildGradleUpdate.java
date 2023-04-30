@@ -44,7 +44,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
       final List<String> arguments,
       final Map<String, Plugins> pluginsMap,
       final Map<String, Dependencies> dependenciesMap) {
-    this.threadName = threadName(repository, scriptFile, this.getClass().getCanonicalName());
+    this.threadName = threadName(repository, this.getClass().getCanonicalName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -86,7 +86,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
 
             if (isWriteToFile) {
               new ExecuteScriptFile(
-                      threadName(repository, scriptFile, this.getClass().getSimpleName()),
+                      threadName(repository, this.getClass().getSimpleName()),
                       this.scriptFile,
                       this.arguments)
                   .start();

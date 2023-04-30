@@ -36,9 +36,7 @@ public class UpdateGithubReset {
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     new ExecuteScriptFile(
-            threadName(repository, scriptFile, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 }

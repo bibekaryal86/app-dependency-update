@@ -3,7 +3,6 @@ package app.dependency.update.app.util;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.model.ScriptFile;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,9 +30,8 @@ public class CommonUtils {
     return line.replaceAll("^\\s+", "");
   }
 
-  public static String threadName(
-      final Repository repository, final ScriptFile scriptFile, final String className) {
-    return repository.getRepoName() + "-" + scriptFile.getType() + "-" + className;
+  public static String threadName(final Repository repository, final String className) {
+    return repository.getRepoName() + "--" + className;
   }
 
   public static String getVersionToCompare(final String version) {

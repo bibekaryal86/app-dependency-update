@@ -93,9 +93,7 @@ public class UpdateGradleWrapper {
     arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
     arguments.add(repository.getGradleVersion());
     new ExecuteScriptFile(
-            threadName(repository, scriptFile, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 }
