@@ -38,7 +38,7 @@ public class ScriptFilesService {
     log.info("Delete Temp Script Files: [ {} ]", beginEnd);
 
     try {
-      Path tempScriptsDirectory = Path.of(JAVA_SYSTEM_TMPDIR + "/" + SCRIPTS_DIRECTORY);
+      Path tempScriptsDirectory = Path.of(JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY);
       if (Files.exists(tempScriptsDirectory)) {
         try (Stream<Path> paths = Files.walk(tempScriptsDirectory)) {
           paths.sorted(Comparator.reverseOrder()).forEach(this::delete);
