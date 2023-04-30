@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateRepoService {
 
-  private final TaskScheduler taskScheduler;
   private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
   private final GradleConnector gradleConnector;
@@ -43,7 +42,6 @@ public class UpdateRepoService {
       final MavenRepoService mavenRepoService,
       final GradleConnector gradleConnector,
       final ScriptFilesService scriptFilesService) {
-    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(100));
     this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
     this.gradleConnector = gradleConnector;
@@ -53,6 +51,7 @@ public class UpdateRepoService {
   @Async
   @Scheduled(cron = "0 0 20 * * *")
   public void updateRepos() {
+    TaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(25));
     if (getPseudoSemaphore() > 0) {
       log.warn("Something is already running, trying again in 60 minutes...");
       taskScheduler.schedule(this::updateRepos, instant(SCHED_BEGIN + 60, ChronoUnit.MINUTES));
@@ -110,6 +109,7 @@ public class UpdateRepoService {
 
   @Async
   public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
+    TaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(25));
     setPseudoSemaphore(1);
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
@@ -126,6 +126,7 @@ public class UpdateRepoService {
 
   @Async
   public void updateRepos(final String branchName) {
+    TaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(25));
     setPseudoSemaphore(1);
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin, instant(SCHED_BEGIN, ChronoUnit.MINUTES));
