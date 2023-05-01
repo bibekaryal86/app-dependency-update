@@ -129,8 +129,7 @@ public class UpdateRepoService {
         () -> updateRepos(updateType, isWrapperMerge, null),
         instant(SCHED_BEGIN + 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + 5, ChronoUnit.MINUTES));
+        scriptFilesService::deleteTempScriptFilesEnd, instant(SCHED_BEGIN + 5, ChronoUnit.MINUTES));
   }
 
   @Async
