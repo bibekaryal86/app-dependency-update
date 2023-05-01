@@ -39,7 +39,7 @@ if [[ ("$branch_checkout" = *"set up to track remote branch"*) ]]; then
 	if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 		git add .
 		git commit -am 'Dependencies Updated (Auto)'
-		git push origin "$branch_name"
+		git push
 	fi
 
 	echo "Cleaning up"

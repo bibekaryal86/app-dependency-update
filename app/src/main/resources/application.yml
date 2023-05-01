@@ -1,6 +1,10 @@
 spring:
   application:
     name: app-dependency-update
+  task:
+    scheduling:
+      pool:
+        size: 10
 
 server:
   servlet:

@@ -75,6 +75,7 @@ public class MavenRepoService {
     dependenciesRepository.save(dependency);
   }
 
+  @CacheEvict(value = "dependenciesMap", allEntries = true, beforeInvocation = true)
   public void updateDependenciesInMongo() {
     // get from Mongo than local cache
     List<Dependencies> dependencies = dependenciesRepository.findAll();
@@ -105,6 +106,7 @@ public class MavenRepoService {
 
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
+      log.info("Mongo Dependencies Updated...");
     }
   }
 

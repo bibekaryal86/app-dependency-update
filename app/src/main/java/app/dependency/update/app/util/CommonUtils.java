@@ -1,9 +1,6 @@
 package app.dependency.update.app.util;
 
-import static app.dependency.update.app.util.ConstantUtils.*;
-
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.model.ScriptFile;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,8 +28,8 @@ public class CommonUtils {
     return line.replaceAll("^\\s+", "");
   }
 
-  public static String threadName(final Repository repository, final ScriptFile scriptFile) {
-    return repository.getRepoName() + "-" + scriptFile.getType();
+  public static String threadName(final Repository repository, final String className) {
+    return repository.getRepoName() + "--" + className;
   }
 
   public static String getVersionToCompare(final String version) {
@@ -59,14 +56,6 @@ public class CommonUtils {
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
   }
 
-  public static int getPseudoSemaphore() {
-    return PSEUDO_SEMAPHORE;
-  }
-
-  public static void setPseudoSemaphore(int value) {
-    PSEUDO_SEMAPHORE = value;
-  }
-
   public enum UpdateType {
     ALL,
     GITHUB_PULL,
@@ -76,5 +65,12 @@ public class CommonUtils {
     GRADLE_WRAPPER,
     NPM_DEPENDENCIES,
     NPM_SNAPSHOT
+  }
+
+  public enum CacheType {
+    ALL,
+    APP_INIT_DATA,
+    PLUGINS_MAP,
+    DEPENDENCIES_MAP
   }
 }

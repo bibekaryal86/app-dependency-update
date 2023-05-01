@@ -44,7 +44,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
       final List<String> arguments,
       final Map<String, Plugins> pluginsMap,
       final Map<String, Dependencies> dependenciesMap) {
-    this.threadName = threadName(repository, scriptFile);
+    this.threadName = threadName(repository, this.getClass().getCanonicalName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -85,7 +85,11 @@ public class ExecuteBuildGradleUpdate implements Runnable {
                 writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
 
             if (isWriteToFile) {
-              new ExecuteScriptFile(threadName + "_", this.scriptFile, this.arguments).start();
+              new ExecuteScriptFile(
+                      threadName(repository, this.getClass().getSimpleName()),
+                      this.scriptFile,
+                      this.arguments)
+                  .start();
             } else {
               log.info(
                   "Build Gradle Changes Not Written to File: [ {} ]",

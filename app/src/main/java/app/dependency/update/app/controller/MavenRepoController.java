@@ -9,6 +9,7 @@ import app.dependency.update.app.model.dto.Plugins;
 import app.dependency.update.app.service.MavenRepoService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -117,5 +118,12 @@ public class MavenRepoController {
                   + ex.getMessage().replace("\"", "'")
                   + "\"}");
     }
+  }
+
+  @Operation(summary = "On-demand Update Maven Dependencies in Mongo")
+  @PostMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> updateMavenDependenciesInMongo() {
+    CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
+    return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }
