@@ -26,8 +26,8 @@ public class UpdateGithubReset {
   }
 
   public void updateGithubReset() {
-    // updating github reset is fairly straightforward because everything is done by the
-    // github script, we just need to execute it for each repository
+    // updating GitHub reset is fairly straightforward because everything is done by the
+    // GitHub script, we just need to execute it for each repository
     this.repositories.forEach(this::executeUpdate);
   }
 

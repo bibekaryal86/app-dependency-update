@@ -30,8 +30,8 @@ public class UpdateGithubMerge {
   }
 
   public void updateGithubMerge() {
-    // updating github pull requests is fairly straightforward because everything is done by the
-    // github script, we just need to execute it for each repository
+    // updating GitHub pull requests is fairly straightforward because everything is done by the
+    // GitHub script, we just need to execute it for each repository
     // the script checks if builds passed and, if yes, merges the PR
     this.repositories.forEach(this::executeUpdate);
   }
