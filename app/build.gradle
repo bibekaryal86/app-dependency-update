@@ -7,10 +7,10 @@
  */
 
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     id 'java'
     id 'io.freefair.lombok' version '8.0.1'
+    id 'org.springframework.boot' version '3.0.6'
     id 'com.diffplug.spotless' version '6.18.0'
 }
 
@@ -21,34 +21,34 @@ java {
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
+bootJar {
+    archiveFileName = 'app-dependency-update.jar'
+}
+
 dependencies {
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'org.mongodb:mongodb-driver-sync:4.9.1'
-    implementation 'org.quartz-scheduler:quartz:2.3.2'
-    implementation 'org.slf4j:slf4j-api:2.0.7'
+    def springVersion = "3.0.6"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-cache:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-data-mongodb:$springVersion"
+    implementation 'ch.qos.logback:logback-core:1.4.7'
     implementation 'ch.qos.logback:logback-classic:1.4.7'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 }
 
 application {
-    // Define the main class for the application.
     mainClass = 'app.dependency.update.App'
 }
 
-jar {
-    archiveFileName = 'app-dependency-update.jar'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    manifest {
-        attributes "Main-Class": "app.dependency.update.App"
-    }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+configurations {
+    implementation.exclude module: 'spring-boot-starter-logging'
+    implementation.exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
 }
 
 spotless {

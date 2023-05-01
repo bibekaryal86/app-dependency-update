@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+@SuppressWarnings("ClassCanBeRecord")
 @Getter
 @Builder
 @ToString
