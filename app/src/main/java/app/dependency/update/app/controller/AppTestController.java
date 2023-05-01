@@ -23,7 +23,7 @@ public class AppTestController {
   @GetMapping(value = "/tests/reset/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> reset(@PathVariable(name = "are_you_sure") boolean areYouSure) {
     if (areYouSure) {
-      // todo stop scheduler
+      // TODO stop taskScheduler
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

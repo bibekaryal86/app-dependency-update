@@ -119,9 +119,9 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         () -> updateRepos(updateType, isWrapperMerge, null),
         instant(SCHED_BEGIN + 10, ChronoUnit.SECONDS));
-    taskScheduler.schedule( // todo revert the time to 7 minutes
+    taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + 30, ChronoUnit.SECONDS));
+        instant(SCHED_BEGIN + 5, ChronoUnit.MINUTES));
   }
 
   @Async
