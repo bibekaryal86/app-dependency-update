@@ -53,12 +53,22 @@ public class UpdateRepoService {
   public boolean isTaskRunning() {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) taskScheduler.getConcurrentExecutor();
-    log.info("{}", executor.getQueue().peek() == null);
+    log.info("Is Task Running: [ {} ]", executor.getQueue().peek() != null);
     return executor.getQueue().peek() != null;
   }
 
-  @Async
   @Scheduled(cron = "0 0 20 * * *")
+  public void updateReposScheduler() {
+    if (isTaskRunning()) {
+      log.info("Something is running, rescheduling 30 minutes from now...");
+      // re-schedule to run in 30 minutes
+      taskScheduler.schedule(this::updateReposScheduler, instant(30, ChronoUnit.MINUTES));
+    } else {
+      updateRepos();
+    }
+  }
+
+  @Async
   public void updateRepos() {
     // clear caches
     taskScheduler.schedule(
@@ -68,7 +78,6 @@ public class UpdateRepoService {
           mavenRepoService.clearDependenciesMap();
         },
         instant(SCHED_BEGIN + 1, ChronoUnit.SECONDS));
-
     taskScheduler.schedule(
         appInitDataService::appInitData, instant(SCHED_BEGIN + 5, ChronoUnit.SECONDS));
     taskScheduler.schedule(
@@ -133,19 +142,19 @@ public class UpdateRepoService {
         scriptFilesService::createTempScriptFiles, instant(SCHED_BEGIN + 4, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + 20, ChronoUnit.SECONDS));
+        instant(SCHED_BEGIN + 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_SNAPSHOT, false, branchName),
-        instant(1, ChronoUnit.MINUTES));
+        instant(25, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_MERGE, false, null),
-        instant(SCHED_BEGIN + 9, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + 8, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + 15, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + 12, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + 17, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + 15, ChronoUnit.MINUTES));
   }
 
   private void updateRepos(
