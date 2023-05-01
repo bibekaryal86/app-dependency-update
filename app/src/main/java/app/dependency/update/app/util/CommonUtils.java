@@ -1,7 +1,5 @@
 package app.dependency.update.app.util;
 
-import static app.dependency.update.app.util.ConstantUtils.*;
-
 import app.dependency.update.app.model.Repository;
 import java.util.Collection;
 import java.util.List;
@@ -56,14 +54,6 @@ public class CommonUtils {
       return false;
     }
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
-  }
-
-  public static int getPseudoSemaphore() {
-    return PSEUDO_SEMAPHORE;
-  }
-
-  public static void setPseudoSemaphore(int value) {
-    PSEUDO_SEMAPHORE = value;
   }
 
   public enum UpdateType {

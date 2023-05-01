@@ -1,7 +1,5 @@
 package app.dependency.update.app.controller;
 
-import static app.dependency.update.app.util.CommonUtils.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +23,7 @@ public class AppTestController {
   @GetMapping(value = "/tests/reset/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> reset(@PathVariable(name = "are_you_sure") boolean areYouSure) {
     if (areYouSure) {
-      setPseudoSemaphore(0);
+      // todo stop scheduler
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

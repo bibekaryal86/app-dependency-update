@@ -35,7 +35,7 @@ public class UpdateRepoController {
       @RequestParam(defaultValue = "false") final boolean isWrapperMerge,
       @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
           final String branchDate) {
-    if (getPseudoSemaphore() > 0) {
+    if (updateRepoService.isTaskRunning()) {
       return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
       if (updateType.equals(UpdateType.ALL)) {
