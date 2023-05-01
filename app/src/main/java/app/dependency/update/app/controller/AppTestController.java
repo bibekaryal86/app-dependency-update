@@ -74,7 +74,7 @@ public class AppTestController {
           mavenRepoService.dependenciesMap();
         }
       }
-      return ResponseEntity.ok("{\"running\": " + updateRepoService.isTaskRunning() + "}");
+      return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");
     }
