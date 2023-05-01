@@ -66,4 +66,11 @@ public class CommonUtils {
     NPM_DEPENDENCIES,
     NPM_SNAPSHOT
   }
+
+  public enum CacheType {
+    ALL,
+    APP_INIT_DATA,
+    PLUGINS_MAP,
+    DEPENDENCIES_MAP
+  }
 }
