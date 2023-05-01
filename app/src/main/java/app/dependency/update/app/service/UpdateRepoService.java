@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Service;
@@ -51,7 +50,7 @@ public class UpdateRepoService {
   }
 
   @Scheduled(cron = "0 0 20 * * *")
-  private void updateReposScheduler() {
+  void updateReposScheduler() {
     if (isTaskRunning()) {
       log.info("Something is running, rescheduling 30 minutes from now...");
       taskScheduler.schedule(this::updateReposScheduler, instant(30, ChronoUnit.MINUTES));
@@ -67,7 +66,6 @@ public class UpdateRepoService {
     return executor.getQueue().peek() != null;
   }
 
-  @Async
   public void updateRepos() {
     // clear caches
     taskScheduler.schedule(
@@ -121,7 +119,6 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 29, ChronoUnit.MINUTES));
   }
 
-  @Async
   public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
@@ -137,7 +134,6 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
   }
 
-  @Async
   public void updateRepos(final String branchName) {
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
