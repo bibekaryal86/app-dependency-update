@@ -150,16 +150,16 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_SNAPSHOT, false, branchName),
-        instant(SCHED_BEGIN + (long) 25, ChronoUnit.SECONDS));
+        instant(SCHED_BEGIN + (long) 15, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_MERGE, false, null),
-        instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + (long) 12, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 10, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 12, ChronoUnit.MINUTES));
   }
 
   private void updateRepos(
