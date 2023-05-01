@@ -72,7 +72,8 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           mavenRepoService::pluginsMap, instant(SCHED_BEGIN + 7, ChronoUnit.SECONDS));
       taskScheduler.schedule(
-          mavenRepoService::updateDependenciesInMongo, instant(SCHED_BEGIN + 10, ChronoUnit.SECONDS));
+          mavenRepoService::updateDependenciesInMongo,
+          instant(SCHED_BEGIN + 10, ChronoUnit.SECONDS));
       taskScheduler.schedule(
           scriptFilesService::deleteTempScriptFilesBegin,
           instant(SCHED_BEGIN + 13, ChronoUnit.SECONDS));
@@ -120,15 +121,15 @@ public class UpdateRepoService {
         () -> updateRepos(updateType, isWrapperMerge, null),
         instant(SCHED_BEGIN + 1, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + 6, ChronoUnit.MINUTES));
+        scriptFilesService::deleteTempScriptFilesEnd, instant(SCHED_BEGIN + 6, ChronoUnit.MINUTES));
   }
 
   @Async
   public void updateRepos(final String branchName) {
     setPseudoSemaphore(1);
     taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesBegin, instant(SCHED_BEGIN + 1, ChronoUnit.SECONDS));
+        scriptFilesService::deleteTempScriptFilesBegin,
+        instant(SCHED_BEGIN + 1, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles, instant(SCHED_BEGIN + 4, ChronoUnit.SECONDS));
     taskScheduler.schedule(
