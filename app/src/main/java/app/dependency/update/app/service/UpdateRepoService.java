@@ -85,7 +85,7 @@ public class UpdateRepoService {
         mavenRepoService::updateDependenciesInMongo,
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        mavenRepoService::dependenciesMap, instant(SCHED_BEGIN + (long) 13, ChronoUnit.SECONDS));
+        mavenRepoService::dependenciesMap, instant(SCHED_BEGIN + (long) 55, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
         instant(SCHED_BEGIN + (long) 15, ChronoUnit.SECONDS));
