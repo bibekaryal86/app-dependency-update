@@ -31,7 +31,7 @@ public class AppTestController {
   @GetMapping(value = "/tests/check/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> reset(@PathVariable(name = "are_you_sure") boolean areYouSure) {
     if (areYouSure) {
-      return ResponseEntity.ok("{\"shutdown\": " + updateRepoService.isTaskRunning() + "}");
+      return ResponseEntity.ok("{\"running\": " + updateRepoService.isTaskRunning() + "}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");
     }

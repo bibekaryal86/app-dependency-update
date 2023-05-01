@@ -3,7 +3,6 @@ package app.dependency.update.app.controller;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,7 +10,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.concurrent.CompletableFuture;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,12 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class UpdateRepoController {
 
   private final UpdateRepoService updateRepoService;
-  private final MavenRepoService mavenRepoService;
 
-  public UpdateRepoController(
-      final UpdateRepoService updateRepoService, final MavenRepoService mavenRepoService) {
+  public UpdateRepoController(final UpdateRepoService updateRepoService) {
     this.updateRepoService = updateRepoService;
-    this.mavenRepoService = mavenRepoService;
   }
 
   @Operation(summary = "On-demand Update Repos")
@@ -54,13 +49,6 @@ public class UpdateRepoController {
         updateRepoService.updateRepos(updateType, isWrapperMerge);
       }
     }
-    return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
-  }
-
-  @Operation(summary = "On-demand Update Maven Dependencies in Mongo")
-  @GetMapping(value = "/maven-mongo", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> updateMavenDependenciesInMongo() {
-    CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 

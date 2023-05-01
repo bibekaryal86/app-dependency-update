@@ -106,6 +106,7 @@ public class MavenRepoService {
 
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
+      log.info("Mongo Dependencies Updated...");
     }
   }
 
