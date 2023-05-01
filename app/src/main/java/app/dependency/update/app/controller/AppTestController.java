@@ -1,5 +1,6 @@
 package app.dependency.update.app.controller;
 
+import app.dependency.update.app.service.UpdateRepoService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AppTestController {
+
+  private final UpdateRepoService updateRepoService;
+
+  public AppTestController(final UpdateRepoService updateRepoService) {
+    this.updateRepoService = updateRepoService;
+  }
+
   @Operation(
       summary = "Ping",
       description = "Send a simple Http Request to receive a simple Http Response")
@@ -19,12 +27,11 @@ public class AppTestController {
     return ResponseEntity.ok("{\"ping\": \"successful\"}");
   }
 
-  @Operation(summary = "Reset", description = "Reset Pseudo Semaphore Lock")
-  @GetMapping(value = "/tests/reset/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Check Running Tasks", description = "Checks if tasks currently running")
+  @GetMapping(value = "/tests/check/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> reset(@PathVariable(name = "are_you_sure") boolean areYouSure) {
     if (areYouSure) {
-      // TODO stop taskScheduler
-      return ResponseEntity.ok("{\"reset\": \"successful\"}");
+      return ResponseEntity.ok("{\"shutdown\": " + updateRepoService.isTaskRunning() + "}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");
     }

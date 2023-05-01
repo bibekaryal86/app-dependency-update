@@ -50,22 +50,21 @@ public class UpdateRepoService {
     this.scriptFilesService = scriptFilesService;
   }
 
+  @Scheduled(cron = "0 0 20 * * *")
+  private void updateReposScheduler() {
+    if (isTaskRunning()) {
+      log.info("Something is running, rescheduling 30 minutes from now...");
+      taskScheduler.schedule(this::updateReposScheduler, instant(30, ChronoUnit.MINUTES));
+    } else {
+      updateRepos();
+    }
+  }
+
   public boolean isTaskRunning() {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) taskScheduler.getConcurrentExecutor();
     log.info("Is Task Running: [ {} ]", executor.getQueue().peek() != null);
     return executor.getQueue().peek() != null;
-  }
-
-  @Scheduled(cron = "0 0 20 * * *")
-  public void updateReposScheduler() {
-    if (isTaskRunning()) {
-      log.info("Something is running, rescheduling 30 minutes from now...");
-      // re-schedule to run in 30 minutes
-      taskScheduler.schedule(this::updateReposScheduler, instant(30, ChronoUnit.MINUTES));
-    } else {
-      updateRepos();
-    }
   }
 
   @Async
