@@ -49,22 +49,9 @@ public class AppInitDataService {
   private Map<String, String> makeArgsMap() {
     log.info("Make Args Map...");
     Map<String, String> map = new HashMap<>();
-
-    if (getSystemEnvProperty(PARAM_REPO_HOME, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
-    } else {
-      map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME, null));
-    }
-    if (getSystemEnvProperty(ENV_MONGO_USERNAME, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
-    } else {
-      map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME, null));
-    }
-    if (getSystemEnvProperty(ENV_MONGO_PASSWORD, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
-    } else {
-      map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD, null));
-    }
+    map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME, null));
+    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME, null));
+    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD, null));
 
     log.info("Args Map After Conversion: [ {} ]", map);
     return map;

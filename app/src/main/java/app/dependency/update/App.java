@@ -6,6 +6,7 @@ package app.dependency.update;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -23,10 +24,23 @@ public class App {
 
   public static void main(String[] args) {
     log.info("Begin app-dependency-update initialization...");
+    validateInput();
     SpringApplication app = new SpringApplication(App.class);
     app.setDefaultProperties(
         Collections.singletonMap("server.port", getSystemEnvProperty(SERVER_PORT, "8888")));
     app.run(args);
     log.info("End app-dependency-update initialization...");
+  }
+
+  private static void validateInput() {
+    if (getSystemEnvProperty(PARAM_REPO_HOME, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_USERNAME, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_PASSWORD, null) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
+    }
   }
 }
