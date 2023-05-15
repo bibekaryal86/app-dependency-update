@@ -179,6 +179,8 @@ public class MavenRepoService {
         || version.contains("BETA")
         || version.contains("rc")
         || version.contains("RC")
+        || version.contains("m")
+        || version.contains("M")
         || version.contains("snapshot")
         || version.contains("SNAPSHOT");
   }
