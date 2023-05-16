@@ -397,7 +397,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
     modifyConfigurations(dependenciesBlock, originals);
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
-      log.info("Nothing to Update: [ {} ]", buildGradleConfigs.getBuildGradlePath());
+      // log.info("Nothing to Update: [ {} ]", buildGradleConfigs.getBuildGradlePath());
       return Collections.emptyList();
     } else {
       return originals;

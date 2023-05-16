@@ -2,7 +2,7 @@
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo
-echo "Process Id--$$"
+# echo "Process Id--$$"
 repo_loc="$1"
 branch_name="$2"
 gradle_version="$3"
@@ -14,11 +14,11 @@ chown -R "$current_user" "$repo_loc"
 # Go to repo location or exit with message
 cd "$repo_loc" || { echo "Repo Location Not Found"; exit 1; }
 
-echo "Current User--$current_user"
-echo "Current Location--$PWD"
-echo "Repo Location--$repo_loc"
-echo "Branch Name--$branch_name"
-echo "Gradle Version--$gradle_version"
+# echo "Current User--$current_user"
+# echo "Current Location--$PWD"
+# echo "Repo Location--$repo_loc"
+# echo "Branch Name--$branch_name"
+# echo "Gradle Version--$gradle_version"
 
 # Keeping this as fallback check
 if [ "$PWD" != "$repo_loc" ]; then
