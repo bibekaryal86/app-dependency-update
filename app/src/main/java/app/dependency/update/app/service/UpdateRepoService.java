@@ -2,22 +2,16 @@ package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 
-import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.runnable.UpdateGithubMerge;
 import app.dependency.update.app.runnable.UpdateGithubPull;
 import app.dependency.update.app.runnable.UpdateGithubReset;
 import app.dependency.update.app.runnable.UpdateGradleDependencies;
-import app.dependency.update.app.runnable.UpdateGradleWrapper;
 import app.dependency.update.app.runnable.UpdateNpmDependencies;
 import app.dependency.update.app.runnable.UpdateNpmSnapshots;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +26,6 @@ public class UpdateRepoService {
   private final ConcurrentTaskScheduler taskScheduler;
   private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
-  private final GradleConnector gradleConnector;
   private final ScriptFilesService scriptFilesService;
 
   private static final Integer SCHED_BEGIN = 1;
@@ -40,12 +33,10 @@ public class UpdateRepoService {
   public UpdateRepoService(
       final AppInitDataService appInitDataService,
       final MavenRepoService mavenRepoService,
-      final GradleConnector gradleConnector,
       final ScriptFilesService scriptFilesService) {
     this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(25));
     this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
-    this.gradleConnector = gradleConnector;
     this.scriptFilesService = scriptFilesService;
   }
 
@@ -76,14 +67,14 @@ public class UpdateRepoService {
         },
         instant(SCHED_BEGIN + (long) 1, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.SECONDS));
+        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 3, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         mavenRepoService::pluginsMap, instant(SCHED_BEGIN + (long) 7, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         mavenRepoService::updateDependenciesInMongo,
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        mavenRepoService::dependenciesMap, instant(SCHED_BEGIN + (long) 55, ChronoUnit.SECONDS));
+        mavenRepoService::dependenciesMap, instant(SCHED_BEGIN + (long) 75, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
         instant(SCHED_BEGIN + (long) 15, ChronoUnit.SECONDS));
@@ -91,35 +82,26 @@ public class UpdateRepoService {
         scriptFilesService::createTempScriptFiles,
         instant(SCHED_BEGIN + (long) 17, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepos(UpdateType.GITHUB_PULL, null),
         instant(SCHED_BEGIN + (long) 30, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GRADLE_WRAPPER, false, null),
+        () -> updateRepos(UpdateType.NPM_DEPENDENCIES, null),
         instant(SCHED_BEGIN + (long) 1, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, true, null),
-        instant(SCHED_BEGIN + (long) 10, ChronoUnit.MINUTES));
+        () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, null),
+        instant(SCHED_BEGIN + (long) 3, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + (long) 13, ChronoUnit.MINUTES));
+        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
+        instant(SCHED_BEGIN + (long) 12, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.NPM_DEPENDENCIES, false, null),
+        () -> updateRepos(UpdateType.GITHUB_PULL, null),
         instant(SCHED_BEGIN + (long) 14, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, false, null),
-        instant(SCHED_BEGIN + (long) 16, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, false, null),
-        instant(SCHED_BEGIN + (long) 26, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + (long) 28, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 29, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
   }
 
-  public void updateRepos(final UpdateType updateType, final boolean isWrapperMerge) {
+  public void updateRepos(final UpdateType updateType) {
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesBegin,
         instant(SCHED_BEGIN + (long) 1, ChronoUnit.SECONDS));
@@ -127,8 +109,7 @@ public class UpdateRepoService {
         scriptFilesService::createTempScriptFiles,
         instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(updateType, isWrapperMerge, null),
-        instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
+        () -> updateRepos(updateType, null), instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
         instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
@@ -142,32 +123,29 @@ public class UpdateRepoService {
         scriptFilesService::createTempScriptFiles,
         instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
+        () -> updateRepos(UpdateType.GITHUB_PULL, null),
+        instant(SCHED_BEGIN + (long) 7, ChronoUnit.SECONDS));
+    taskScheduler.schedule(
+        () -> updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.NPM_SNAPSHOT, false, branchName),
-        instant(SCHED_BEGIN + (long) 15, ChronoUnit.SECONDS));
+        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
+        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, false, null),
-        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, false, null),
-        instant(SCHED_BEGIN + (long) 10, ChronoUnit.MINUTES));
+        () -> updateRepos(UpdateType.GITHUB_PULL, null),
+        instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 12, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 9, ChronoUnit.MINUTES));
   }
 
-  private void updateRepos(
-      final UpdateType updateType, final boolean isWrapperMerge, final String branchName) {
+  private void updateRepos(final UpdateType updateType, final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
     switch (updateType) {
       case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
-      case GITHUB_MERGE -> new UpdateGithubMerge(appInitData, isWrapperMerge).updateGithubMerge();
-      case GRADLE_WRAPPER -> new UpdateGradleWrapper(appInitData, getLatestGradleVersion())
-          .updateGradleWrapper();
+      case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
       case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(
               appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
           .updateGradleDependencies();
@@ -178,25 +156,5 @@ public class UpdateRepoService {
 
   private Instant instant(final long amountToAdd, ChronoUnit chronoUnit) {
     return Instant.now().plus(amountToAdd, chronoUnit);
-  }
-
-  private String getLatestGradleVersion() {
-    List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
-    // get rid of draft and prerelease and sort by name descending
-    Optional<GradleReleaseResponse> optionalLatestGradleRelease =
-        gradleReleaseResponses.stream()
-            .filter(
-                gradleReleaseResponse ->
-                    !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
-            .max(Comparator.comparing(GradleReleaseResponse::getName));
-
-    GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
-
-    if (latestGradleRelease == null) {
-      throw new AppDependencyUpdateRuntimeException("Latest Gradle Release Null Error...");
-    }
-
-    return latestGradleRelease.getName();
   }
 }

@@ -16,9 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateGithubMerge {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
-  private final boolean isWrapperMerge;
 
-  public UpdateGithubMerge(final AppInitData appInitData, final boolean isWrapperMerge) {
+  public UpdateGithubMerge(final AppInitData appInitData) {
     this.repositories = appInitData.getRepositories();
     this.scriptFile =
         appInitData.getScriptFiles().stream()
@@ -26,7 +25,6 @@ public class UpdateGithubMerge {
             .findFirst()
             .orElseThrow(
                 () -> new AppDependencyUpdateRuntimeException("Github Merge Script Not Found..."));
-    this.isWrapperMerge = isWrapperMerge;
   }
 
   public void updateGithubMerge() {
@@ -40,17 +38,9 @@ public class UpdateGithubMerge {
     log.info("Execute Github Merge Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
-
-    if (!this.isWrapperMerge) {
-      arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-      new ExecuteScriptFile(
-              threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
-          .start();
-    } else if (repository.getType().equals(UpdateType.GRADLE_DEPENDENCIES)) {
-      arguments.add(String.format(BRANCH_UPDATE_WRAPPER, LocalDate.now()));
-      new ExecuteScriptFile(
-              threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
-          .start();
-    }
+    arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
+    new ExecuteScriptFile(
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+        .start();
   }
 }

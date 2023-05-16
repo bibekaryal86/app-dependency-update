@@ -2,9 +2,10 @@
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo
-echo Process Id--$$
+echo "Process Id--$$"
 repo_loc="$1"
 branch_name="$2"
+gradle_version="$3"
 
 # Give access to current user
 current_user=$(whoami)
@@ -13,10 +14,11 @@ chown -R "$current_user" "$repo_loc"
 # Go to repo location or exit with message
 cd "$repo_loc" || { echo "Repo Location Not Found"; exit 1; }
 
-echo Current User--"$current_user"
-echo Current Location--"$PWD"
-echo Repo Location--"$repo_loc"
-echo Branch Name--"$branch_name"
+echo "Current User--$current_user"
+echo "Current Location--$PWD"
+echo "Repo Location--$repo_loc"
+echo "Branch Name--$branch_name"
+echo "Gradle Version--$gradle_version"
 
 # Keeping this as fallback check
 if [ "$PWD" != "$repo_loc" ]; then
@@ -27,6 +29,16 @@ fi
 # Create new branch for updates
 echo "Creating new branch"
 git checkout -b "$branch_name"
+
+if [ -n "$gradle_version" ]; then
+    echo "Running Gradle Wrapper Update --- $gradle_version"
+    chmod +x gradlew
+    ./gradlew wrapper --gradle-version="$gradle_version"
+    # Sometimes doesn't update on the first try
+    ./gradlew wrapper --gradle-version="$gradle_version"
+else
+  echo "Skipping Gradle Wrapper Update --- $gradle_version"
+fi
 
 # Commit and push
 echo "Committing and pushing"

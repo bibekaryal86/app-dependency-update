@@ -3,8 +3,10 @@ package app.dependency.update.app.service;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
+import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.IOException;
@@ -23,6 +25,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class AppInitDataService {
+
+  private final GradleConnector gradleConnector;
+
+  public AppInitDataService(final GradleConnector gradleConnector) {
+    this.gradleConnector = gradleConnector;
+  }
 
   @Cacheable(value = "appInitData", unless = "#result==null")
   public AppInitData appInitData() {
@@ -72,10 +80,11 @@ public class AppInitDataService {
           "Repositories not found in the repo path provided!");
     }
 
-    List<Repository> repositories = new ArrayList<>();
+    List<Repository> npmRepositories = new ArrayList<>();
+    List<Repository> gradleRepositories = new ArrayList<>();
     for (Path path : repoPaths) {
       try (Stream<Path> pathStream = Files.list(path)) {
-        repositories.addAll(
+        npmRepositories.addAll(
             pathStream
                 .filter(stream -> "package.json".equals(stream.getFileName().toString()))
                 .map(mapper -> new Repository(path, UpdateType.NPM_DEPENDENCIES))
@@ -85,7 +94,7 @@ public class AppInitDataService {
             "NPM Files not found in the repo path provided!", ex);
       }
       try (Stream<Path> pathStream = Files.list(path)) {
-        repositories.addAll(
+        gradleRepositories.addAll(
             pathStream
                 .filter(stream -> "settings.gradle".equals(stream.getFileName().toString()))
                 .map(
@@ -99,6 +108,28 @@ public class AppInitDataService {
             "Gradle Repositories not found in the repo path provided!", ex);
       }
     }
+
+    // add gradle wrapper version data
+    String latestGradleVersion = getLatestGradleVersion();
+    List<Repository> gradleWrapperRepositories =
+        gradleRepositories.stream()
+            .map(
+                repository -> {
+                  String currentVersion = getCurrentGradleVersionInRepo(repository);
+                  if (isRequiresUpdate(currentVersion, latestGradleVersion)) {
+                    return new Repository(
+                        repository.getRepoPath(),
+                        repository.getType(),
+                        repository.getGradleModules(),
+                        latestGradleVersion);
+                  }
+                  return repository;
+                })
+            .toList();
+
+    List<Repository> repositories = new ArrayList<>();
+    repositories.addAll(npmRepositories);
+    repositories.addAll(gradleWrapperRepositories);
 
     log.info("Repository list: [ {} ]", repositories);
     return repositories;
@@ -147,5 +178,58 @@ public class AppInitDataService {
 
     log.info("Script files: [ {} ]", scriptFiles);
     return scriptFiles;
+  }
+
+  private String getLatestGradleVersion() {
+    List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
+    // get rid of draft and prerelease and sort by name descending
+    Optional<GradleReleaseResponse> optionalLatestGradleRelease =
+        gradleReleaseResponses.stream()
+            .filter(
+                gradleReleaseResponse ->
+                    !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
+            .max(Comparator.comparing(GradleReleaseResponse::getName));
+
+    GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
+    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
+
+    if (latestGradleRelease == null) {
+      log.error("Latest Gradle Release Null Error...");
+      return null;
+    }
+
+    return latestGradleRelease.getName();
+  }
+
+  private String getCurrentGradleVersionInRepo(final Repository repository) {
+    Path wrapperPath =
+        Path.of(repository.getRepoPath().toString().concat(GRADLE_WRAPPER_PROPERTIES));
+    try {
+      List<String> allLines = Files.readAllLines(wrapperPath);
+      String distributionUrl =
+          allLines.stream()
+              .filter(line -> line.startsWith("distributionUrl"))
+              .findFirst()
+              .orElse(null);
+
+      if (distributionUrl != null) {
+        return parseDistributionUrlForGradleVersion(distributionUrl);
+      }
+    } catch (IOException e) {
+      log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
+    }
+    return null;
+  }
+
+  private String parseDistributionUrlForGradleVersion(final String distributionUrl) {
+    // matches text between two hyphens
+    // eg: distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
+    Pattern pattern = Pattern.compile(GRADLE_WRAPPER_REGEX);
+    Matcher matcher = pattern.matcher(distributionUrl);
+    if (matcher.find()) {
+      return matcher.group();
+    } else {
+      return null;
+    }
   }
 }
