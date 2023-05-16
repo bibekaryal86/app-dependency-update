@@ -65,7 +65,12 @@ public class ExecuteBuildGradleUpdate implements Runnable {
   }
 
   private void executeBuildGradleUpdate() {
+    boolean isExecuteRequired = false;
     try {
+      if (!isEmpty(this.repository.getGradleVersion())) {
+        isExecuteRequired = true;
+      }
+
       List<String> gradleModules = this.repository.getGradleModules();
       for (String gradleModule : gradleModules) {
         log.info(
@@ -85,12 +90,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
                 writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
 
             if (isWriteToFile) {
-              new ExecuteScriptFile(
-                      threadName(repository, "-" + this.getClass().getSimpleName()),
-                      // simple name used in thread name for this class already, so use "-"
-                      this.scriptFile,
-                      this.arguments)
-                  .start();
+              isExecuteRequired = true;
             } else {
               log.info(
                   "Build Gradle Changes Not Written to File: [ {} ]",
@@ -100,6 +100,14 @@ public class ExecuteBuildGradleUpdate implements Runnable {
         }
       }
 
+      if (isExecuteRequired) {
+        new ExecuteScriptFile(
+                threadName(repository, "-" + this.getClass().getSimpleName()),
+                // simple name used in thread name for this class already, so use "-"
+                this.scriptFile,
+                this.arguments)
+            .start();
+      }
     } catch (Exception ex) {
       log.error("Error in Execute Build Gradle Update: ", ex);
     }
