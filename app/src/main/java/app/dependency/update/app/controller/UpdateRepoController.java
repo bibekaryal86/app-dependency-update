@@ -32,7 +32,6 @@ public class UpdateRepoController {
   @PostMapping(value = "/{updateType}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> updateRepo(
       @PathVariable final UpdateType updateType,
-      @RequestParam(defaultValue = "false") final boolean isWrapperMerge,
       @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
           final String branchDate) {
     if (updateRepoService.isTaskRunning()) {
@@ -46,7 +45,7 @@ public class UpdateRepoController {
         }
         updateRepoService.updateRepos(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
       } else {
-        updateRepoService.updateRepos(updateType, isWrapperMerge);
+        updateRepoService.updateRepos(updateType);
       }
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");

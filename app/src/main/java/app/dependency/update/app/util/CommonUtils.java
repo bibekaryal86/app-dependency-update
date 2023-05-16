@@ -62,7 +62,6 @@ public class CommonUtils {
     GITHUB_MERGE,
     GITHUB_RESET,
     GRADLE_DEPENDENCIES,
-    GRADLE_WRAPPER,
     NPM_DEPENDENCIES,
     NPM_SNAPSHOT
   }

@@ -30,7 +30,6 @@ public class ConstantUtils {
   public static final String MONGODB_COLLECTION_DEPENDENCIES = "dependencies";
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
-  public static final String BRANCH_UPDATE_WRAPPER = "update_wrapper_%s";
 
   // endpoints
   public static final String MONGODB_CONNECTION_STRING =
