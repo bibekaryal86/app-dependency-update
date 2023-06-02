@@ -37,7 +37,7 @@ echo "Committing and pushing"
 create_pr="no"
 if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
 	git add .
-	git commit -am 'Dependencies Updated (Auto)'
+	git commit -am 'Dependencies Updated (https://bit.ly/app-dependency-update)'
 	git push origin -u "$branch_name"
 	create_pr="yes"
 fi
@@ -45,7 +45,7 @@ fi
 # Create PR
 if [ $create_pr = "yes" ]; then
 	echo "Creating PR"
-	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated (Auto)" -b "Dependencies Updated (Auto)"
+	gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated (https://bit.ly/app-dependency-update)" -b "Dependencies Updated (https://github.com/bibekaryal86/app-dependency-update)"
 fi
 
 # Cleanup

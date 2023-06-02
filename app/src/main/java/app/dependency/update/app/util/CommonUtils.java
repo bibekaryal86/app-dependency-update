@@ -32,6 +32,10 @@ public class CommonUtils {
     return repository.getRepoName() + "--" + className;
   }
 
+  public static String threadName(final String className) {
+    return className + "--" + className;
+  }
+
   public static String getVersionToCompare(final String version) {
     List<String> strList = Stream.of(version.split("\\.")).limit(3).toList();
     StringBuilder sb = new StringBuilder();
