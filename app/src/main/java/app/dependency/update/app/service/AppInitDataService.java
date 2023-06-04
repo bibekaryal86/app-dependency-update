@@ -163,8 +163,14 @@ public class AppInitDataService {
     List<ScriptFile> scriptFiles = new ArrayList<>();
 
     try {
+      String extension = ".sh";
+      String os = System.getProperty("os.name");
+      if (!isEmpty(os) && os.contains("ows")) {
+        extension = ".bat";
+      }
+
       Resource[] resources =
-          new PathMatchingResourcePatternResolver().getResources("classpath:scripts/*.sh");
+          new PathMatchingResourcePatternResolver().getResources("classpath:scripts/*" + extension);
       for (Resource resource : resources) {
         scriptFiles.add(new ScriptFile(Objects.requireNonNull(resource.getFilename())));
       }
