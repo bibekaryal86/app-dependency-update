@@ -1,28 +1,55 @@
 #!/usr/bin/bash
 # The above bash location was retrieved using `which bash` in raspberry pi
 
-# Location of the repo
+# Location of the repo home
 # echo "Process Id--$$"
-repo_loc="$1"
+repo_home="$1"
 
 # Give access to current user
 current_user=$(whoami)
-chown -R "$current_user" "$repo_loc"
+chown -R "$current_user" "$repo_home"
 
 # Go to repo location or exit with message
-cd "$repo_loc" || { echo "Repo Location Not Found"; exit 1; }
+cd "$repo_home" || { echo "Repo Location Not Found"; exit 1; }
 
 # echo "Current User--$current_user"
 # echo "Current Location--$PWD"
-# echo "Repo Location--$repo_loc"
+# echo "Repo Home--$repo_home"
 
 # Keeping this as fallback check
-if [ "$PWD" != "$repo_loc" ]; then
-    echo "Current Location and Repo Location are different"
+if [ "$PWD" != "$repo_home" ]; then
+    echo "Current Location and Repo Home are different"
     exit 1
 fi
 
-echo "Pulling new changes"
-git pull
+# Iterate through all subdirectories
+for dir in "$repo_home"/*
+do
+    # If the current directory is a directory
+    if [ -d "$dir" ]
+    then
+        if [[ ! "$dir" == *"logs"* ]]; then
+          # Change to the subdirectory
+          cd "$dir" || { echo "Error 1"; exit 1; }
+          # Iterate through all subdirectories of the current subdirectory
+          for sub_dir in "$dir"/*
+          do
+              # If the current subdirectory is a directory
+              if [ -d "$sub_dir" ]
+              then
+                  # Change to the subdirectory
+                  cd "$sub_dir" || { echo "Error 2"; exit 2; }
+                  echo "$sub_dir"
+                  # pull new changes
+                  git pull
+                  # Change back to the current subdirectory
+                  cd "$dir" || { echo "Error 3"; exit 3; }
+              fi
+          done
+          # Change back to the current directory
+          cd "$repo_home" || { echo "Error 4"; exit 4; }
+        fi
+    fi
+done
 
-echo "Finished"
+echo "GitHub Pull Finished"

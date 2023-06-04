@@ -83,7 +83,7 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 17, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 30, ChronoUnit.SECONDS));
+        instant(SCHED_BEGIN + (long) 20, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_DEPENDENCIES, null),
         instant(SCHED_BEGIN + (long) 1, ChronoUnit.MINUTES));
@@ -98,7 +98,7 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 14, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 17, ChronoUnit.MINUTES));
   }
 
   public void updateRepos(final UpdateType updateType) {
@@ -136,7 +136,7 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 9, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 11, ChronoUnit.MINUTES));
   }
 
   private void updateRepos(final UpdateType updateType, final String branchName) {
