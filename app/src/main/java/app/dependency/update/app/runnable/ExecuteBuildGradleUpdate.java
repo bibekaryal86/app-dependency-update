@@ -36,6 +36,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
   private final List<String> arguments;
   private final Map<String, Plugins> pluginsMap;
   private final Map<String, Dependencies> dependenciesMap;
+  private final boolean isWindows;
   private Thread thread;
 
   public ExecuteBuildGradleUpdate(
@@ -43,13 +44,15 @@ public class ExecuteBuildGradleUpdate implements Runnable {
       final ScriptFile scriptFile,
       final List<String> arguments,
       final Map<String, Plugins> pluginsMap,
-      final Map<String, Dependencies> dependenciesMap) {
+      final Map<String, Dependencies> dependenciesMap,
+      final boolean isWindows) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
     this.pluginsMap = pluginsMap;
     this.dependenciesMap = dependenciesMap;
+    this.isWindows = isWindows;
   }
 
   @Override
@@ -105,7 +108,8 @@ public class ExecuteBuildGradleUpdate implements Runnable {
                 threadName(repository, "-" + this.getClass().getSimpleName()),
                 // simple name used in thread name for this class already, so use "-"
                 this.scriptFile,
-                this.arguments)
+                this.arguments,
+                this.isWindows)
             .start();
       }
     } catch (Exception ex) {

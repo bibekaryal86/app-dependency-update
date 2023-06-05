@@ -3,6 +3,7 @@ package app.dependency.update.app.service;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,9 +20,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
+  private final boolean isWindows;
 
   public ScriptFilesService(final AppInitDataService appInitDataService) {
-    this.scriptFiles = appInitDataService.appInitData().getScriptFiles();
+    AppInitData appInitData = appInitDataService.appInitData();
+    this.scriptFiles = appInitData.getScriptFiles();
+    this.isWindows = appInitData.isWindows();
   }
 
   public void deleteTempScriptFilesBegin() {
@@ -61,7 +65,9 @@ public class ScriptFilesService {
             String.format(
                 "Unable to create and temp script file %s...", scriptFile.getScriptFileName()));
       } else {
-        giveExecutePermissionToFile(scriptFile);
+        if (!this.isWindows) {
+          giveExecutePermissionToFile(scriptFile);
+        }
       }
     }
   }

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateGithubReset {
   private final String repoHome;
   private final ScriptFile scriptFile;
+  private final boolean isWindows;
 
   public UpdateGithubReset(final AppInitData appInitData) {
     this.repoHome = appInitData.getArgsMap().get(PARAM_REPO_HOME);
@@ -23,6 +24,7 @@ public class UpdateGithubReset {
             .findFirst()
             .orElseThrow(
                 () -> new AppDependencyUpdateRuntimeException("Github Reset Script Not Found..."));
+    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGithubReset() {
@@ -31,7 +33,8 @@ public class UpdateGithubReset {
     log.info("Execute Github Reset on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
-    new ExecuteScriptFile(threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
+    new ExecuteScriptFile(
+            threadName(this.getClass().getSimpleName()), this.scriptFile, arguments, this.isWindows)
         .start();
   }
 }
