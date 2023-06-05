@@ -19,6 +19,7 @@ public class ConstantUtils {
   public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
   public static final String GRADLE_BUILD_DEFINITION_REGEX = "\\w+\\s+\\w+";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
+  public static final String COMMAND_WINDOWS = "cmd.exe";
   public static final String SCRIPTS_DIRECTORY = "scripts";
   public static final String CHMOD_COMMAND = "chmod +x ";
   public static final String JAVA_SYSTEM_TMPDIR = System.getProperty("java.io.tmpdir");

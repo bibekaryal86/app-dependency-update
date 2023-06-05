@@ -35,17 +35,19 @@ public class AppInitDataService {
   @Cacheable(value = "appInitData", unless = "#result==null")
   public AppInitData appInitData() {
     log.info("Set App Init Data...");
+    boolean isWindows = System.getProperty("os.name").contains("Windows");
     // get the input arguments
     Map<String, String> argsMap = makeArgsMap();
     // get the list of repositories and their type
     List<Repository> repositories = getRepositoryLocations(argsMap);
     // get the scripts included in resources folder
-    List<ScriptFile> scriptFiles = getScriptsInResources();
+    List<ScriptFile> scriptFiles = getScriptsInResources(isWindows);
 
     return AppInitData.builder()
         .argsMap(argsMap)
         .repositories(repositories)
         .scriptFiles(scriptFiles)
+        .isWindows(isWindows)
         .build();
   }
 
@@ -158,17 +160,12 @@ public class AppInitDataService {
     }
   }
 
-  private List<ScriptFile> getScriptsInResources() {
+  private List<ScriptFile> getScriptsInResources(final boolean isWindows) {
     log.info("Get Scripts in Resources...");
     List<ScriptFile> scriptFiles = new ArrayList<>();
 
     try {
-      String extension = ".sh";
-      String os = System.getProperty("os.name");
-      if (!isEmpty(os) && os.contains("ows")) {
-        extension = ".bat";
-      }
-
+      String extension = isWindows ? ".bat" : ".sh";
       Resource[] resources =
           new PathMatchingResourcePatternResolver().getResources("classpath:scripts/*" + extension);
       for (Resource resource : resources) {

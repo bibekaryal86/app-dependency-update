@@ -15,6 +15,7 @@ public class UpdateNpmSnapshots {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final String branchName;
+  private final boolean isWindows;
 
   public UpdateNpmSnapshots(final AppInitData appInitData, final String branchName) {
     this.repositories =
@@ -28,6 +29,7 @@ public class UpdateNpmSnapshots {
             .orElseThrow(
                 () -> new AppDependencyUpdateRuntimeException("NPM Snapshot Script Not Found..."));
     this.branchName = branchName;
+    this.isWindows = appInitData.isWindows();
   }
 
   public void updateNpmSnapshots() {
@@ -42,7 +44,10 @@ public class UpdateNpmSnapshots {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
     new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+            threadName(repository, this.getClass().getSimpleName()),
+            this.scriptFile,
+            arguments,
+            this.isWindows)
         .start();
   }
 }
