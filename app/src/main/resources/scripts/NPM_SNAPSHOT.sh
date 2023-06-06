@@ -29,22 +29,22 @@ git pull
 
 # Checkout branch
 echo "Checking out branch"
-branch_checkout=$(git checkout "$branch_name")
+branch_checkout=$(git checkout "$branch_name") 2>&1
 echo "$branch_checkout"
 
 if [[ ("$branch_checkout" = *"set up to track remote branch"*) ]]; then
 	echo "Run NPM Tests"
-	npm run test:u
+	npm run test:u 2>&1
 
 	if ! git status | grep "nothing to commit" > /dev/null 2>&1; then
-		git add .
-		git commit -am 'Dependencies Updated (https://bit.ly/app-dependency-update)'
-		git push
+		git add . 2>&1
+		git commit -am 'Dependencies Updated (https://bit.ly/app-dependency-update)' 2>&1
+		git push 2>&1
 	fi
 
 	echo "Cleaning up"
-	git checkout main
-	git branch -D "$branch_name"
+	git checkout main 2>&1
+	git branch -D "$branch_name" 2>&1
 fi
 
 echo "Finished"

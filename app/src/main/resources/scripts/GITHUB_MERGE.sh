@@ -45,12 +45,12 @@ do
 
                   # Check if build passed for PR of the branch
                   # echo "Checking if all checks/workflows have completed"
-                  pr_check=$(gh pr checks "$branch_name")
+                  pr_check=$(gh pr checks "$branch_name" 2>&1)
                   echo "$pr_check"
 
-                  if [[ ("$pr_check" != *"fail"*) ]]; then
+                  if [[ ("$pr_check" != *"fail"*) && ("$pr_check" != *"no pull requests found"*) ]]; then
                     # echo "Merging pull request"
-                  	pr_merge=$(gh pr merge "$branch_name" -s -d)
+                  	pr_merge=$(gh pr merge "$branch_name" -s -d 2>&1)
                   	echo "$pr_merge"
                   fi
 
