@@ -1,4 +1,4 @@
-@echo off
+REM @echo off
 
 REM Location of the repo home
 set repo_home=%1
