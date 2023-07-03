@@ -40,6 +40,8 @@ do
                   # Change to the subdirectory
                   cd "$sub_dir" || { echo "Error 2"; exit 2; }
                   echo "$sub_dir"
+                  # checkout main branch
+                  git checkout main
                   # hard reset repository
                   git reset --hard
                   # Change back to the current subdirectory

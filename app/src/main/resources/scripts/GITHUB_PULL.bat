@@ -40,6 +40,8 @@ for /d %%D in ("%repo_home%\*") do (
                         exit /b 2
                     )
                     echo %%SD
+                    REM prune old branches
+                    git fetch --prune
                     REM pull new changes
                     git pull
 
