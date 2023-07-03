@@ -40,6 +40,8 @@ do
                   # Change to the subdirectory
                   cd "$sub_dir" || { echo "Error 2"; exit 2; }
                   echo "$sub_dir"
+                  # prune old branches
+                  git fetch --prune
                   # pull new changes
                   git pull
                   # Change back to the current subdirectory

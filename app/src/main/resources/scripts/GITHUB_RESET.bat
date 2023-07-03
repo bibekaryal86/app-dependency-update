@@ -40,6 +40,8 @@ for /d %%D in ("%repo_home%\*") do (
                         exit /b 2
                     )
                     echo %%SD
+                    REM checkout main branch
+                    git checkout main
                     REM hard reset repository
                     git reset --hard
 
