@@ -86,19 +86,19 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 20, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 1, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 3, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_MERGE, null),
-        instant(SCHED_BEGIN + (long) 12, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 22, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 14, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 27, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 17, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 33, ChronoUnit.MINUTES));
   }
 
   public void updateRepos(final UpdateType updateType) {
@@ -124,19 +124,19 @@ public class UpdateRepoService {
         instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 7, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
     taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
+        () -> updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
         instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
     taskScheduler.schedule(
+        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
+        instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 20, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 11, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 25, ChronoUnit.MINUTES));
   }
 
   private void updateRepos(final UpdateType updateType, final String branchName) {
