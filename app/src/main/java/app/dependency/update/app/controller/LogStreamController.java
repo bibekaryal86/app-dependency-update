@@ -30,15 +30,15 @@ public class LogStreamController {
     try {
       return ResponseEntity.ok(logStreamService.getLogFileNames());
     } catch (AppDependencyUpdateRuntimeException ex) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonList(ex.getMessage()));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(Collections.singletonList(ex.getMessage()));
     }
   }
 
-  @Operation(
-          summary = "Get Log File Content",
-          description = "Return the content of a log file")
+  @Operation(summary = "Get Log File Content", description = "Return the content of a log file")
   @GetMapping(value = "/logs/log", produces = MediaType.TEXT_PLAIN_VALUE)
-  public ResponseEntity<String> getLogFileContent(@RequestParam(defaultValue = "app-dependency-update.log") final String fileName) {
+  public ResponseEntity<String> getLogFileContent(
+      @RequestParam(defaultValue = "app-dependency-update.log") final String fileName) {
     try {
       return ResponseEntity.ok(logStreamService.getLogFileContent(fileName));
     } catch (IOException ex) {

@@ -28,17 +28,18 @@ public class LogStreamService {
 
   public List<String> getLogFileNames() {
     try (Stream<Path> pathStream = Files.walk(Paths.get(this.logHome))) {
-      List<String> logFileNames = new ArrayList<>(pathStream.filter(Files::isRegularFile).toList()
-              .stream()
-              .map(path -> path.getFileName().toString())
-              .filter(path -> !path.equals("app-dependency-update.log"))
-              .sorted(Comparator.reverseOrder())
-              .toList());
+      List<String> logFileNames =
+          new ArrayList<>(
+              pathStream.filter(Files::isRegularFile).toList().stream()
+                  .map(path -> path.getFileName().toString())
+                  .filter(path -> !path.equals("app-dependency-update.log"))
+                  .sorted(Comparator.reverseOrder())
+                  .toList());
       logFileNames.add(0, "app-dependency-update.log");
       return logFileNames;
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(
-              "Logs not found in the repo path provided!", ex);
+          "Logs not found in the repo path provided!", ex);
     }
   }
 
