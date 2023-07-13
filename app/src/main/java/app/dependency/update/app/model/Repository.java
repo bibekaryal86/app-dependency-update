@@ -14,14 +14,16 @@ public class Repository {
   private final Path repoPath;
   private final UpdateType type;
   private final String repoName;
-  private final String gradleVersion;
+  private final String latestGradleVersion;
+  private final String currentGradleVersion;
   private final List<String> gradleModules;
 
   public Repository(Path repoPath, UpdateType type) {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.gradleVersion = "";
+    this.latestGradleVersion = "";
+    this.currentGradleVersion = "";
     this.gradleModules = Collections.emptyList();
   }
 
@@ -29,16 +31,22 @@ public class Repository {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.gradleVersion = "";
+    this.latestGradleVersion = "";
+    this.currentGradleVersion = "";
     this.gradleModules = gradleModules;
   }
 
   public Repository(
-      Path repoPath, UpdateType type, List<String> gradleModules, String gradleVersion) {
+      Path repoPath,
+      UpdateType type,
+      List<String> gradleModules,
+      String latestGradleVersion,
+      String currentGradleVersion) {
     this.repoPath = repoPath;
     this.type = type;
     this.gradleModules = gradleModules;
     this.repoName = repoPath.getFileName().toString();
-    this.gradleVersion = gradleVersion;
+    this.latestGradleVersion = latestGradleVersion;
+    this.currentGradleVersion = currentGradleVersion;
   }
 }

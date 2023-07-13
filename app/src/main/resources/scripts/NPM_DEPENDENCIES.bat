@@ -25,8 +25,8 @@ echo Creating new branch
 git checkout -b "%branch_name%"
 
 REM Update dependencies
-echo Running npm update
-npm update --save
+echo Running npm check updates
+ncu -u
 
 REM Commit and push
 echo Committing and pushing

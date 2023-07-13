@@ -5,7 +5,6 @@
 # echo "Process Id--$$"
 repo_loc="$1"
 branch_name="$2"
-gradle_version="$3"
 
 # Give access to current user
 current_user=$(whoami)
@@ -18,7 +17,6 @@ cd "$repo_loc" || { echo "Repo Location Not Found"; exit 1; }
 # echo "Current Location--$PWD"
 # echo "Repo Location--$repo_loc"
 # echo "Branch Name--$branch_name"
-# echo "Gradle Version--$gradle_version"
 
 # Keeping this as fallback check
 if [ "$PWD" != "$repo_loc" ]; then
@@ -29,16 +27,6 @@ fi
 # Create new branch for updates
 echo "Creating new branch"
 git checkout -b "$branch_name" 2>&1
-
-if [ -n "$gradle_version" ]; then
-    echo "Running Gradle Wrapper Update --- $gradle_version"
-    chmod +x gradlew 2>&1
-    ./gradlew wrapper --gradle-version="$gradle_version" 2>&1
-    # Sometimes doesn't update on the first try
-    ./gradlew wrapper --gradle-version="$gradle_version" 2>&1
-else
-  echo "Skipping Gradle Wrapper Update --- $gradle_version"
-fi
 
 # Commit and push
 echo "Committing and pushing"

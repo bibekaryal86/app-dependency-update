@@ -3,7 +3,6 @@ REM @echo off
 REM Location of the repo
 set repo_loc=%1
 set branch_name=%2
-set gradle_version=%3
 
 REM Give access to current user
 set current_user=%USERNAME%
@@ -24,16 +23,6 @@ if not "%CD%"=="%repo_loc%" (
 REM Create new branch for updates
 echo Creating new branch
 git checkout -b "%branch_name%"
-
-if not "%gradle_version%"=="" (
-    echo Running Gradle Wrapper Update --- %gradle_version%
-    chmod +x gradlew
-    gradlew wrapper --gradle-version="%gradle_version%"
-    REM Sometimes doesn't update on the first try
-    gradlew wrapper --gradle-version="%gradle_version%"
-) else (
-    echo Skipping Gradle Wrapper Update --- %gradle_version%
-)
 
 REM Commit and push
 echo Committing and pushing

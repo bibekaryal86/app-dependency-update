@@ -53,10 +53,8 @@ public class UpdateGradleDependencies {
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    if (!isEmpty(repository.getGradleVersion())) {
-      arguments.add(repository.getGradleVersion());
-    }
-    new ExecuteBuildGradleUpdate(
+
+    new ExecuteGradleUpdate(
             repository, this.scriptFile, arguments, pluginsMap, dependenciesMap, this.isWindows)
         .start();
   }
