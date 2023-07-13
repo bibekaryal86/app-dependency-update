@@ -117,13 +117,14 @@ public class AppInitDataService {
         gradleRepositories.stream()
             .map(
                 repository -> {
-                  String currentVersion = getCurrentGradleVersionInRepo(repository);
-                  if (isRequiresUpdate(currentVersion, latestGradleVersion)) {
+                  String currentGradleVersion = getCurrentGradleVersionInRepo(repository);
+                  if (isRequiresUpdate(currentGradleVersion, latestGradleVersion)) {
                     return new Repository(
                         repository.getRepoPath(),
                         repository.getType(),
                         repository.getGradleModules(),
-                        latestGradleVersion);
+                        latestGradleVersion,
+                        currentGradleVersion);
                   }
                   return repository;
                 })

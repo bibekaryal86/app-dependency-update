@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ExecuteBuildGradleUpdate implements Runnable {
+public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
   private final Repository repository;
   private final ScriptFile scriptFile;
@@ -38,8 +38,9 @@ public class ExecuteBuildGradleUpdate implements Runnable {
   private final Map<String, Dependencies> dependenciesMap;
   private final boolean isWindows;
   private Thread thread;
+  private boolean isExecuteScriptRequired = false;
 
-  public ExecuteBuildGradleUpdate(
+  public ExecuteGradleUpdate(
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
@@ -57,7 +58,7 @@ public class ExecuteBuildGradleUpdate implements Runnable {
 
   @Override
   public void run() {
-    executeBuildGradleUpdate();
+    executeGradleUpdate();
   }
 
   public void start() {
@@ -67,13 +68,39 @@ public class ExecuteBuildGradleUpdate implements Runnable {
     }
   }
 
-  private void executeBuildGradleUpdate() {
-    boolean isExecuteRequired = false;
-    try {
-      if (!isEmpty(this.repository.getGradleVersion())) {
-        isExecuteRequired = true;
-      }
+  private void executeGradleUpdate() {
+    executeBuildGradleUpdate();
+    executeGradleWrapperUpdate();
 
+    if (this.isExecuteScriptRequired) {
+      new ExecuteScriptFile(
+              threadName(repository, "-" + this.getClass().getSimpleName()),
+              // simple name used in thread name for this class already, so use "-"
+              this.scriptFile,
+              this.arguments,
+              this.isWindows)
+          .start();
+    }
+  }
+
+  private boolean writeToFile(final Path path, final List<String> content) {
+    try {
+      Files.write(path, content, StandardCharsets.UTF_8);
+      return true;
+    } catch (IOException ex) {
+      log.error("Error Saving Updated File: [ {} ]", path, ex);
+      return false;
+    }
+  }
+
+  /*
+   * BUILD.GRADLE UPDATE
+   */
+
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings("java:S3776")
+  private void executeBuildGradleUpdate() {
+    try {
       List<String> gradleModules = this.repository.getGradleModules();
       for (String gradleModule : gradleModules) {
         log.info(
@@ -90,10 +117,10 @@ public class ExecuteBuildGradleUpdate implements Runnable {
             log.info("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
           } else {
             boolean isWriteToFile =
-                writeToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
+                writeBuildGradleToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
 
             if (isWriteToFile) {
-              isExecuteRequired = true;
+              this.isExecuteScriptRequired = true;
             } else {
               log.info(
                   "Build Gradle Changes Not Written to File: [ {} ]",
@@ -102,30 +129,15 @@ public class ExecuteBuildGradleUpdate implements Runnable {
           }
         }
       }
-
-      if (isExecuteRequired) {
-        new ExecuteScriptFile(
-                threadName(repository, "-" + this.getClass().getSimpleName()),
-                // simple name used in thread name for this class already, so use "-"
-                this.scriptFile,
-                this.arguments,
-                this.isWindows)
-            .start();
-      }
     } catch (Exception ex) {
       log.error("Error in Execute Build Gradle Update: ", ex);
     }
   }
 
-  private boolean writeToFile(final Path buildGradlePath, final List<String> buildGradleContent) {
-    try {
-      log.info("Writing to build.gradle file: [ {} ]", buildGradlePath);
-      Files.write(buildGradlePath, buildGradleContent, StandardCharsets.UTF_8);
-      return true;
-    } catch (IOException ex) {
-      log.error("Error Saving Updated Build Gradle File: [ {} ]", buildGradlePath, ex);
-      return false;
-    }
+  private boolean writeBuildGradleToFile(
+      final Path buildGradlePath, final List<String> buildGradleContent) {
+    log.info("Writing to build.gradle file: [ {} ]", buildGradlePath);
+    return writeToFile(buildGradlePath, buildGradleContent);
   }
 
   private BuildGradleConfigs readBuildGradle(final String gradleModule) {
@@ -401,7 +413,6 @@ public class ExecuteBuildGradleUpdate implements Runnable {
     modifyConfigurations(dependenciesBlock, originals);
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
-      // log.info("Nothing to Update: [ {} ]", buildGradleConfigs.getBuildGradlePath());
       return Collections.emptyList();
     } else {
       return originals;
@@ -475,5 +486,73 @@ public class ExecuteBuildGradleUpdate implements Runnable {
     }
 
     return null;
+  }
+
+  /*
+   * GRADLE WRAPPER UPDATE
+   */
+
+  private void executeGradleWrapperUpdate() {
+    if (isEmpty(this.repository.getLatestGradleVersion())
+        || isEmpty(this.repository.getCurrentGradleVersion())
+        ||
+        // below check is not really needed because current and latest versions values are
+        // populated only if they are not equal, but decided to leave this as is
+        this.repository
+            .getCurrentGradleVersion()
+            .equals(this.repository.getLatestGradleVersion())) {
+      return;
+    }
+
+    Path wrapperPath =
+        Path.of(repository.getRepoPath().toString().concat(GRADLE_WRAPPER_PROPERTIES));
+    List<String> gradleWrapperContent = updateGradleWrapperProperties(wrapperPath);
+
+    boolean isWriteToFile = writeGradleWrapperPropertiesToFile(wrapperPath, gradleWrapperContent);
+    if (isWriteToFile) {
+      this.isExecuteScriptRequired = true;
+    } else {
+      log.info(
+          "Gradle Wrapper Properties Changes Not Written to File: [ {} ]",
+          this.repository.getRepoPath());
+    }
+  }
+
+  private List<String> updateGradleWrapperProperties(final Path wrapperPath) {
+    try {
+      List<String> updatedWrapperProperties = new ArrayList<>();
+      List<String> wrapperProperties = Files.readAllLines(wrapperPath);
+
+      for (String wrapperProperty : wrapperProperties) {
+        if (wrapperProperty.startsWith("distributionUrl")) {
+          String updatedDistributionUrl =
+              updateDistributionUrl(
+                  wrapperProperty,
+                  this.repository.getCurrentGradleVersion(),
+                  this.repository.getLatestGradleVersion());
+          updatedWrapperProperties.add(updatedDistributionUrl);
+        } else {
+          updatedWrapperProperties.add(wrapperProperty);
+        }
+      }
+
+      return updatedWrapperProperties;
+    } catch (IOException e) {
+      log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
+    }
+    return Collections.emptyList();
+  }
+
+  private String updateDistributionUrl(
+      final String distributionUrl,
+      final String currentGradleVersion,
+      final String latestGradleVersion) {
+    return distributionUrl.replace(currentGradleVersion, latestGradleVersion);
+  }
+
+  private boolean writeGradleWrapperPropertiesToFile(
+      final Path gradleWrapperPropertiesPath, final List<String> gradleWrapperPropertiesContent) {
+    log.info("Writing to gradle-wrapper.properties file: [ {} ]", gradleWrapperPropertiesPath);
+    return writeToFile(gradleWrapperPropertiesPath, gradleWrapperPropertiesContent);
   }
 }

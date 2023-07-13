@@ -29,8 +29,8 @@ echo "Creating new branch"
 git checkout -b "$branch_name" 2>&1
 
 # Update dependencies
-echo "Running npm update"
-npm update --save 2>&1
+echo "Running npm check update"
+ncu -u 2>&1
 
 # Commit and push
 echo "Committing and pushing"
