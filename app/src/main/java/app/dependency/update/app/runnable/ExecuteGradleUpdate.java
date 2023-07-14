@@ -493,14 +493,10 @@ public class ExecuteGradleUpdate implements Runnable {
    */
 
   private void executeGradleWrapperUpdate() {
-    if (isEmpty(this.repository.getLatestGradleVersion())
-        || isEmpty(this.repository.getCurrentGradleVersion())
-        ||
-        // below check is not really needed because current and latest versions values are
-        // populated only if they are not equal, but decided to leave this as is
-        this.repository
-            .getCurrentGradleVersion()
-            .equals(this.repository.getLatestGradleVersion())) {
+    // this check is done when repository object is created
+    // adding here as backup
+    if (!isRequiresUpdate(
+        this.repository.getCurrentGradleVersion(), this.repository.getLatestGradleVersion())) {
       return;
     }
 
