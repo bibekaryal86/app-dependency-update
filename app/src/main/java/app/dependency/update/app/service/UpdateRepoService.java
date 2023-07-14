@@ -84,12 +84,17 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
         instant(SCHED_BEGIN + (long) 20, ChronoUnit.SECONDS));
+    // after github pull, read repositories again
+    taskScheduler.schedule(
+        appInitDataService::clearAppInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_MERGE, null),
         instant(SCHED_BEGIN + (long) 22, ChronoUnit.MINUTES));
@@ -108,11 +113,30 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         scriptFilesService::createTempScriptFiles,
         instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        () -> updateRepos(updateType, null), instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+    if (!updateType.equals(UpdateType.GITHUB_PULL)) {
+      taskScheduler.schedule(
+          () -> updateRepos(UpdateType.GITHUB_PULL, null),
+          instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
+      // after github pull, read repositories again
+      taskScheduler.schedule(
+          appInitDataService::clearAppInitData,
+          instant(SCHED_BEGIN + (long) 4, ChronoUnit.MINUTES));
+      taskScheduler.schedule(
+          appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+
+      taskScheduler.schedule(
+          () -> updateRepos(updateType, null), instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
+      taskScheduler.schedule(
+          scriptFilesService::deleteTempScriptFilesEnd,
+          instant(SCHED_BEGIN + (long) 10, ChronoUnit.MINUTES));
+    } else {
+      taskScheduler.schedule(
+          () -> updateRepos(updateType, null),
+          instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
+      taskScheduler.schedule(
+          scriptFilesService::deleteTempScriptFilesEnd,
+          instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+    }
   }
 
   public void updateRepos(final String branchName) {
@@ -125,9 +149,14 @@ public class UpdateRepoService {
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_PULL, null),
         instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
+    // after github pull, read repositories again
+    taskScheduler.schedule(
+        appInitDataService::clearAppInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+    taskScheduler.schedule(
+        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
-        instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
     taskScheduler.schedule(
         () -> updateRepos(UpdateType.GITHUB_MERGE, null),
         instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
