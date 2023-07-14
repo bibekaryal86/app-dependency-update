@@ -495,8 +495,8 @@ public class ExecuteGradleUpdate implements Runnable {
   private void executeGradleWrapperUpdate() {
     // this check is done when repository object is created
     // adding here as backup
-    if (!isRequiresUpdate(this.repository.getCurrentGradleVersion(), 
-                          this.repository.getLatestGradleVersion()))
+    if (!isRequiresUpdate(
+        this.repository.getCurrentGradleVersion(), this.repository.getLatestGradleVersion())) {
       return;
     }
 
