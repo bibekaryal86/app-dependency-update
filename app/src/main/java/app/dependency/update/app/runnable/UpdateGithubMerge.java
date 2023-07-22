@@ -29,14 +29,27 @@ public class UpdateGithubMerge {
   }
 
   public void updateGithubMerge() {
-    // updating GitHub pull requests is fairly straightforward because everything is done by the
-    // GitHub script, we just need to execute it for repository home
     log.info("Execute Github Merge on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    new ExecuteScriptFile(
-            threadName(this.getClass().getSimpleName()), this.scriptFile, arguments, this.isWindows)
-        .start();
+    Thread executeThread =
+        new ExecuteScriptFile(
+                threadName(this.getClass().getSimpleName()),
+                this.scriptFile,
+                arguments,
+                this.isWindows)
+            .start();
+    join(executeThread);
+  }
+
+  // suppressing sonarlint rule for interrupting thread
+  @SuppressWarnings("java:S2142")
+  private void join(Thread executeThread) {
+    try {
+      executeThread.join();
+    } catch (InterruptedException ex) {
+      log.error("Exception Join Thread", ex);
+    }
   }
 }

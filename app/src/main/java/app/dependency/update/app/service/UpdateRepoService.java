@@ -28,13 +28,11 @@ public class UpdateRepoService {
   private final MavenRepoService mavenRepoService;
   private final ScriptFilesService scriptFilesService;
 
-  private static final Integer SCHED_BEGIN = 1;
-
   public UpdateRepoService(
       final AppInitDataService appInitDataService,
       final MavenRepoService mavenRepoService,
       final ScriptFilesService scriptFilesService) {
-    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(25));
+    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
     this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
     this.scriptFilesService = scriptFilesService;
@@ -44,134 +42,111 @@ public class UpdateRepoService {
   void updateReposScheduler() {
     if (isTaskRunning()) {
       log.info("Something is running, rescheduling 30 minutes from now...");
-      taskScheduler.schedule(this::updateReposScheduler, instant(30, ChronoUnit.MINUTES));
+      taskScheduler.schedule(
+          this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
-      updateRepos();
+      updateReposScheduler(true, false, null, UpdateType.ALL);
     }
   }
 
   public boolean isTaskRunning() {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) taskScheduler.getConcurrentExecutor();
-    log.info("Is Task Running: [ {} ]", executor.getQueue().peek() != null);
-    return executor.getQueue().peek() != null;
+    log.info("Is Task Running: [ {} ]", executor.getActiveCount() > 0);
+    return executor.getActiveCount() > 0;
   }
 
-  public void updateRepos() {
-    // clear caches
-    taskScheduler.schedule(
-        () -> {
-          appInitDataService.clearAppInitData();
-          mavenRepoService.clearPluginsMap();
-          mavenRepoService.clearDependenciesMap();
-        },
-        instant(SCHED_BEGIN + (long) 1, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 3, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        mavenRepoService::pluginsMap, instant(SCHED_BEGIN + (long) 7, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        mavenRepoService::updateDependenciesInMongo,
-        instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        mavenRepoService::dependenciesMap, instant(SCHED_BEGIN + (long) 75, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesBegin,
-        instant(SCHED_BEGIN + (long) 15, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        scriptFilesService::createTempScriptFiles,
-        instant(SCHED_BEGIN + (long) 17, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 20, ChronoUnit.SECONDS));
-    // after github pull, read repositories again
-    taskScheduler.schedule(
-        appInitDataService::clearAppInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.NPM_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GRADLE_DEPENDENCIES, null),
-        instant(SCHED_BEGIN + (long) 8, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
-        instant(SCHED_BEGIN + (long) 22, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 27, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 33, ChronoUnit.MINUTES));
-  }
-
-  public void updateRepos(final UpdateType updateType) {
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesBegin,
-        instant(SCHED_BEGIN + (long) 1, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        scriptFilesService::createTempScriptFiles,
-        instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
-    if (!updateType.equals(UpdateType.GITHUB_PULL)) {
+  public void updateReposScheduler(
+      final boolean isRecreateCaches,
+      final boolean isRecreateScriptFiles,
+      final String branchName,
+      final UpdateType updateType) {
+    if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
-          () -> updateRepos(UpdateType.GITHUB_PULL, null),
-          instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
-      // after github pull, read repositories again
-      taskScheduler.schedule(
-          appInitDataService::clearAppInitData,
-          instant(SCHED_BEGIN + (long) 4, ChronoUnit.MINUTES));
-      taskScheduler.schedule(
-          appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
-
-      taskScheduler.schedule(
-          () -> updateRepos(updateType, null), instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
-      taskScheduler.schedule(
-          scriptFilesService::deleteTempScriptFilesEnd,
-          instant(SCHED_BEGIN + (long) 10, ChronoUnit.MINUTES));
+          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles),
+          Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
-          () -> updateRepos(updateType, null),
-          instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
-      taskScheduler.schedule(
-          scriptFilesService::deleteTempScriptFilesEnd,
-          instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
+          () ->
+              updateReposByUpdateType(
+                  isRecreateCaches, isRecreateScriptFiles, branchName, updateType),
+          Instant.now().plusSeconds(3));
     }
   }
 
-  public void updateRepos(final String branchName) {
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesBegin,
-        instant(SCHED_BEGIN + (long) 1, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        scriptFilesService::createTempScriptFiles,
-        instant(SCHED_BEGIN + (long) 4, ChronoUnit.SECONDS));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 10, ChronoUnit.SECONDS));
-    // after github pull, read repositories again
-    taskScheduler.schedule(
-        appInitDataService::clearAppInitData, instant(SCHED_BEGIN + (long) 5, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        appInitDataService::appInitData, instant(SCHED_BEGIN + (long) 6, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.NPM_SNAPSHOT, branchName),
-        instant(SCHED_BEGIN + (long) 7, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_MERGE, null),
-        instant(SCHED_BEGIN + (long) 15, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        () -> updateRepos(UpdateType.GITHUB_PULL, null),
-        instant(SCHED_BEGIN + (long) 20, ChronoUnit.MINUTES));
-    taskScheduler.schedule(
-        scriptFilesService::deleteTempScriptFilesEnd,
-        instant(SCHED_BEGIN + (long) 25, ChronoUnit.MINUTES));
+  private void resetAllCaches() {
+    appInitDataService.clearAppInitData();
+    mavenRepoService.clearPluginsMap();
+    mavenRepoService.clearDependenciesMap();
   }
 
-  private void updateRepos(final UpdateType updateType, final String branchName) {
+  private void setAllCaches() {
+    appInitDataService.appInitData();
+    mavenRepoService.pluginsMap();
+    mavenRepoService.dependenciesMap();
+  }
+
+  private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
+    // clear and set caches as needed
+    if (isRecreateCaches) {
+      resetAllCaches();
+      setAllCaches();
+    }
+
+    // delete and create script files as needed
+    if (isRecreateScriptFiles || !scriptFilesService.isScriptFilesExistInDirectory()) {
+      scriptFilesService.deleteTempScriptFiles();
+      scriptFilesService.createTempScriptFiles();
+    }
+
+    // pull changes
+    executeUpdateRepos(UpdateType.GITHUB_PULL);
+
+    // clear and set caches after pull (gradle version in repo could have changed)
+    resetAllCaches();
+    mavenRepoService.updateDependenciesInMongo();
+    setAllCaches();
+
+    // npm dependencies
+    executeUpdateRepos(UpdateType.NPM_DEPENDENCIES);
+    // gradle dependencies
+    executeUpdateRepos(UpdateType.GRADLE_DEPENDENCIES);
+    // merge PRs
+    executeUpdateRepos(UpdateType.GITHUB_MERGE);
+    // pull changes
+    executeUpdateRepos(UpdateType.GITHUB_PULL);
+  }
+
+  private void updateReposByUpdateType(
+      final boolean isRecreateCaches,
+      final boolean isRecreateScriptFiles,
+      final String branchName,
+      final UpdateType updateType) {
+
+    // clear and set caches as needed
+    if (isRecreateCaches) {
+      resetAllCaches();
+      setAllCaches();
+    }
+
+    // delete and create script files as needed
+    if (isRecreateScriptFiles || !scriptFilesService.isScriptFilesExistInDirectory()) {
+      scriptFilesService.deleteTempScriptFiles();
+      scriptFilesService.createTempScriptFiles();
+    }
+
+    if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
+      executeUpdateReposNpmSnapshot(branchName);
+    } else {
+      executeUpdateRepos(updateType);
+    }
+  }
+
+  private void executeUpdateRepos(final UpdateType updateType) {
     AppInitData appInitData = appInitDataService.appInitData();
     switch (updateType) {
-      case ALL -> throw new AppDependencyUpdateRuntimeException("Invalid Update Type: ALL");
+      case ALL, NPM_SNAPSHOT -> throw new AppDependencyUpdateRuntimeException(
+          String.format("Invalid Update Type: %s", updateType));
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
@@ -179,11 +154,11 @@ public class UpdateRepoService {
               appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
           .updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
-      case NPM_SNAPSHOT -> new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
     }
   }
 
-  private Instant instant(final long amountToAdd, ChronoUnit chronoUnit) {
-    return Instant.now().plus(amountToAdd, chronoUnit);
+  private void executeUpdateReposNpmSnapshot(final String branchName) {
+    AppInitData appInitData = appInitDataService.appInitData();
+    new UpdateNpmSnapshots(appInitData, branchName);
   }
 }

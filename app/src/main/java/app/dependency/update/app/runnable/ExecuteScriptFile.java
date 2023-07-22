@@ -41,11 +41,12 @@ public class ExecuteScriptFile implements Runnable {
     executeScript();
   }
 
-  public void start() {
-    if (thread == null) {
-      thread = new Thread(this, threadName);
-      thread.start();
+  public Thread start() {
+    if (this.thread == null) {
+      this.thread = new Thread(this, this.threadName);
+      this.thread.start();
     }
+    return this.thread;
   }
 
   private void executeScript() {

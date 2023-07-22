@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
   private final boolean isWindows;
+  private final String tempScriptsDirectory =
+      JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY;
+  private final Path tempScriptsDirectoryPath = Path.of(tempScriptsDirectory);
 
   public ScriptFilesService(final AppInitDataService appInitDataService) {
     AppInitData appInitData = appInitDataService.appInitData();
@@ -28,21 +31,12 @@ public class ScriptFilesService {
     this.isWindows = appInitData.isWindows();
   }
 
-  public void deleteTempScriptFilesBegin() {
-    deleteTempScriptFiles("begin");
-  }
-
-  public void deleteTempScriptFilesEnd() {
-    deleteTempScriptFiles("end");
-  }
-
-  public void deleteTempScriptFiles(String beginEnd) {
-    log.info("Delete Temp Script Files: [ {} ]", beginEnd);
+  public void deleteTempScriptFiles() {
+    log.info("Delete Temp Script Files...");
 
     try {
-      Path tempScriptsDirectory = Path.of(JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY);
-      if (Files.exists(tempScriptsDirectory)) {
-        try (Stream<Path> paths = Files.walk(tempScriptsDirectory)) {
+      if (Files.exists(this.tempScriptsDirectoryPath)) {
+        try (Stream<Path> paths = Files.walk(tempScriptsDirectoryPath)) {
           paths.sorted(Comparator.reverseOrder()).forEach(this::delete);
         }
       }
@@ -72,6 +66,26 @@ public class ScriptFilesService {
     }
   }
 
+  public boolean isScriptFilesExistInDirectory() {
+    try {
+      if (!Files.exists(this.tempScriptsDirectoryPath)) {
+        return false;
+      }
+
+      for (final ScriptFile scriptFile : this.scriptFiles) {
+        Path filePath =
+            Path.of(this.tempScriptsDirectory + PATH_DELIMITER + scriptFile.getScriptFileName());
+        if (!Files.exists(filePath)) {
+          return false;
+        }
+      }
+    } catch (AppDependencyUpdateRuntimeException ex) {
+      log.error("Error checking if Script files exist in Directory", ex);
+      return false;
+    }
+    return true;
+  }
+
   private void delete(final Path path) {
     try {
       boolean isDeleted = Files.deleteIfExists(path);
@@ -82,12 +96,10 @@ public class ScriptFilesService {
   }
 
   private boolean createTempScriptsDirectory() {
-    Path path = Path.of(JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY);
-
     try {
-      if (!Files.exists(path)) {
-        log.info("Creating temp script directory: [ {} ]", path);
-        Files.createDirectory(path);
+      if (!Files.exists(this.tempScriptsDirectoryPath)) {
+        log.info("Creating temp script directory: [ {} ]", this.tempScriptsDirectoryPath);
+        Files.createDirectory(this.tempScriptsDirectoryPath);
       }
       return false;
     } catch (IOException ex) {
@@ -100,12 +112,7 @@ public class ScriptFilesService {
     try {
       Path filePath =
           Files.createFile(
-              Path.of(
-                  JAVA_SYSTEM_TMPDIR
-                      + PATH_DELIMITER
-                      + SCRIPTS_DIRECTORY
-                      + PATH_DELIMITER
-                      + scriptFile.getScriptFileName()));
+              Path.of(this.tempScriptsDirectory + PATH_DELIMITER + scriptFile.getScriptFileName()));
       try (InputStream inputStream =
           getClass()
               .getClassLoader()
