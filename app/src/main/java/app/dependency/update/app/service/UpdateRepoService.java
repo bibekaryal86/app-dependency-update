@@ -52,8 +52,8 @@ public class UpdateRepoService {
   public boolean isTaskRunning() {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) taskScheduler.getConcurrentExecutor();
-    log.info("Is Task Running: [ {} ] | [ {} ]", executor.getQueue().peek() != null, executor.getActiveCount());
-    return executor.getQueue().peek() != null;
+    log.info("Is Task Running: [ {} ]", executor.getActiveCount() > 0);
+    return executor.getActiveCount() > 0;
   }
 
   public void updateReposScheduler(
