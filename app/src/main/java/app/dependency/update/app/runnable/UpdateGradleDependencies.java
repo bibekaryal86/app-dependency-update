@@ -10,6 +10,7 @@ import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.Dependencies;
 import app.dependency.update.app.model.dto.Plugins;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,17 +46,31 @@ public class UpdateGradleDependencies {
   }
 
   public void updateGradleDependencies() {
-    this.repositories.forEach(this::executeUpdate);
+    List<Thread> threads = new ArrayList<>();
+    for (Repository repository : this.repositories) {
+      threads.add(executeUpdate(repository));
+    }
+    threads.forEach(this::join);
   }
 
-  private void executeUpdate(final Repository repository) {
+  private Thread executeUpdate(final Repository repository) {
     log.info("Execute Gradle Dependencies Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
-    new ExecuteGradleUpdate(
+    return new ExecuteGradleUpdate(
             repository, this.scriptFile, arguments, pluginsMap, dependenciesMap, this.isWindows)
         .start();
+  }
+
+  // suppressing sonarlint rule for interrupting thread
+  @SuppressWarnings("java:S2142")
+  private void join(Thread executeThread) {
+    try {
+      executeThread.join();
+    } catch (InterruptedException ex) {
+      log.error("Exception Join Thread", ex);
+    }
   }
 }

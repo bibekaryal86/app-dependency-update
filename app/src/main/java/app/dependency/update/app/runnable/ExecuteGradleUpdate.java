@@ -61,11 +61,12 @@ public class ExecuteGradleUpdate implements Runnable {
     executeGradleUpdate();
   }
 
-  public void start() {
-    if (thread == null) {
-      thread = new Thread(this, threadName);
-      thread.start();
+  public Thread start() {
+    if (this.thread == null) {
+      this.thread = new Thread(this, this.threadName);
+      this.thread.start();
     }
+    return this.thread;
   }
 
   private void executeGradleUpdate() {
@@ -73,13 +74,15 @@ public class ExecuteGradleUpdate implements Runnable {
     executeGradleWrapperUpdate();
 
     if (this.isExecuteScriptRequired) {
-      new ExecuteScriptFile(
-              threadName(repository, "-" + this.getClass().getSimpleName()),
-              // simple name used in thread name for this class already, so use "-"
-              this.scriptFile,
-              this.arguments,
-              this.isWindows)
-          .start();
+      Thread executeThread =
+          new ExecuteScriptFile(
+                  threadName(repository, "-" + this.getClass().getSimpleName()),
+                  // simple name used in thread name for current class already, so use "-"
+                  this.scriptFile,
+                  this.arguments,
+                  this.isWindows)
+              .start();
+      join(executeThread);
     }
   }
 
@@ -550,5 +553,15 @@ public class ExecuteGradleUpdate implements Runnable {
       final Path gradleWrapperPropertiesPath, final List<String> gradleWrapperPropertiesContent) {
     log.info("Writing to gradle-wrapper.properties file: [ {} ]", gradleWrapperPropertiesPath);
     return writeToFile(gradleWrapperPropertiesPath, gradleWrapperPropertiesContent);
+  }
+
+  // suppressing sonarlint rule for interrupting thread
+  @SuppressWarnings("java:S2142")
+  private void join(Thread executeThread) {
+    try {
+      executeThread.join();
+    } catch (InterruptedException ex) {
+      log.error("Exception Join Thread", ex);
+    }
   }
 }

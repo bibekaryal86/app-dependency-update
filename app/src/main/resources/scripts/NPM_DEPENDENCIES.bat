@@ -27,6 +27,7 @@ git checkout -b "%branch_name%"
 REM Update dependencies
 echo Running npm check updates
 ncu -u
+npm install
 
 REM Commit and push
 echo Committing and pushing

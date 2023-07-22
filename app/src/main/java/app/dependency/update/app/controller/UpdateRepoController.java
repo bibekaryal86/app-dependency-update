@@ -32,21 +32,24 @@ public class UpdateRepoController {
   @PostMapping(value = "/{updateType}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> updateRepo(
       @PathVariable final UpdateType updateType,
+      @Parameter(in = ParameterIn.QUERY, description = "Recreate Caches")
+          @RequestParam(required = false, defaultValue = "false")
+          final boolean isRecreateCaches,
+      @Parameter(in = ParameterIn.QUERY, description = "Recreate Script Files")
+          @RequestParam(required = false, defaultValue = "false")
+          final boolean isRecreateScriptFiles,
       @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
           final String branchDate) {
     if (updateRepoService.isTaskRunning()) {
       return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
-      if (updateType.equals(UpdateType.ALL)) {
-        updateRepoService.updateRepos();
-      } else if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
-        if (isInvalidBranchDate(branchDate)) {
-          return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
-        }
-        updateRepoService.updateRepos(String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate));
-      } else {
-        updateRepoService.updateRepos(updateType);
+      if (updateType.equals(UpdateType.NPM_SNAPSHOT) && isInvalidBranchDate(branchDate)) {
+        return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
       }
+
+      String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate);
+      updateRepoService.updateReposScheduler(
+          isRecreateCaches, isRecreateScriptFiles, branchName, updateType);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }

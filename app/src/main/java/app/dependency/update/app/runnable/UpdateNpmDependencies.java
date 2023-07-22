@@ -8,6 +8,7 @@ import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -35,21 +36,33 @@ public class UpdateNpmDependencies {
   }
 
   public void updateNpmDependencies() {
-    // updating NPM dependencies is fairly straightforward because everything is done by the npm
-    // script, we just need to execute it for each repository
-    this.repositories.forEach(this::executeUpdate);
+    List<Thread> threads = new ArrayList<>();
+    for (Repository repository : this.repositories) {
+      threads.add(executeUpdate(repository));
+    }
+    threads.forEach(this::join);
   }
 
-  private void executeUpdate(final Repository repository) {
+  private Thread executeUpdate(final Repository repository) {
     log.info("Execute NPM Dependencies Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
-    new ExecuteScriptFile(
+    return new ExecuteScriptFile(
             threadName(repository, this.getClass().getSimpleName()),
             this.scriptFile,
             arguments,
             this.isWindows)
         .start();
+  }
+
+  // suppressing sonarlint rule for interrupting thread
+  @SuppressWarnings("java:S2142")
+  private void join(Thread thread) {
+    try {
+      thread.join();
+    } catch (InterruptedException ex) {
+      log.error("Exception Join Thread", ex);
+    }
   }
 }

@@ -31,6 +31,7 @@ git checkout -b "$branch_name" 2>&1
 # Update dependencies
 echo "Running npm check update"
 ncu -u 2>&1
+npm install
 
 # Commit and push
 echo "Committing and pushing"
