@@ -28,11 +28,6 @@ fi
 echo "Creating new branch"
 git checkout -b "$branch_name" 2>&1
 
-# Update dependencies
-echo "Running npm check update"
-ncu -u 2>&1
-npm install
-
 echo "Creating PR"
 gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated (https://bit.ly/app-dependency-update)" -b "Dependencies Updated (https://github.com/bibekaryal86/app-dependency-update)" 2>&1
 
