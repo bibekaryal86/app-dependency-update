@@ -1,17 +1,25 @@
 package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
+import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDENCIES;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.UpdateGithubMerge;
+import app.dependency.update.app.runnable.UpdateGithubPrCreate;
 import app.dependency.update.app.runnable.UpdateGithubPull;
 import app.dependency.update.app.runnable.UpdateGithubReset;
 import app.dependency.update.app.runnable.UpdateGradleDependencies;
 import app.dependency.update.app.runnable.UpdateNpmDependencies;
 import app.dependency.update.app.runnable.UpdateNpmSnapshots;
+import app.dependency.update.app.util.CommonUtils;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +53,7 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
-      updateReposScheduler(true, false, null, UpdateType.ALL);
+      updateReposScheduler(true, false, null, UpdateType.ALL, false);
     }
   }
 
@@ -60,7 +68,8 @@ public class UpdateRepoService {
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final String branchName,
-      final UpdateType updateType) {
+      final UpdateType updateType,
+      final boolean isForceCreatePr) {
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
           () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles),
@@ -69,9 +78,16 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           () ->
               updateReposByUpdateType(
-                  isRecreateCaches, isRecreateScriptFiles, branchName, updateType),
+                  isRecreateCaches, isRecreateScriptFiles, branchName, updateType, isForceCreatePr),
           Instant.now().plusSeconds(3));
     }
+  }
+
+  private void gitHubPrCreateRetryScheduler() {
+    String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
+    taskScheduler.schedule(
+        () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
+        Instant.now().plus(1, ChronoUnit.HOURS));
   }
 
   private void resetAllCaches() {
@@ -86,6 +102,10 @@ public class UpdateRepoService {
     mavenRepoService.dependenciesMap();
   }
 
+  private boolean isGithubPrCreateFailed() {
+    return CommonUtils.getRepositoriesWithPrError().size() > 0;
+  }
+
   private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -94,7 +114,7 @@ public class UpdateRepoService {
     }
 
     // delete and create script files as needed
-    if (isRecreateScriptFiles || !scriptFilesService.isScriptFilesExistInDirectory()) {
+    if (isRecreateScriptFiles || scriptFilesService.isScriptFilesMissingInFileSystem()) {
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
     }
@@ -115,13 +135,22 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
     executeUpdateRepos(UpdateType.GITHUB_PULL);
+
+    // check for PR creation errors
+    // GitHub has a limit of creating 10 PRs at a given time per user
+    // No documentation about the limit
+    // put it in schedule to run after 10 minutes
+    if (isGithubPrCreateFailed()) {
+      gitHubPrCreateRetryScheduler();
+    }
   }
 
   private void updateReposByUpdateType(
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final String branchName,
-      final UpdateType updateType) {
+      final UpdateType updateType,
+      final boolean isForceCreatePr) {
 
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -130,15 +159,21 @@ public class UpdateRepoService {
     }
 
     // delete and create script files as needed
-    if (isRecreateScriptFiles || !scriptFilesService.isScriptFilesExistInDirectory()) {
+    if (isRecreateScriptFiles || scriptFilesService.isScriptFilesMissingInFileSystem()) {
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
     }
 
     if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
       executeUpdateReposNpmSnapshot(branchName);
+    } else if (updateType.equals(UpdateType.GITHUB_PR_CREATE)) {
+      executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
     } else {
       executeUpdateRepos(updateType);
+    }
+
+    if (isGithubPrCreateFailed()) {
+      gitHubPrCreateRetryScheduler();
     }
   }
 
@@ -159,6 +194,19 @@ public class UpdateRepoService {
 
   private void executeUpdateReposNpmSnapshot(final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
-    new UpdateNpmSnapshots(appInitData, branchName);
+    new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
+  }
+
+  private void executeUpdateReposGithubPrCreateRetry(
+      final String branchName, final boolean isForceCreatePr) {
+    Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
+    AppInitData appInitData = appInitDataService.appInitData();
+    List<Repository> repositories =
+        isForceCreatePr
+            ? appInitData.getRepositories()
+            : appInitData.getRepositories().stream()
+                .filter(repository -> beginSet.contains(repository.getRepoName()))
+                .toList();
+    new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
   }
 }

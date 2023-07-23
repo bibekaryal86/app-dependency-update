@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
   private final boolean isWindows;
-  private final String tempScriptsDirectory =
+  private static final String TEMP_SCRIPTS_DIRECTORY =
       JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY;
-  private final Path tempScriptsDirectoryPath = Path.of(tempScriptsDirectory);
+  private final Path tempScriptsDirectoryPath = Path.of(TEMP_SCRIPTS_DIRECTORY);
 
   public ScriptFilesService(final AppInitDataService appInitDataService) {
     AppInitData appInitData = appInitDataService.appInitData();
@@ -66,24 +66,24 @@ public class ScriptFilesService {
     }
   }
 
-  public boolean isScriptFilesExistInDirectory() {
+  public boolean isScriptFilesMissingInFileSystem() {
     try {
       if (!Files.exists(this.tempScriptsDirectoryPath)) {
-        return false;
+        return true;
       }
 
       for (final ScriptFile scriptFile : this.scriptFiles) {
         Path filePath =
-            Path.of(this.tempScriptsDirectory + PATH_DELIMITER + scriptFile.getScriptFileName());
+            Path.of(TEMP_SCRIPTS_DIRECTORY + PATH_DELIMITER + scriptFile.getScriptFileName());
         if (!Files.exists(filePath)) {
-          return false;
+          return true;
         }
       }
     } catch (AppDependencyUpdateRuntimeException ex) {
       log.error("Error checking if Script files exist in Directory", ex);
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   private void delete(final Path path) {
@@ -112,7 +112,7 @@ public class ScriptFilesService {
     try {
       Path filePath =
           Files.createFile(
-              Path.of(this.tempScriptsDirectory + PATH_DELIMITER + scriptFile.getScriptFileName()));
+              Path.of(TEMP_SCRIPTS_DIRECTORY + PATH_DELIMITER + scriptFile.getScriptFileName()));
       try (InputStream inputStream =
           getClass()
               .getClassLoader()
