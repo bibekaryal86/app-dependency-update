@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.CommonUtils.*;
 import app.dependency.update.app.service.AppInitDataService;
 import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
+import app.dependency.update.app.util.CommonUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -74,6 +75,8 @@ public class AppTestController {
           mavenRepoService.dependenciesMap();
         }
       }
+
+      CommonUtils.resetRepositoriesWithPrError();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

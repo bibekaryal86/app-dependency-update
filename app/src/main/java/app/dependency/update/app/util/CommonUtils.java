@@ -2,7 +2,9 @@ package app.dependency.update.app.util;
 
 import app.dependency.update.app.model.Repository;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -60,8 +62,29 @@ public class CommonUtils {
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
   }
 
+  // list of repositories with error creating PRs
+  // getter/setter in CommonUtils.java
+  private static Set<String> repositoriesWithPrError = new HashSet<>();
+
+  public static synchronized void addRepositoriesWithPrError(String repository) {
+    repositoriesWithPrError.add(repository);
+  }
+
+  public static synchronized void removeRepositoriesWithPrError(String repository) {
+    repositoriesWithPrError.remove(repository);
+  }
+
+  public static synchronized Set<String> getRepositoriesWithPrError() {
+    return repositoriesWithPrError;
+  }
+
+  public static synchronized void resetRepositoriesWithPrError() {
+    repositoriesWithPrError = new HashSet<>();
+  }
+
   public enum UpdateType {
     ALL,
+    GITHUB_PR_CREATE,
     GITHUB_PULL,
     GITHUB_MERGE,
     GITHUB_RESET,

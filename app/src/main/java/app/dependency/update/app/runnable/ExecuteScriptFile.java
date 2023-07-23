@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.CommonUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -101,6 +102,18 @@ public class ExecuteScriptFile implements Runnable {
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());
+    }
+
+    checkPrCreationError(stringBuilder);
+  }
+
+  private void checkPrCreationError(StringBuilder stringBuilder) {
+    if ((this.scriptPath.contains("NPM_DEPENDENCIES")
+            || this.scriptPath.contains("GRADLE_DEPENDENCIES"))
+        && (stringBuilder.toString().contains("pull request create failed"))) {
+      CommonUtils.addRepositoriesWithPrError(this.threadName.split("--")[0]);
+    } else if (this.scriptPath.contains("GITHUB_PR_CREATE")) {
+      CommonUtils.removeRepositoriesWithPrError(this.threadName.split("--")[0]);
     }
   }
 }
