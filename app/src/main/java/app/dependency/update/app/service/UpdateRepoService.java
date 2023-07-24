@@ -131,6 +131,11 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.NPM_DEPENDENCIES);
     // gradle dependencies
     executeUpdateRepos(UpdateType.GRADLE_DEPENDENCIES);
+    // wait 5 minutes to complete github PR checks and resume process
+    taskScheduler.schedule(this::updateReposAllContinue, Instant.now().plusSeconds(300));
+  }
+
+  private void updateReposAllContinue() {
     // merge PRs
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
