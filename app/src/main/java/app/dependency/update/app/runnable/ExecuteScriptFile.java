@@ -18,14 +18,10 @@ public class ExecuteScriptFile implements Runnable {
   private final String threadName;
   private final String scriptPath;
   private final List<String> arguments;
-  private final boolean isWindows;
   private Thread thread;
 
   public ExecuteScriptFile(
-      final String threadName,
-      final ScriptFile scriptFile,
-      final List<String> arguments,
-      final boolean isWindows) {
+      final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
     this.scriptPath =
@@ -34,7 +30,6 @@ public class ExecuteScriptFile implements Runnable {
             + SCRIPTS_DIRECTORY
             + PATH_DELIMITER
             + scriptFile.getScriptFileName();
-    this.isWindows = isWindows;
   }
 
   @Override
@@ -63,11 +58,7 @@ public class ExecuteScriptFile implements Runnable {
       throws AppDependencyUpdateIOException, AppDependencyUpdateRuntimeException {
     try {
       List<String> command = new LinkedList<>();
-      if (this.isWindows) {
-        command.add(COMMAND_WINDOWS);
-      } else {
-        command.add(COMMAND_PATH);
-      }
+      command.add(COMMAND_PATH);
       command.add(this.scriptPath);
       command.addAll(this.arguments);
       Process process = new ProcessBuilder(command).start();

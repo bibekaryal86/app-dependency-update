@@ -15,7 +15,6 @@ public class UpdateGithubBranchDelete {
   private final String repoHome;
   private final ScriptFile scriptFile;
   private final boolean isDeleteUpdateDependenciesOnly;
-  private final boolean isWindows;
 
   public UpdateGithubBranchDelete(
       final AppInitData appInitData, final boolean isDeleteUpdateDependenciesOnly) {
@@ -29,7 +28,6 @@ public class UpdateGithubBranchDelete {
                     new AppDependencyUpdateRuntimeException(
                         "Github Branch Delete Script Not Found..."));
     this.isDeleteUpdateDependenciesOnly = isDeleteUpdateDependenciesOnly;
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGithubBranchDelete() {
@@ -39,10 +37,7 @@ public class UpdateGithubBranchDelete {
     arguments.add(String.valueOf(this.isDeleteUpdateDependenciesOnly));
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()),
-                this.scriptFile,
-                arguments,
-                this.isWindows)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
             .start();
     join(executeThread);
   }

@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateNpmDependencies {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
-  private final boolean isWindows;
 
   public UpdateNpmDependencies(final AppInitData appInitData) {
     this.repositories =
@@ -32,7 +31,6 @@ public class UpdateNpmDependencies {
                 () ->
                     new AppDependencyUpdateRuntimeException(
                         "NPM Dependencies Script Not Found..."));
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateNpmDependencies() {
@@ -49,10 +47,7 @@ public class UpdateNpmDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     return new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments,
-            this.isWindows)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 

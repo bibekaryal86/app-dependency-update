@@ -16,7 +16,6 @@ public class UpdateGithubPrCreate {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final String branchName;
-  private final boolean isWindows;
 
   public UpdateGithubPrCreate(
       final List<Repository> repositories, final AppInitData appInitData, final String branchName) {
@@ -30,7 +29,6 @@ public class UpdateGithubPrCreate {
                     new AppDependencyUpdateRuntimeException(
                         "Github PR Create Script Not Found..."));
     this.branchName = branchName;
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGithubPrCreate() {
@@ -47,10 +45,7 @@ public class UpdateGithubPrCreate {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
     return new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments,
-            this.isWindows)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 

@@ -22,7 +22,6 @@ public class UpdateGradleDependencies {
   private final ScriptFile scriptFile;
   private final Map<String, Plugins> pluginsMap;
   private final Map<String, Dependencies> dependenciesMap;
-  private final boolean isWindows;
 
   public UpdateGradleDependencies(
       final AppInitData appInitData,
@@ -42,7 +41,6 @@ public class UpdateGradleDependencies {
                         "Gradle Dependencies Script Not Found..."));
     this.pluginsMap = pluginsMap;
     this.dependenciesMap = dependenciesMap;
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGradleDependencies() {
@@ -60,7 +58,7 @@ public class UpdateGradleDependencies {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
     return new ExecuteGradleUpdate(
-            repository, this.scriptFile, arguments, pluginsMap, dependenciesMap, this.isWindows)
+            repository, this.scriptFile, arguments, pluginsMap, dependenciesMap)
         .start();
   }
 

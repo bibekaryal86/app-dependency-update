@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScriptFilesService {
   private final List<ScriptFile> scriptFiles;
-  private final boolean isWindows;
   private static final String TEMP_SCRIPTS_DIRECTORY =
       JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY;
   private final Path tempScriptsDirectoryPath = Path.of(TEMP_SCRIPTS_DIRECTORY);
@@ -28,7 +27,6 @@ public class ScriptFilesService {
   public ScriptFilesService(final AppInitDataService appInitDataService) {
     AppInitData appInitData = appInitDataService.appInitData();
     this.scriptFiles = appInitData.getScriptFiles();
-    this.isWindows = appInitData.isWindows();
   }
 
   public void deleteTempScriptFiles() {
@@ -59,9 +57,7 @@ public class ScriptFilesService {
             String.format(
                 "Unable to create and temp script file %s...", scriptFile.getScriptFileName()));
       } else {
-        if (!this.isWindows) {
-          giveExecutePermissionToFile(scriptFile);
-        }
+        giveExecutePermissionToFile(scriptFile);
       }
     }
   }
