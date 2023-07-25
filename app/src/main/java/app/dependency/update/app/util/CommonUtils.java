@@ -84,6 +84,7 @@ public class CommonUtils {
 
   public enum UpdateType {
     ALL,
+    GITHUB_BRANCH_DELETE,
     GITHUB_PR_CREATE,
     GITHUB_PULL,
     GITHUB_MERGE,

@@ -6,13 +6,7 @@ import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDE
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.runnable.UpdateGithubMerge;
-import app.dependency.update.app.runnable.UpdateGithubPrCreate;
-import app.dependency.update.app.runnable.UpdateGithubPull;
-import app.dependency.update.app.runnable.UpdateGithubReset;
-import app.dependency.update.app.runnable.UpdateGradleDependencies;
-import app.dependency.update.app.runnable.UpdateNpmDependencies;
-import app.dependency.update.app.runnable.UpdateNpmSnapshots;
+import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.CommonUtils;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -53,7 +47,7 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
-      updateReposScheduler(true, false, null, UpdateType.ALL, false);
+      updateReposScheduler(true, false, null, UpdateType.ALL, false, true);
     }
   }
 
@@ -69,7 +63,8 @@ public class UpdateRepoService {
       final boolean isRecreateScriptFiles,
       final String branchName,
       final UpdateType updateType,
-      final boolean isForceCreatePr) {
+      final boolean isForceCreatePr,
+      final boolean isDeleteUpdateDependenciesOnly) {
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
           () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles),
@@ -78,7 +73,12 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           () ->
               updateReposByUpdateType(
-                  isRecreateCaches, isRecreateScriptFiles, branchName, updateType, isForceCreatePr),
+                  isRecreateCaches,
+                  isRecreateScriptFiles,
+                  branchName,
+                  updateType,
+                  isForceCreatePr,
+                  isDeleteUpdateDependenciesOnly),
           Instant.now().plusSeconds(3));
     }
   }
@@ -157,7 +157,8 @@ public class UpdateRepoService {
       final boolean isRecreateScriptFiles,
       final String branchName,
       final UpdateType updateType,
-      final boolean isForceCreatePr) {
+      final boolean isForceCreatePr,
+      final boolean isDeleteUpdateDependenciesOnly) {
 
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -171,12 +172,12 @@ public class UpdateRepoService {
       scriptFilesService.createTempScriptFiles();
     }
 
-    if (updateType.equals(UpdateType.NPM_SNAPSHOT)) {
-      executeUpdateReposNpmSnapshot(branchName);
-    } else if (updateType.equals(UpdateType.GITHUB_PR_CREATE)) {
-      executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
-    } else {
-      executeUpdateRepos(updateType);
+    switch (updateType) {
+      case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName);
+      case GITHUB_PR_CREATE -> executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
+      case GITHUB_BRANCH_DELETE -> executeUpdateReposGithubBranchDelete(
+          isDeleteUpdateDependenciesOnly);
+      default -> executeUpdateRepos(updateType);
     }
 
     updateReposContinueGithubPrCreateRetry();
@@ -200,6 +201,12 @@ public class UpdateRepoService {
   private void executeUpdateReposNpmSnapshot(final String branchName) {
     AppInitData appInitData = appInitDataService.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
+  }
+
+  private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
+    AppInitData appInitData = appInitDataService.appInitData();
+    new UpdateGithubBranchDelete(appInitData, isDeleteUpdateDependenciesOnly)
+        .updateGithubBranchDelete();
   }
 
   private void executeUpdateReposGithubPrCreateRetry(
