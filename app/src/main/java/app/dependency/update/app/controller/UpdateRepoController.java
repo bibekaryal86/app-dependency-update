@@ -41,7 +41,13 @@ public class UpdateRepoController {
       @Parameter(in = ParameterIn.QUERY, description = "Create PR for a Branch")
           @RequestParam(required = false, defaultValue = "false")
           final boolean isForceCreatePr,
-      @Parameter(in = ParameterIn.QUERY, description = "YYYY-MM-DD") @RequestParam(required = false)
+      @Parameter(
+              in = ParameterIn.QUERY,
+              description = "For Delete Branches, Update Dependencies only")
+          @RequestParam(required = false, defaultValue = "true")
+          final boolean isDeleteUpdateDependenciesOnly,
+      @Parameter(in = ParameterIn.QUERY, description = "For NPM Snapshots, YYYY-MM-DD")
+          @RequestParam(required = false)
           final String branchDate) {
     if (updateRepoService.isTaskRunning()) {
       return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
@@ -52,7 +58,12 @@ public class UpdateRepoController {
 
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate);
       updateRepoService.updateReposScheduler(
-          isRecreateCaches, isRecreateScriptFiles, branchName, updateType, isForceCreatePr);
+          isRecreateCaches,
+          isRecreateScriptFiles,
+          branchName,
+          updateType,
+          isForceCreatePr,
+          isDeleteUpdateDependenciesOnly);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
