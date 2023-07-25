@@ -83,13 +83,6 @@ public class UpdateRepoService {
     }
   }
 
-  private void gitHubPrCreateRetryScheduler() {
-    String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
-    taskScheduler.schedule(
-        () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
-        Instant.now().plus(1, ChronoUnit.HOURS));
-  }
-
   private void resetAllCaches() {
     appInitDataService.clearAppInitData();
     mavenRepoService.clearPluginsMap();
@@ -140,13 +133,22 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
     executeUpdateRepos(UpdateType.GITHUB_PULL);
+    // check github pr create error and execute if needed
+    updateReposContinueGithubPrCreateRetry();
+  }
 
-    // check for PR creation errors
-    // GitHub has a limit of creating 10 PRs at a given time per user
-    // No documentation about the limit
-    // put it in schedule to run after 10 minutes
+  /**
+   * Check for errors when creating GitHub pull requests GitHub has a random limit on pull requests
+   * creation at a given time per user For free personal user, it is about 10 pull requests at a
+   * given time There is no documentation about this limit, but some GitHub issues do mention this
+   * So if the app encounters this limit, retry pr create after 1 hour
+   */
+  private void updateReposContinueGithubPrCreateRetry() {
     if (isGithubPrCreateFailed()) {
-      gitHubPrCreateRetryScheduler();
+      String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
+      taskScheduler.schedule(
+          () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
+          Instant.now().plus(1, ChronoUnit.HOURS));
     }
   }
 
@@ -177,16 +179,12 @@ public class UpdateRepoService {
       executeUpdateRepos(updateType);
     }
 
-    if (isGithubPrCreateFailed()) {
-      gitHubPrCreateRetryScheduler();
-    }
+    updateReposContinueGithubPrCreateRetry();
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {
     AppInitData appInitData = appInitDataService.appInitData();
     switch (updateType) {
-      case ALL, NPM_SNAPSHOT -> throw new AppDependencyUpdateRuntimeException(
-          String.format("Invalid Update Type: %s", updateType));
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
@@ -194,6 +192,8 @@ public class UpdateRepoService {
               appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
           .updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
+      default -> throw new AppDependencyUpdateRuntimeException(
+          String.format("Invalid Update Type: %s", updateType));
     }
   }
 
@@ -205,6 +205,8 @@ public class UpdateRepoService {
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
     Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
+    // reset the cache because this is only run once
+    CommonUtils.resetRepositoriesWithPrError();
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
         isForceCreatePr
