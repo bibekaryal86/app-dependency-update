@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateGithubMerge {
   private final String repoHome;
   private final ScriptFile scriptFile;
-  private final boolean isWindows;
 
   public UpdateGithubMerge(final AppInitData appInitData) {
     this.repoHome = appInitData.getArgsMap().get(PARAM_REPO_HOME);
@@ -25,7 +24,6 @@ public class UpdateGithubMerge {
             .findFirst()
             .orElseThrow(
                 () -> new AppDependencyUpdateRuntimeException("Github Merge Script Not Found..."));
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGithubMerge() {
@@ -35,10 +33,7 @@ public class UpdateGithubMerge {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()),
-                this.scriptFile,
-                arguments,
-                this.isWindows)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
             .start();
     join(executeThread);
   }

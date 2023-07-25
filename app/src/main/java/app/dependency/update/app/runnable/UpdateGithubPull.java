@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateGithubPull {
   private final String repoHome;
   private final ScriptFile scriptFile;
-  private final boolean isWindows;
 
   public UpdateGithubPull(final AppInitData appInitData) {
     this.repoHome = appInitData.getArgsMap().get(PARAM_REPO_HOME);
@@ -24,7 +23,6 @@ public class UpdateGithubPull {
             .findFirst()
             .orElseThrow(
                 () -> new AppDependencyUpdateRuntimeException("Github Pull Script Not Found..."));
-    this.isWindows = appInitData.isWindows();
   }
 
   public void updateGithubPull() {
@@ -33,10 +31,7 @@ public class UpdateGithubPull {
     arguments.add(this.repoHome);
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()),
-                this.scriptFile,
-                arguments,
-                this.isWindows)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
             .start();
     join(executeThread);
   }

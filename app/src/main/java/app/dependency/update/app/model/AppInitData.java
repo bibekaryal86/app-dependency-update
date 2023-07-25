@@ -14,5 +14,4 @@ public class AppInitData {
   private final Map<String, String> argsMap;
   private final List<ScriptFile> scriptFiles;
   private final List<Repository> repositories;
-  private final boolean isWindows;
 }
