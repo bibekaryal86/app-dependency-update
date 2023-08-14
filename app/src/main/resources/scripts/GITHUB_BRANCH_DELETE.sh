@@ -43,8 +43,8 @@ do
           cd "$sub_dir" || { echo "Error 2"; exit 2; }
           echo "$sub_dir"
           # git checkout main and pull
-          git checkout main
-          git pull
+          git checkout main 2>&1
+          git pull 2>&1
           # get all branches
           IFS=$'\n' branches=($(git branch -a))
           # Save to arrays for remote and local branches
@@ -77,10 +77,10 @@ do
 			        then
 				        if [[ "$branch" == *"update_dependencies"* ]];
 				        then
-					        git push origin -d "$branch"
+					        git push origin -d "$branch" 2>&1
                 fi
 			        else
-				        git push origin -d "$branch"
+				        git push origin -d "$branch" 2>&1
 			        fi
             fi
           done
@@ -93,17 +93,17 @@ do
               then
                 if [[ "$branch" == *"update_dependencies"* ]];
                 then
-                  git branch -D "$branch"
+                  git branch -D "$branch" 2>&1
                 fi
               else
-                git branch -D "$branch"
+                git branch -D "$branch" 2>&1
               fi
             fi
           done
 
 		  # prune old branches and pull again
-		  git fetch --prune
-		  git pull
+		  git fetch --prune 2>&1
+		  git pull 2>&1
           # Change back to the current subdirectory
           cd "$dir" || { echo "Error 3"; exit 3; }
         fi
