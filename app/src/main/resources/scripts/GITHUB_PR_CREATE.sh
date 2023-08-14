@@ -31,4 +31,9 @@ git checkout -b "$branch_name" 2>&1
 echo "Creating PR"
 gh pr create -a "@me" -B "main" -H "$branch_name" -t "Dependencies Updated (https://bit.ly/app-dependency-update)" -b "Dependencies Updated (https://github.com/bibekaryal86/app-dependency-update)" 2>&1
 
+# Cleanup
+echo "Cleaning up"
+git checkout main 2>&1
+git branch -D "$branch_name" 2>&1
+
 echo "Finished"
