@@ -474,10 +474,12 @@ public class ExecuteGradleUpdate implements Runnable {
   private String modifyConfiguration(
       final GradleDependency gradleDependency, final GradleDefinition gradleDefinition) {
     String mavenId = gradleDependency.getGroup() + ":" + gradleDependency.getArtifact();
-    String latestVersion =
-        this.dependenciesMap.get(mavenId) == null
-            ? ""
-            : this.dependenciesMap.get(mavenId).getLatestVersion();
+    Dependencies dependency = this.dependenciesMap.get(mavenId);
+    String latestVersion = "";
+
+    if (dependency != null && !dependency.isSkipVersion()) {
+      latestVersion = dependency.getLatestVersion();
+    }
     if (isRequiresUpdate(gradleDependency.getVersion(), latestVersion)) {
       return gradleDefinition == null
           ? gradleDependency.getOriginal().replace(gradleDependency.getVersion(), latestVersion)

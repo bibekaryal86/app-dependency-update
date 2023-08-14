@@ -16,4 +16,5 @@ import lombok.NoArgsConstructor;
 public class MongoDependencies {
   private String mavenId;
   private String latestVersion;
+  private boolean skipVersion;
 }

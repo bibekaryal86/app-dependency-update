@@ -15,4 +15,5 @@ public class GradleDependency {
   private final String group;
   private final String artifact;
   private final String version;
+  private final boolean skipVersion;
 }

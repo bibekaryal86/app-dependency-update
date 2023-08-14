@@ -95,6 +95,8 @@ public class MavenRepoService {
                     .id(dependenciesMap().get(dependency.getMavenId()).getId())
                     .mavenId(dependency.getMavenId())
                     .latestVersion(latestVersion)
+                    .skipVersion(false)
+                    // set skipVersion as false when bumping to a new version
                     .build());
           }
         });
@@ -132,7 +134,8 @@ public class MavenRepoService {
     String latestVersion = getLatestVersion(group, artifact, currentVersion);
     // save to mongodb as well
     dependenciesRepository.save(
-        Dependencies.builder().mavenId(mavenId).latestVersion(latestVersion).build());
+        Dependencies.builder().mavenId(mavenId).latestVersion(latestVersion).skipVersion(false).build());
+    // set skipVersion as false when saving for the first time
     return latestVersion;
   }
 
