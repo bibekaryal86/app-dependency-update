@@ -134,7 +134,11 @@ public class MavenRepoService {
     String latestVersion = getLatestVersion(group, artifact, currentVersion);
     // save to mongodb as well
     dependenciesRepository.save(
-        Dependencies.builder().mavenId(mavenId).latestVersion(latestVersion).skipVersion(false).build());
+        Dependencies.builder()
+            .mavenId(mavenId)
+            .latestVersion(latestVersion)
+            .skipVersion(false)
+            .build());
     // set skipVersion as false when saving for the first time
     return latestVersion;
   }
