@@ -150,7 +150,8 @@ public class UpdateRepoService {
           () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
-      taskScheduler.schedule(this::updateReposAllContinue, Instant.now().plus(66, ChronoUnit.MINUTES));
+      taskScheduler.schedule(
+          this::updateReposAllContinue, Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
 
