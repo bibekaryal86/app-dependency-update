@@ -86,6 +86,7 @@ public class MavenRepoController {
                     MongoDependencies.builder()
                         .mavenId(dependency.getMavenId())
                         .latestVersion(dependency.getLatestVersion())
+                        .skipVersion(dependency.isSkipVersion())
                         .build())
             .toList();
     return ResponseEntity.ok(mongoDependencies);

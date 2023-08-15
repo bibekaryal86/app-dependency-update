@@ -23,4 +23,5 @@ public class Dependencies {
   @MongoId private ObjectId id;
   private String mavenId;
   private String latestVersion;
+  private boolean skipVersion;
 }

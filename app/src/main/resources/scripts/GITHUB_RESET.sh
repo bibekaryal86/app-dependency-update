@@ -41,9 +41,9 @@ do
                   cd "$sub_dir" || { echo "Error 2"; exit 2; }
                   echo "$sub_dir"
                   # checkout main branch
-                  git checkout main
+                  git checkout main 2>&1
                   # hard reset repository
-                  git reset --hard
+                  git reset --hard 2>&1
                   # Change back to the current subdirectory
                   cd "$dir" || { echo "Error 3"; exit 3; }
               fi

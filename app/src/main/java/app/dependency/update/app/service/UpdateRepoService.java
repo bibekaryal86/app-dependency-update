@@ -148,7 +148,10 @@ public class UpdateRepoService {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
       taskScheduler.schedule(
           () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
-          Instant.now().plus(1, ChronoUnit.HOURS));
+          Instant.now().plus(60, ChronoUnit.MINUTES));
+      // wait 5 minutes to complete github PR checks and resume process
+      taskScheduler.schedule(
+          this::updateReposAllContinue, Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
 

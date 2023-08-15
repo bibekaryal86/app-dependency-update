@@ -25,7 +25,7 @@ if [ "$PWD" != "$repo_loc" ]; then
 fi
 
 # Git pull
-git pull
+git pull 2>&1
 
 # Checkout branch
 echo "Checking out branch"

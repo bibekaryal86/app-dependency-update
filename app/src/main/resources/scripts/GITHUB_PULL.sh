@@ -41,9 +41,9 @@ do
                   cd "$sub_dir" || { echo "Error 2"; exit 2; }
                   echo "$sub_dir"
                   # prune old branches
-                  git fetch --prune
+                  git fetch --prune 2>&1
                   # pull new changes
-                  git pull
+                  git pull 2>&1
                   # Change back to the current subdirectory
                   cd "$dir" || { echo "Error 3"; exit 3; }
               fi
