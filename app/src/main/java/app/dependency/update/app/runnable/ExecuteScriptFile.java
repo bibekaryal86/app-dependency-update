@@ -102,6 +102,7 @@ public class ExecuteScriptFile implements Runnable {
     if ((this.scriptPath.contains("NPM_DEPENDENCIES")
             || this.scriptPath.contains("GRADLE_DEPENDENCIES"))
         && (stringBuilder.toString().contains("pull request create failed"))) {
+      log.info("Pull Request Create Failed: [ {} ]", this.threadName);
       CommonUtils.addRepositoriesWithPrError(this.threadName.split("--")[0]);
     } else if (this.scriptPath.contains("GITHUB_PR_CREATE")) {
       CommonUtils.removeRepositoriesWithPrError(this.threadName.split("--")[0]);

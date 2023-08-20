@@ -61,7 +61,7 @@ public class AppInitDataService {
     map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME, null));
     map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD, null));
 
-    log.info("Args Map After Conversion: [ {} ]", map);
+    log.info("Args Map After Conversion: [ {} ]", map.size());
     return map;
   }
 
