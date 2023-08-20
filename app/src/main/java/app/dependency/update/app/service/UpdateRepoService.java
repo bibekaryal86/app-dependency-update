@@ -96,7 +96,7 @@ public class UpdateRepoService {
   }
 
   private boolean isGithubPrCreateFailed() {
-    return CommonUtils.getRepositoriesWithPrError().size() > 0;
+    return !CommonUtils.getRepositoriesWithPrError().isEmpty();
   }
 
   private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
@@ -144,6 +144,7 @@ public class UpdateRepoService {
    * So if the app encounters this limit, retry pr create after 1 hour
    */
   private void updateReposContinueGithubPrCreateRetry() {
+    log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
       taskScheduler.schedule(

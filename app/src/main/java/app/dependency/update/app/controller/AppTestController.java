@@ -6,6 +6,8 @@ import app.dependency.update.app.service.AppInitDataService;
 import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
 import app.dependency.update.app.util.CommonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +45,17 @@ public class AppTestController {
   @GetMapping(value = "/tests/check", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> check() {
     return ResponseEntity.ok("{\"running\": " + updateRepoService.isTaskRunning() + "}");
+  }
+
+  @Operation(
+      summary = "Check PR Create Errors",
+      description = "Returns list of repositories with errors when creating PR")
+  @GetMapping(value = "/tests/pr-create-errors", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> errors() throws JsonProcessingException {
+    return ResponseEntity.ok(
+        "{\"repos\": "
+            + new ObjectMapper().writeValueAsString(CommonUtils.getRepositoriesWithPrError())
+            + "}");
   }
 
   @Operation(summary = "Reset Caches", description = "Clears and sets caches")
