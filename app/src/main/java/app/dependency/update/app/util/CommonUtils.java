@@ -75,8 +75,6 @@ public class CommonUtils {
   }
 
   public static synchronized Set<String> getRepositoriesWithPrError() {
-    repositoriesWithPrError.add("repository-one");
-    repositoriesWithPrError.add("repository-two");
     return repositoriesWithPrError;
   }
 
