@@ -100,7 +100,8 @@ public class ExecuteScriptFile implements Runnable {
 
   private void checkPrCreationError(StringBuilder stringBuilder) {
     if ((this.scriptPath.contains("NPM_DEPENDENCIES")
-            || this.scriptPath.contains("GRADLE_DEPENDENCIES"))
+            || this.scriptPath.contains("GRADLE_DEPENDENCIES")
+            || this.scriptPath.contains("GITHUB_PR_CREATE"))
         && (stringBuilder.toString().contains("pull request create failed"))) {
       log.info("Pull Request Create Failed: [ {} ]", this.threadName);
       CommonUtils.addRepositoriesWithPrError(this.threadName.split("--")[0]);

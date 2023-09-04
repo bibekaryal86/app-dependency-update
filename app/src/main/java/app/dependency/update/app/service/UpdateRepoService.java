@@ -216,8 +216,6 @@ public class UpdateRepoService {
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
     Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
-    // reset the cache because this is only run once
-    CommonUtils.resetRepositoriesWithPrError();
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
         isForceCreatePr

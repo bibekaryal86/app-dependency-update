@@ -62,8 +62,6 @@ public class CommonUtils {
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
   }
 
-  // list of repositories with error creating PRs
-  // getter/setter in CommonUtils.java
   private static Set<String> repositoriesWithPrError = new HashSet<>();
 
   public static synchronized void addRepositoriesWithPrError(String repository) {
