@@ -52,7 +52,7 @@ public class UpdateGradleDependencies {
   }
 
   private Thread executeUpdate(final Repository repository) {
-    log.info("Execute Gradle Dependencies Update on: [ {} ]", repository);
+    log.debug("Execute Gradle Dependencies Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));

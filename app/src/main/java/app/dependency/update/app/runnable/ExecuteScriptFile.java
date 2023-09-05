@@ -89,7 +89,7 @@ public class ExecuteScriptFile implements Runnable {
         }
       }
 
-      log.info("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
+      log.debug("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());

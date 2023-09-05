@@ -40,7 +40,7 @@ public class UpdateGithubPrCreate {
   }
 
   private Thread executeUpdate(final Repository repository) {
-    log.info("Execute Github PR Create on: [ {} ]", repository);
+    log.debug("Execute Github PR Create on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);

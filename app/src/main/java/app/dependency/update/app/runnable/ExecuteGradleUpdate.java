@@ -102,7 +102,7 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       List<String> gradleModules = this.repository.getGradleModules();
       for (String gradleModule : gradleModules) {
-        log.info(
+        log.debug(
             "Update Gradle Build File for Module: [ {} ] [ {} ]",
             this.repository.getRepoName(),
             gradleModule);
@@ -113,7 +113,7 @@ public class ExecuteGradleUpdate implements Runnable {
           List<String> buildGradleContent = modifyBuildGradle(buildGradleConfigs);
 
           if (isEmpty(buildGradleContent)) {
-            log.info("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
+            log.debug("Build Gradle Configs not updated: [ {} ]", this.repository.getRepoPath());
           } else {
             boolean isWriteToFile =
                 writeBuildGradleToFile(buildGradleConfigs.getBuildGradlePath(), buildGradleContent);
@@ -121,7 +121,7 @@ public class ExecuteGradleUpdate implements Runnable {
             if (isWriteToFile) {
               this.isExecuteScriptRequired = true;
             } else {
-              log.info(
+              log.debug(
                   "Build Gradle Changes Not Written to File: [ {} ]",
                   this.repository.getRepoPath());
             }
@@ -135,7 +135,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
   private boolean writeBuildGradleToFile(
       final Path buildGradlePath, final List<String> buildGradleContent) {
-    log.info("Writing to build.gradle file: [ {} ]", buildGradlePath);
+    log.debug("Writing to build.gradle file: [ {} ]", buildGradlePath);
     return writeToFile(buildGradlePath, buildGradleContent);
   }
 
@@ -212,7 +212,7 @@ public class ExecuteGradleUpdate implements Runnable {
                 .build());
       }
     } else {
-      log.info("No plugins in the project...");
+      log.debug("No plugins in the project...");
     }
 
     return GradleConfigBlock.builder().dependencies(plugins).build();
@@ -258,7 +258,7 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } else {
-      log.info("No dependencies in the project...");
+      log.debug("No dependencies in the project...");
     }
 
     return GradleConfigBlock.builder()
@@ -509,7 +509,7 @@ public class ExecuteGradleUpdate implements Runnable {
     if (isWriteToFile) {
       this.isExecuteScriptRequired = true;
     } else {
-      log.info(
+      log.debug(
           "Gradle Wrapper Properties Changes Not Written to File: [ {} ]",
           this.repository.getRepoPath());
     }
@@ -549,7 +549,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
   private boolean writeGradleWrapperPropertiesToFile(
       final Path gradleWrapperPropertiesPath, final List<String> gradleWrapperPropertiesContent) {
-    log.info("Writing to gradle-wrapper.properties file: [ {} ]", gradleWrapperPropertiesPath);
+    log.debug("Writing to gradle-wrapper.properties file: [ {} ]", gradleWrapperPropertiesPath);
     return writeToFile(gradleWrapperPropertiesPath, gradleWrapperPropertiesContent);
   }
 

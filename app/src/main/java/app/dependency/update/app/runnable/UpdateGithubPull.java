@@ -26,7 +26,7 @@ public class UpdateGithubPull {
   }
 
   public void updateGithubPull() {
-    log.info("Execute Github Pull on: [ {} ]", this.repoHome);
+    log.debug("Execute Github Pull on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
     Thread executeThread =

@@ -94,7 +94,7 @@ public class ScriptFilesService {
   private boolean createTempScriptsDirectory() {
     try {
       if (!Files.exists(this.tempScriptsDirectoryPath)) {
-        log.info("Creating temp script directory: [ {} ]", this.tempScriptsDirectoryPath);
+        log.debug("Creating temp script directory: [ {} ]", this.tempScriptsDirectoryPath);
         Files.createDirectory(this.tempScriptsDirectoryPath);
       }
       return false;

@@ -148,7 +148,7 @@ public class MavenRepoService {
     MavenSearchResponse mavenSearchResponse =
         mavenConnector.getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
-    log.info(
+    log.debug(
         "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
         group,
         artifact,

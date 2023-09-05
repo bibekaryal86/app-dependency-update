@@ -132,7 +132,8 @@ public class AppInitDataService {
     repositories.addAll(npmRepositories);
     repositories.addAll(gradleWrapperRepositories);
 
-    log.info("Repository list: [ {} ]", repositories);
+    log.info("Repository list: [ {} ]", repositories.size());
+    log.debug("Repository list: [ {} ]", repositories);
     return repositories;
   }
 
@@ -177,7 +178,8 @@ public class AppInitDataService {
       throw new AppDependencyUpdateRuntimeException("Script files not found in resources");
     }
 
-    log.info("Script files: [ {} ]", scriptFiles);
+    log.info("Script files: [ {} ]", scriptFiles.size());
+    log.debug("Script files: [ {} ]", scriptFiles);
     return scriptFiles;
   }
 

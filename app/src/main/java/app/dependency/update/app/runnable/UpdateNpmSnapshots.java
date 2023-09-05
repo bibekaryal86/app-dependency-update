@@ -37,7 +37,7 @@ public class UpdateNpmSnapshots {
   }
 
   private void executeUpdate(final Repository repository) {
-    log.info("Execute NPM Snapshots Update on: [ {} ]", repository);
+    log.debug("Execute NPM Snapshots Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
