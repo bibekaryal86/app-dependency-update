@@ -98,4 +98,9 @@ public class CommonUtils {
     PLUGINS_MAP,
     DEPENDENCIES_MAP
   }
+
+  public enum LogLevelChange {
+    INFO,
+    DEBUG
+  }
 }
