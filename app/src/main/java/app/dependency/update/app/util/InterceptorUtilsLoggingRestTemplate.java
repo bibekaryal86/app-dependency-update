@@ -52,7 +52,7 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
     }
 
     String requestLog = stringBuilder.toString();
-    this.requestLogger.info(requestLog);
+    this.requestLogger.debug(requestLog);
   }
 
   private void logResponse(
@@ -84,7 +84,7 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
 
       stringBuilder.append(" [After] [ ").append(durationInMs).append(" ms]");
       String responseLog = stringBuilder.toString();
-      this.responseLogger.info(responseLog);
+      this.responseLogger.debug(responseLog);
     } catch (IOException ex) {
       this.responseLogger.error(
           "Failed to Log Response for [ {} ] Request to [ {} ]",

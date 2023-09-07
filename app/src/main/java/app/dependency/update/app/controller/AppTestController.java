@@ -6,15 +6,16 @@ import app.dependency.update.app.service.AppInitDataService;
 import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
 import app.dependency.update.app.util.CommonUtils;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AppTestController {
@@ -94,5 +95,18 @@ public class AppTestController {
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");
     }
+  }
+
+  @Operation(summary = "Change Log Level", description = "Change Log Levels at Runtime")
+  @GetMapping(value = "/tests/log/level", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> changeLogLevel(@RequestParam final LogLevelChange level) {
+    LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+    Logger logger = loggerContext.getLogger("root");
+    Level levelBefore = logger.getLevel();
+    logger.setLevel(Level.toLevel(level.name()));
+    Level levelAfter = logger.getLevel();
+    return ResponseEntity.ok(
+        String.format(
+            "{\"logLevelBefore\":\"%s\",\"logLevelAfter\":\"%s\"}", levelBefore, levelAfter));
   }
 }

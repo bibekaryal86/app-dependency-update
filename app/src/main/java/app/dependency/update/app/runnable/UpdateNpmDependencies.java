@@ -42,7 +42,7 @@ public class UpdateNpmDependencies {
   }
 
   private Thread executeUpdate(final Repository repository) {
-    log.info("Execute NPM Dependencies Update on: [ {} ]", repository);
+    log.debug("Execute NPM Dependencies Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));

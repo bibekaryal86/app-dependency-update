@@ -26,7 +26,7 @@ public class UpdateGithubReset {
   }
 
   public void updateGithubReset() {
-    log.info("Execute Github Reset on: [ {} ]", this.repoHome);
+    log.debug("Execute Github Reset on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
     Thread executeThread =

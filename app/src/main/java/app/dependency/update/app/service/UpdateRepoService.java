@@ -29,15 +29,18 @@ public class UpdateRepoService {
   private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
   private final ScriptFilesService scriptFilesService;
+  private final EmailService emailService;
 
   public UpdateRepoService(
       final AppInitDataService appInitDataService,
       final MavenRepoService mavenRepoService,
-      final ScriptFilesService scriptFilesService) {
+      final ScriptFilesService scriptFilesService,
+      final EmailService emailService) {
     this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
     this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
     this.scriptFilesService = scriptFilesService;
+    this.emailService = emailService;
   }
 
   @Scheduled(cron = "0 0 20 * * *")
@@ -54,7 +57,7 @@ public class UpdateRepoService {
   public boolean isTaskRunning() {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) taskScheduler.getConcurrentExecutor();
-    log.info("Is Task Running: [ {} ]", executor.getActiveCount() > 0);
+    log.debug("Is Task Running: [ {} ]", executor.getActiveCount() > 0);
     return executor.getActiveCount() > 0;
   }
 
@@ -135,6 +138,8 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry();
+    // email log file
+    emailService.sendLogEmail();
   }
 
   /**
@@ -216,8 +221,6 @@ public class UpdateRepoService {
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
     Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
-    // reset the cache because this is only run once
-    CommonUtils.resetRepositoriesWithPrError();
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
         isForceCreatePr

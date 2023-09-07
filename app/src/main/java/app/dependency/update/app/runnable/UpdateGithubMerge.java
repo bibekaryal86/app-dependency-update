@@ -27,7 +27,7 @@ public class UpdateGithubMerge {
   }
 
   public void updateGithubMerge() {
-    log.info("Execute Github Merge on: [ {} ]", this.repoHome);
+    log.debug("Execute Github Merge on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));

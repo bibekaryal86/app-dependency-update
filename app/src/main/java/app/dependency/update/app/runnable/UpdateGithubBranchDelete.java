@@ -31,7 +31,7 @@ public class UpdateGithubBranchDelete {
   }
 
   public void updateGithubBranchDelete() {
-    log.info("Execute Github Branch Delete on: [ {} ]", this.repoHome);
+    log.debug("Execute Github Branch Delete on: [ {} ]", this.repoHome);
     List<String> arguments = new LinkedList<>();
     arguments.add(this.repoHome);
     arguments.add(String.valueOf(this.isDeleteUpdateDependenciesOnly));
