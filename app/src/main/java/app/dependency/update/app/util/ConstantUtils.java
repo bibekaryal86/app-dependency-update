@@ -11,6 +11,9 @@ public class ConstantUtils {
   public static final String PARAM_REPO_HOME = "repo_home";
   public static final String ENV_MONGO_USERNAME = "mongo_user";
   public static final String ENV_MONGO_PASSWORD = "mongo_pwd";
+  public static final String ENV_MJ_APIKEY_PUBLIC = "mj_public";
+  public static final String ENV_MJ_APIKEY_PRIVATE = "mj_private";
+  public static final String ENV_MJ_EMAIL_ADDRESS = "mj_email";
 
   // others
   public static final String PATH_DELIMITER = "/";
