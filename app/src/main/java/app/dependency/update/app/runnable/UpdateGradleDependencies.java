@@ -7,26 +7,21 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.model.dto.Dependencies;
-import app.dependency.update.app.model.dto.Plugins;
+import app.dependency.update.app.service.MavenRepoService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdateGradleDependencies {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
-  private final Map<String, Plugins> pluginsMap;
-  private final Map<String, Dependencies> dependenciesMap;
+  private final MavenRepoService mavenRepoService;
 
   public UpdateGradleDependencies(
-      final AppInitData appInitData,
-      final Map<String, Plugins> pluginsMap,
-      final Map<String, Dependencies> dependenciesMap) {
+      final AppInitData appInitData, final MavenRepoService mavenRepoService) {
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.GRADLE_DEPENDENCIES))
@@ -39,8 +34,7 @@ public class UpdateGradleDependencies {
                 () ->
                     new AppDependencyUpdateRuntimeException(
                         "Gradle Dependencies Script Not Found..."));
-    this.pluginsMap = pluginsMap;
-    this.dependenciesMap = dependenciesMap;
+    this.mavenRepoService = mavenRepoService;
   }
 
   public void updateGradleDependencies() {
@@ -57,8 +51,7 @@ public class UpdateGradleDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
-    return new ExecuteGradleUpdate(
-            repository, this.scriptFile, arguments, pluginsMap, dependenciesMap)
+    return new ExecuteGradleUpdate(repository, this.scriptFile, arguments, mavenRepoService)
         .start();
   }
 

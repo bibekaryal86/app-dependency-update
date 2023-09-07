@@ -198,8 +198,7 @@ public class UpdateRepoService {
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
-      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(
-              appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
+      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(appInitData, mavenRepoService)
           .updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
       default -> throw new AppDependencyUpdateRuntimeException(

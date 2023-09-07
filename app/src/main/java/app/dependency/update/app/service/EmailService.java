@@ -60,7 +60,11 @@ public class EmailService {
                                           new JSONObject()
                                               .put("Email", emailSenderEmail)
                                               .put("Name", "MailJet--" + emailSenderEmail)))
-                              .put(Emailv31.Message.SUBJECT, "App Dependency Update Logs")
+                              .put(
+                                  Emailv31.Message.SUBJECT,
+                                  text.contains("ERROR")
+                                      ? "**ERROR** App Dependency Update Logs"
+                                      : "App Dependency Update Logs")
                               .put(Emailv31.Message.TEXTPART, text)
                               .put(Emailv31.Message.CUSTOMID, UUID.randomUUID().toString())));
 

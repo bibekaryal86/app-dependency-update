@@ -75,6 +75,17 @@ public class MavenRepoService {
     dependenciesRepository.save(dependency);
   }
 
+  // save dependency, no cache evict
+  public void saveDependency(final String mavenId, final String latestVersion) {
+    log.info("Save Dependency: [ {} ] | [ {} ]", mavenId, latestVersion);
+    dependenciesRepository.save(
+        Dependencies.builder()
+            .mavenId(mavenId)
+            .latestVersion(latestVersion)
+            .skipVersion(false)
+            .build());
+  }
+
   @CacheEvict(value = "dependenciesMap", allEntries = true, beforeInvocation = true)
   public void updateDependenciesInMongo() {
     // get from Mongo than local cache

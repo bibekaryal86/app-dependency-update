@@ -11,6 +11,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.Dependencies;
 import app.dependency.update.app.model.dto.Plugins;
+import app.dependency.update.app.service.MavenRepoService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,6 +37,7 @@ public class ExecuteGradleUpdate implements Runnable {
   private final List<String> arguments;
   private final Map<String, Plugins> pluginsMap;
   private final Map<String, Dependencies> dependenciesMap;
+  private final MavenRepoService mavenRepoService;
   private Thread thread;
   private boolean isExecuteScriptRequired = false;
 
@@ -43,14 +45,14 @@ public class ExecuteGradleUpdate implements Runnable {
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
-      final Map<String, Plugins> pluginsMap,
-      final Map<String, Dependencies> dependenciesMap) {
+      final MavenRepoService mavenRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
-    this.pluginsMap = pluginsMap;
-    this.dependenciesMap = dependenciesMap;
+    this.pluginsMap = mavenRepoService.pluginsMap();
+    this.dependenciesMap = mavenRepoService.dependenciesMap();
+    this.mavenRepoService = mavenRepoService;
   }
 
   @Override
@@ -475,8 +477,16 @@ public class ExecuteGradleUpdate implements Runnable {
       final GradleDependency gradleDependency, final GradleDefinition gradleDefinition) {
     String mavenId = gradleDependency.getGroup() + ":" + gradleDependency.getArtifact();
     Dependencies dependency = this.dependenciesMap.get(mavenId);
-    String latestVersion = "";
 
+    if (dependency == null) {
+      // It is likely dependency information is not available in the local repository
+      // Do not throw error, log the event and continue updating others
+      log.error("Dependency information missing in local repo: [ {} ]", mavenId);
+      // Also save to mongo repository
+      mavenRepoService.saveDependency(mavenId, gradleDependency.getVersion());
+    }
+
+    String latestVersion = "";
     if (dependency != null && !dependency.isSkipVersion()) {
       latestVersion = dependency.getLatestVersion();
     }
