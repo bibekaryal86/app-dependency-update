@@ -50,7 +50,7 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
-      updateReposScheduler(true, false, null, UpdateType.ALL, false, true);
+      updateReposScheduler(false, false, null, UpdateType.ALL, false, true);
     }
   }
 

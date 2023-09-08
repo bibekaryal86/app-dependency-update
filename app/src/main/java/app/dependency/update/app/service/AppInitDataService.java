@@ -55,7 +55,7 @@ public class AppInitDataService {
   }
 
   private Map<String, String> makeArgsMap() {
-    log.info("Make Args Map...");
+    log.debug("Make Args Map...");
     Map<String, String> map = new HashMap<>();
     map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME, null));
     map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME, null));
@@ -66,7 +66,7 @@ public class AppInitDataService {
   }
 
   private List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
-    log.info("Get Repository Locations...");
+    log.debug("Get Repository Locations...");
     List<Path> repoPaths;
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 2)) {
       repoPaths = pathStream.filter(Files::isDirectory).toList();
@@ -161,7 +161,7 @@ public class AppInitDataService {
   }
 
   private List<ScriptFile> getScriptsInResources() {
-    log.info("Get Scripts in Resources...");
+    log.debug("Get Scripts in Resources...");
     List<ScriptFile> scriptFiles = new ArrayList<>();
 
     try {
