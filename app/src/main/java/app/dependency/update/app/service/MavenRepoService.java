@@ -114,8 +114,7 @@ public class MavenRepoService {
           String[] mavenIdArray = dependency.getMavenId().split(":");
           String currentVersion = dependency.getLatestVersion();
           // get current version from Maven Central Repository
-          String latestVersion =
-              getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion);
+          String latestVersion = getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion);
           // check if local maven repo needs updating
           if (isRequiresUpdate(currentVersion, latestVersion)) {
             dependenciesToUpdate.add(
@@ -147,28 +146,24 @@ public class MavenRepoService {
     List<Plugins> pluginsToUpdate = new ArrayList<>();
 
     plugins.forEach(
-            plugin -> {
-              String group = plugin.getGroup();
-              String currentVersion = plugin.getVersion();
-              // get latest version from Gradle Plugin Repository
-              String latestVersion = gradleRepoService.getLatestGradlePlugin(group);
-              // check if local maven repo needs updating
-              if (isRequiresUpdate(currentVersion, latestVersion)) {
-                pluginsToUpdate.add(
-                        Plugins.builder()
-                                .id(pluginsMap().get(plugin.getGroup()).getId())
-                                .group(plugin.getGroup())
-                                .version(latestVersion)
-                                .skipVersion(false)
-                                .build()
-                );
-              }
-            });
+        plugin -> {
+          String group = plugin.getGroup();
+          String currentVersion = plugin.getVersion();
+          // get latest version from Gradle Plugin Repository
+          String latestVersion = gradleRepoService.getLatestGradlePlugin(group);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            pluginsToUpdate.add(
+                Plugins.builder()
+                    .id(pluginsMap().get(plugin.getGroup()).getId())
+                    .group(plugin.getGroup())
+                    .version(latestVersion)
+                    .skipVersion(false)
+                    .build());
+          }
+        });
 
-    log.info(
-            "Mongo Plugins to Update: [{}]\n[{}]",
-            pluginsToUpdate.size(),
-            pluginsToUpdate);
+    log.info("Mongo Plugins to Update: [{}]\n[{}]", pluginsToUpdate.size(), pluginsToUpdate);
 
     if (!pluginsToUpdate.isEmpty()) {
       pluginsRepository.saveAll(pluginsToUpdate);
@@ -177,23 +172,21 @@ public class MavenRepoService {
   }
 
   private String getLatestVersion(
-      final String group,
-      final String artifact,
-      final String currentVersion) {
+      final String group, final String artifact, final String currentVersion) {
 
     String mavenId = group + ":" + artifact;
 
     // the group:artifact likely does not exist in the cache yet
     // so get it from maven central repository
     MavenSearchResponse mavenSearchResponse =
-            mavenConnector.getMavenSearchResponse(group, artifact);
+        mavenConnector.getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
     log.debug(
-            "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
-            group,
-            artifact,
-            mavenDoc,
-            mavenSearchResponse);
+        "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
+        group,
+        artifact,
+        mavenDoc,
+        mavenSearchResponse);
 
     if (mavenDoc == null) {
       return currentVersion;
