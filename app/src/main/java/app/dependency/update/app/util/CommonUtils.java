@@ -1,9 +1,19 @@
 package app.dependency.update.app.util;
 
+import static app.dependency.update.app.util.ConstantUtils.ENV_MAILJET_EMAIL_ADDRESS;
+import static app.dependency.update.app.util.ConstantUtils.ENV_MAILJET_PRIVATE_KEY;
+import static app.dependency.update.app.util.ConstantUtils.ENV_MAILJET_PUBLIC_KEY;
+import static app.dependency.update.app.util.ConstantUtils.ENV_MONGO_PASSWORD;
+import static app.dependency.update.app.util.ConstantUtils.ENV_MONGO_USERNAME;
+import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
+
+import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.Repository;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
@@ -11,6 +21,44 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommonUtils {
+
+  public static Map<String, String> validateInputAndMakeArgsMap() {
+    Map<String, String> map = new HashMap<>();
+
+    if (getSystemEnvProperty(ENV_REPO_NAME) == null) {
+      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_USERNAME) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_PASSWORD) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_email env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_public env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_private env property must be provided");
+    }
+
+    map.put(ENV_REPO_NAME, getSystemEnvProperty(ENV_REPO_NAME));
+    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
+    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
+    map.put(ENV_MAILJET_PUBLIC_KEY, getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY));
+    map.put(ENV_MAILJET_PRIVATE_KEY, getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY));
+    map.put(ENV_MAILJET_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS));
+
+    return map;
+  }
+
+  public static String getSystemEnvProperty(final String keyName) {
+    return System.getProperty(keyName) != null
+        ? System.getProperty(keyName)
+        : System.getenv(keyName);
+  }
 
   public static String getSystemEnvProperty(final String keyName, final String defaultValue) {
     String envProperty =
@@ -64,11 +112,11 @@ public class CommonUtils {
 
   private static Set<String> repositoriesWithPrError = new HashSet<>();
 
-  public static synchronized void addRepositoriesWithPrError(String repository) {
+  public static synchronized void addRepositoriesWithPrError(final String repository) {
     repositoriesWithPrError.add(repository);
   }
 
-  public static synchronized void removeRepositoriesWithPrError(String repository) {
+  public static synchronized void removeRepositoriesWithPrError(final String repository) {
     repositoriesWithPrError.remove(repository);
   }
 

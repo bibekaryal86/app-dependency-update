@@ -1,9 +1,7 @@
 package app.dependency.update.app.service;
 
-import static app.dependency.update.app.util.CommonUtils.getSystemEnvProperty;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.util.ConstantUtils;
 import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
@@ -26,18 +24,25 @@ public class EmailService {
   private final String emailSenderEmail;
   private final MailjetClient mailjetClient;
 
-  public EmailService() {
-    this.logHome = getSystemEnvProperty(PARAM_REPO_HOME, "").concat("/logs/app-dependency-update");
-    this.emailSenderEmail = getSystemEnvProperty(ENV_MJ_EMAIL_ADDRESS, "");
+  public EmailService(final AppInitDataService appInitDataService) {
+    this.logHome =
+        appInitDataService
+            .appInitData()
+            .getArgsMap()
+            .get(ENV_REPO_NAME)
+            .concat("/logs/app-dependency-update");
+    this.emailSenderEmail =
+        appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_EMAIL_ADDRESS);
     this.mailjetClient =
         new MailjetClient(
             ClientOptions.builder()
-                .apiKey(getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC, ""))
-                .apiSecretKey(getSystemEnvProperty(ENV_MJ_APIKEY_PRIVATE, ""))
+                .apiKey(appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_PUBLIC_KEY))
+                .apiSecretKey(
+                    appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_PRIVATE_KEY))
                 .build());
   }
 
-  private void sendEmail(String text) {
+  private void sendEmail(final String text) {
     log.info("Sending Email...");
 
     try {
@@ -60,7 +65,11 @@ public class EmailService {
                                           new JSONObject()
                                               .put("Email", emailSenderEmail)
                                               .put("Name", "MailJet--" + emailSenderEmail)))
-                              .put(Emailv31.Message.SUBJECT, "App Dependency Update Logs")
+                              .put(
+                                  Emailv31.Message.SUBJECT,
+                                  text.contains("ERROR")
+                                      ? "**ERROR** App Dependency Update Logs"
+                                      : "App Dependency Update Logs")
                               .put(Emailv31.Message.TEXTPART, text)
                               .put(Emailv31.Message.CUSTOMID, UUID.randomUUID().toString())));
 
@@ -77,7 +86,7 @@ public class EmailService {
   }
 
   private String getLogFileContent() throws IOException {
-    Path path = Path.of(this.logHome + ConstantUtils.PATH_DELIMITER + "app-dependency-update.log");
+    Path path = Path.of(this.logHome + PATH_DELIMITER + "app-dependency-update.log");
     return Files.readString(path);
   }
 

@@ -7,7 +7,6 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
-import app.dependency.update.app.util.CommonUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -50,7 +49,7 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
-      updateReposScheduler(true, false, null, UpdateType.ALL, false, true);
+      updateReposScheduler(false, false, null, UpdateType.ALL, false, true);
     }
   }
 
@@ -99,7 +98,7 @@ public class UpdateRepoService {
   }
 
   private boolean isGithubPrCreateFailed() {
-    return !CommonUtils.getRepositoriesWithPrError().isEmpty();
+    return !getRepositoriesWithPrError().isEmpty();
   }
 
   private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
@@ -198,8 +197,7 @@ public class UpdateRepoService {
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
-      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(
-              appInitData, mavenRepoService.pluginsMap(), mavenRepoService.dependenciesMap())
+      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(appInitData, mavenRepoService)
           .updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
       default -> throw new AppDependencyUpdateRuntimeException(
@@ -220,7 +218,7 @@ public class UpdateRepoService {
 
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
-    Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
+    Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
         isForceCreatePr

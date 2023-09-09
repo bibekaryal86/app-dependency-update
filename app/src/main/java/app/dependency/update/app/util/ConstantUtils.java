@@ -8,12 +8,12 @@ public class ConstantUtils {
 
   // provided at runtime
   public static final String SERVER_PORT = "PORT";
-  public static final String PARAM_REPO_HOME = "repo_home";
+  public static final String ENV_REPO_NAME = "repo_home";
   public static final String ENV_MONGO_USERNAME = "mongo_user";
   public static final String ENV_MONGO_PASSWORD = "mongo_pwd";
-  public static final String ENV_MJ_APIKEY_PUBLIC = "mj_public";
-  public static final String ENV_MJ_APIKEY_PRIVATE = "mj_private";
-  public static final String ENV_MJ_EMAIL_ADDRESS = "mj_email";
+  public static final String ENV_MAILJET_PUBLIC_KEY = "mj_public";
+  public static final String ENV_MAILJET_PRIVATE_KEY = "mj_private";
+  public static final String ENV_MAILJET_EMAIL_ADDRESS = "mj_email";
 
   // others
   public static final String PATH_DELIMITER = "/";

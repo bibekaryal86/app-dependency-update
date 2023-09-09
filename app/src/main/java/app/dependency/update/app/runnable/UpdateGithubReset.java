@@ -1,7 +1,7 @@
 package app.dependency.update.app.runnable;
 
 import static app.dependency.update.app.util.CommonUtils.*;
-import static app.dependency.update.app.util.ConstantUtils.PARAM_REPO_HOME;
+import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
@@ -16,7 +16,7 @@ public class UpdateGithubReset {
   private final ScriptFile scriptFile;
 
   public UpdateGithubReset(final AppInitData appInitData) {
-    this.repoHome = appInitData.getArgsMap().get(PARAM_REPO_HOME);
+    this.repoHome = appInitData.getArgsMap().get(ENV_REPO_NAME);
     this.scriptFile =
         appInitData.getScriptFiles().stream()
             .filter(sf -> sf.getType().equals(UpdateType.GITHUB_RESET))
@@ -38,9 +38,9 @@ public class UpdateGithubReset {
 
   // suppressing sonarlint rule for interrupting thread
   @SuppressWarnings("java:S2142")
-  private void join(Thread executeThread) {
+  private void join(final Thread thread) {
     try {
-      executeThread.join();
+      thread.join();
     } catch (InterruptedException ex) {
       log.error("Exception Join Thread", ex);
     }

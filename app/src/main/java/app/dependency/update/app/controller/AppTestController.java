@@ -5,7 +5,6 @@ import static app.dependency.update.app.util.CommonUtils.*;
 import app.dependency.update.app.service.AppInitDataService;
 import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
-import app.dependency.update.app.util.CommonUtils;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -54,9 +53,7 @@ public class AppTestController {
   @GetMapping(value = "/tests/pr-create-errors", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> errors() throws JsonProcessingException {
     return ResponseEntity.ok(
-        "{\"repos\": "
-            + new ObjectMapper().writeValueAsString(CommonUtils.getRepositoriesWithPrError())
-            + "}");
+        "{\"repos\": " + new ObjectMapper().writeValueAsString(getRepositoriesWithPrError()) + "}");
   }
 
   @Operation(summary = "Reset Caches", description = "Clears and sets caches")
@@ -90,7 +87,7 @@ public class AppTestController {
         }
       }
 
-      CommonUtils.resetRepositoriesWithPrError();
+      resetRepositoriesWithPrError();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

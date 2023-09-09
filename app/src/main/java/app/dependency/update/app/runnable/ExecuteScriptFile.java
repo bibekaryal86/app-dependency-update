@@ -1,11 +1,11 @@
 package app.dependency.update.app.runnable;
 
+import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.CommonUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -98,15 +98,15 @@ public class ExecuteScriptFile implements Runnable {
     checkPrCreationError(stringBuilder);
   }
 
-  private void checkPrCreationError(StringBuilder stringBuilder) {
+  private void checkPrCreationError(final StringBuilder stringBuilder) {
     if ((this.scriptPath.contains("NPM_DEPENDENCIES")
             || this.scriptPath.contains("GRADLE_DEPENDENCIES")
             || this.scriptPath.contains("GITHUB_PR_CREATE"))
         && (stringBuilder.toString().contains("pull request create failed"))) {
       log.info("Pull Request Create Failed: [ {} ]", this.threadName);
-      CommonUtils.addRepositoriesWithPrError(this.threadName.split("--")[0]);
+      addRepositoriesWithPrError(this.threadName.split("--")[0]);
     } else if (this.scriptPath.contains("GITHUB_PR_CREATE")) {
-      CommonUtils.removeRepositoriesWithPrError(this.threadName.split("--")[0]);
+      removeRepositoriesWithPrError(this.threadName.split("--")[0]);
     }
   }
 }
