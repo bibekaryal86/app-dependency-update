@@ -112,7 +112,7 @@ public class MavenRepoService {
           String currentVersion = dependency.getLatestVersion();
           // get current version from Maven Central Repository
           String latestVersion =
-              getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion, true);
+              getLatestVersion(mavenIdArray[0], mavenIdArray[1], currentVersion);
           // check if local maven repo needs updating
           if (isRequiresUpdate(currentVersion, latestVersion)) {
             dependenciesToUpdate.add(
@@ -137,53 +137,33 @@ public class MavenRepoService {
     }
   }
 
-  public String getLatestVersion(
+  private String getLatestVersion(
       final String group,
       final String artifact,
-      final String currentVersion,
-      final boolean forceRemote) {
-
-    if (forceRemote) {
-      return getLatestVersion(group, artifact, currentVersion);
-    }
+      final String currentVersion) {
 
     String mavenId = group + ":" + artifact;
-    Dependencies dependencyInCache = dependenciesMap().get(mavenId);
-
-    if (dependencyInCache != null) {
-      return dependencyInCache.getLatestVersion();
-    }
 
     // the group:artifact likely does not exist in the cache yet
     // so get it from maven central repository
-    String latestVersion = getLatestVersion(group, artifact, currentVersion);
-    // save to mongodb as well
-    dependenciesRepository.save(
-        Dependencies.builder()
-            .mavenId(mavenId)
-            .latestVersion(latestVersion)
-            .skipVersion(false)
-            .build());
-    // set skipVersion as false when saving for the first time
-    return latestVersion;
-  }
-
-  private String getLatestVersion(
-      final String group, final String artifact, final String currentVersion) {
     MavenSearchResponse mavenSearchResponse =
-        mavenConnector.getMavenSearchResponse(group, artifact);
+            mavenConnector.getMavenSearchResponse(group, artifact);
     MavenDoc mavenDoc = getLatestVersion(mavenSearchResponse);
     log.debug(
-        "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
-        group,
-        artifact,
-        mavenDoc,
-        mavenSearchResponse);
+            "Maven Search Response: [ {} ], [ {} ], [ {} ], [ {} ]",
+            group,
+            artifact,
+            mavenDoc,
+            mavenSearchResponse);
 
     if (mavenDoc == null) {
       return currentVersion;
     }
-    return mavenDoc.getV();
+
+    String latestVersion = mavenDoc.getV();
+    // save to mongodb as well
+    saveDependency(mavenId, latestVersion);
+    return latestVersion;
   }
 
   private MavenDoc getLatestVersion(final MavenSearchResponse mavenSearchResponse) {
