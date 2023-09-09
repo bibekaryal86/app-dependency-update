@@ -22,7 +22,9 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
 
   @Override
   public @NonNull ClientHttpResponse intercept(
-      @NonNull HttpRequest request, @NonNull byte[] body, ClientHttpRequestExecution execution)
+      final @NonNull HttpRequest request,
+      final @NonNull byte[] body,
+      ClientHttpRequestExecution execution)
       throws IOException {
     this.logRequest(request, body);
     long startTime = System.currentTimeMillis();
@@ -35,7 +37,7 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
     return clientHttpResponse;
   }
 
-  private void logRequest(HttpRequest request, byte[] body) {
+  private void logRequest(final HttpRequest request, final byte[] body) {
     StringBuilder stringBuilder =
         new StringBuilder("Sending [")
             .append(request.getMethod())
@@ -56,7 +58,9 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
   }
 
   private void logResponse(
-      HttpRequest request, ClientHttpResponse clientHttpResponse, long durationInMs) {
+      final HttpRequest request,
+      final ClientHttpResponse clientHttpResponse,
+      final long durationInMs) {
 
     try {
       StringBuilder stringBuilder =
@@ -94,7 +98,7 @@ public class InterceptorUtilsLoggingRestTemplate implements ClientHttpRequestInt
     }
   }
 
-  private boolean hasTextBody(HttpHeaders httpHeaders) {
+  private boolean hasTextBody(final HttpHeaders httpHeaders) {
     MediaType mediaType = httpHeaders.getContentType();
     if (mediaType == null) {
       return false;

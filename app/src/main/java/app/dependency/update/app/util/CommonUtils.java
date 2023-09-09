@@ -64,11 +64,11 @@ public class CommonUtils {
 
   private static Set<String> repositoriesWithPrError = new HashSet<>();
 
-  public static synchronized void addRepositoriesWithPrError(String repository) {
+  public static synchronized void addRepositoriesWithPrError(final String repository) {
     repositoriesWithPrError.add(repository);
   }
 
-  public static synchronized void removeRepositoriesWithPrError(String repository) {
+  public static synchronized void removeRepositoriesWithPrError(final String repository) {
     repositoriesWithPrError.remove(repository);
   }
 

@@ -37,7 +37,7 @@ public class EmailService {
                 .build());
   }
 
-  private void sendEmail(String text) {
+  private void sendEmail(final String text) {
     log.info("Sending Email...");
 
     try {

@@ -98,7 +98,7 @@ public class ExecuteScriptFile implements Runnable {
     checkPrCreationError(stringBuilder);
   }
 
-  private void checkPrCreationError(StringBuilder stringBuilder) {
+  private void checkPrCreationError(final StringBuilder stringBuilder) {
     if ((this.scriptPath.contains("NPM_DEPENDENCIES")
             || this.scriptPath.contains("GRADLE_DEPENDENCIES")
             || this.scriptPath.contains("GITHUB_PR_CREATE"))

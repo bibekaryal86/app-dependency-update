@@ -51,7 +51,7 @@ public class UpdateGithubPrCreate {
 
   // suppressing sonarlint rule for interrupting thread
   @SuppressWarnings("java:S2142")
-  private void join(Thread thread) {
+  private void join(final Thread thread) {
     try {
       thread.join();
     } catch (InterruptedException ex) {

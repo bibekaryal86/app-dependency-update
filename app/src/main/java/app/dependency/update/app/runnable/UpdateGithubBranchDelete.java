@@ -44,9 +44,9 @@ public class UpdateGithubBranchDelete {
 
   // suppressing sonarlint rule for interrupting thread
   @SuppressWarnings("java:S2142")
-  private void join(Thread executeThread) {
+  private void join(final Thread thread) {
     try {
-      executeThread.join();
+      thread.join();
     } catch (InterruptedException ex) {
       log.error("Exception Join Thread", ex);
     }
