@@ -1,6 +1,5 @@
 package app.dependency.update.app.model;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,8 +10,9 @@ import lombok.ToString;
 @Builder
 @ToString
 @AllArgsConstructor
-public class GradleConfigBlock {
-  private final List<GradleDefinition> definitions;
-  private final List<GradleDependency> dependencies;
-  private final List<GradlePlugin> plugins;
+public class GradlePlugin {
+  private final String original;
+  private final String group;
+  private final String version;
+  private final boolean skipVersion;
 }

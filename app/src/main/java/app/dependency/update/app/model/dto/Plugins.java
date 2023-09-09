@@ -22,5 +22,6 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 public class Plugins {
   @MongoId private ObjectId id;
   private String group;
-  private String artifact;
+  private String version;
+  private boolean skipVersion;
 }

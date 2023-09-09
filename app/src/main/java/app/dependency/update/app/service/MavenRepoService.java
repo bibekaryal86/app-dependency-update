@@ -56,6 +56,16 @@ public class MavenRepoService {
     pluginsRepository.save(plugin);
   }
 
+  public void savePlugin(final String group, final String version) {
+    log.info("Save Plugin: [ {} ] | [ {} ]", group, version);
+    try {
+      pluginsRepository.save(
+          Plugins.builder().group(group).version(version).skipVersion(false).build());
+    } catch (Exception ex) {
+      log.error("ERROR Save Plugin: [ {} ] | [ {} ]", group, version, ex);
+    }
+  }
+
   @Cacheable(value = "dependenciesMap", unless = "#result==null")
   public Map<String, Dependencies> dependenciesMap() {
     List<Dependencies> dependencies = dependenciesRepository.findAll();
