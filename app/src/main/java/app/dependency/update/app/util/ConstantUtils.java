@@ -8,7 +8,7 @@ public class ConstantUtils {
 
   // provided at runtime
   public static final String SERVER_PORT = "PORT";
-  public static final String PARAM_REPO_HOME = "repo_home";
+  public static final String ENV_REPO_NAME = "repo_home";
   public static final String ENV_MONGO_USERNAME = "mongo_user";
   public static final String ENV_MONGO_PASSWORD = "mongo_pwd";
   public static final String ENV_MJ_APIKEY_PUBLIC = "mj_public";

@@ -57,7 +57,7 @@ public class AppInitDataService {
   private Map<String, String> makeArgsMap() {
     log.debug("Make Args Map...");
     Map<String, String> map = new HashMap<>();
-    map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME));
+    map.put(ENV_REPO_NAME, getSystemEnvProperty(ENV_REPO_NAME));
     map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
     map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
     map.put(ENV_MJ_APIKEY_PUBLIC, getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC));
@@ -71,7 +71,7 @@ public class AppInitDataService {
   private List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
     log.debug("Get Repository Locations...");
     List<Path> repoPaths;
-    try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(PARAM_REPO_HOME)), 2)) {
+    try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(ENV_REPO_NAME)), 2)) {
       repoPaths = pathStream.filter(Files::isDirectory).toList();
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(

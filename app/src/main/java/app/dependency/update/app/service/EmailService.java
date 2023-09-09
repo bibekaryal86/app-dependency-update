@@ -29,7 +29,7 @@ public class EmailService {
         appInitDataService
             .appInitData()
             .getArgsMap()
-            .get(PARAM_REPO_HOME)
+            .get(ENV_REPO_NAME)
             .concat("/logs/app-dependency-update");
     this.emailSenderEmail = appInitDataService.appInitData().getArgsMap().get(ENV_MJ_EMAIL_ADDRESS);
     this.mailjetClient =

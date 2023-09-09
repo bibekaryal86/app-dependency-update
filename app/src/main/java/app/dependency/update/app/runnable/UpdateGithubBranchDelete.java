@@ -18,7 +18,7 @@ public class UpdateGithubBranchDelete {
 
   public UpdateGithubBranchDelete(
       final AppInitData appInitData, final boolean isDeleteUpdateDependenciesOnly) {
-    this.repoHome = appInitData.getArgsMap().get(PARAM_REPO_HOME);
+    this.repoHome = appInitData.getArgsMap().get(ENV_REPO_NAME);
     this.scriptFile =
         appInitData.getScriptFiles().stream()
             .filter(sf -> sf.getType().equals(UpdateType.GITHUB_BRANCH_DELETE))

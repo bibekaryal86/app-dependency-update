@@ -1,6 +1,6 @@
 package app.dependency.update.app.controller;
 
-import static app.dependency.update.app.util.ConstantUtils.PARAM_REPO_HOME;
+import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -31,7 +31,7 @@ public class LogStreamController {
         appInitDataService
             .appInitData()
             .getArgsMap()
-            .get(PARAM_REPO_HOME)
+            .get(ENV_REPO_NAME)
             .concat("/logs/app-dependency-update");
   }
 

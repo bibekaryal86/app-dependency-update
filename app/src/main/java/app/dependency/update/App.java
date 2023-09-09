@@ -33,7 +33,7 @@ public class App {
   }
 
   private static void validateInput() {
-    if (getSystemEnvProperty(PARAM_REPO_HOME, null) == null) {
+    if (getSystemEnvProperty(ENV_REPO_NAME, null) == null) {
       throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
     }
     if (getSystemEnvProperty(ENV_MONGO_USERNAME, null) == null) {
