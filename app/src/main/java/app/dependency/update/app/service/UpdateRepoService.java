@@ -49,6 +49,7 @@ public class UpdateRepoService {
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
+      log.info("Starting Scheduler to Update Repos...");
       updateReposScheduler(false, false, null, UpdateType.ALL, false, true);
     }
   }
@@ -102,14 +103,17 @@ public class UpdateRepoService {
   }
 
   private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
+    log.info("Update Repos All [ {} ] | [ {} ]", isRecreateCaches, isRecreateScriptFiles);
     // clear and set caches as needed
     if (isRecreateCaches) {
+      log.info("Update Repos All, Recreating Caches...");
       resetAllCaches();
       setAllCaches();
     }
 
     // delete and create script files as needed
     if (isRecreateScriptFiles || scriptFilesService.isScriptFilesMissingInFileSystem()) {
+      log.info("Update Repos All, Recreating Script Files...");
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
     }
@@ -118,8 +122,11 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_PULL);
 
     // clear and set caches after pull (gradle version in repo could have changed)
+    log.info("Update Repos All, Reset All Caches...");
     resetAllCaches();
+    log.info("Update Repos All, Update Dependencies In Mongo...");
     mavenRepoService.updateDependenciesInMongo();
+    log.info("Update Repos All, Set All Caches...");
     setAllCaches();
 
     // npm dependencies
@@ -131,6 +138,7 @@ public class UpdateRepoService {
   }
 
   private void updateReposAllContinue() {
+    log.info("Update Repos All Continue...");
     // merge PRs
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
@@ -138,6 +146,7 @@ public class UpdateRepoService {
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry();
     // email log file
+    log.info("Update Repos All Continue, Sending Email...");
     emailService.sendLogEmail();
   }
 
@@ -167,6 +176,7 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly) {
+    log.info("Update Repos By Update Type: [ {} ] | [ {} ] | [ {} ] | [ {} ] [ {} ] [ {} ]", isRecreateCaches, isRecreateScriptFiles, branchName, updateType, isForceCreatePr, isDeleteUpdateDependenciesOnly);
 
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -192,6 +202,7 @@ public class UpdateRepoService {
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {
+    log.info("Execute Update Repos: [ {} ]", updateType);
     AppInitData appInitData = appInitDataService.appInitData();
     switch (updateType) {
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
@@ -206,11 +217,13 @@ public class UpdateRepoService {
   }
 
   private void executeUpdateReposNpmSnapshot(final String branchName) {
+    log.info("Execute Update Repos NPM Snapshot: [ {} ]", branchName);
     AppInitData appInitData = appInitDataService.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
   }
 
   private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
+    log.info("Execute Update Repos GitHub Branch Delete: [ {} ]", isDeleteUpdateDependenciesOnly);
     AppInitData appInitData = appInitDataService.appInitData();
     new UpdateGithubBranchDelete(appInitData, isDeleteUpdateDependenciesOnly)
         .updateGithubBranchDelete();
@@ -218,6 +231,7 @@ public class UpdateRepoService {
 
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
+    log.info("Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]", branchName, isForceCreatePr);
     Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
