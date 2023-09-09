@@ -1,9 +1,7 @@
 package app.dependency.update.app.service;
 
-import static app.dependency.update.app.util.CommonUtils.getSystemEnvProperty;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.util.ConstantUtils;
 import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
@@ -26,14 +24,20 @@ public class EmailService {
   private final String emailSenderEmail;
   private final MailjetClient mailjetClient;
 
-  public EmailService() {
-    this.logHome = getSystemEnvProperty(PARAM_REPO_HOME, "").concat("/logs/app-dependency-update");
-    this.emailSenderEmail = getSystemEnvProperty(ENV_MJ_EMAIL_ADDRESS, "");
+  public EmailService(final AppInitDataService appInitDataService) {
+    this.logHome =
+        appInitDataService
+            .appInitData()
+            .getArgsMap()
+            .get(PARAM_REPO_HOME)
+            .concat("/logs/app-dependency-update");
+    this.emailSenderEmail = appInitDataService.appInitData().getArgsMap().get(ENV_MJ_EMAIL_ADDRESS);
     this.mailjetClient =
         new MailjetClient(
             ClientOptions.builder()
-                .apiKey(getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC, ""))
-                .apiSecretKey(getSystemEnvProperty(ENV_MJ_APIKEY_PRIVATE, ""))
+                .apiKey(appInitDataService.appInitData().getArgsMap().get(ENV_MJ_APIKEY_PUBLIC))
+                .apiSecretKey(
+                    appInitDataService.appInitData().getArgsMap().get(ENV_MJ_APIKEY_PRIVATE))
                 .build());
   }
 
@@ -81,7 +85,7 @@ public class EmailService {
   }
 
   private String getLogFileContent() throws IOException {
-    Path path = Path.of(this.logHome + ConstantUtils.PATH_DELIMITER + "app-dependency-update.log");
+    Path path = Path.of(this.logHome + PATH_DELIMITER + "app-dependency-update.log");
     return Files.readString(path);
   }
 

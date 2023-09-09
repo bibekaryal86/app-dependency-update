@@ -18,9 +18,8 @@ public class MongoConfig {
 
   @Bean
   public MongoClient mongoClient() {
-    // these won't be null as checked at app initialization
-    String username = getSystemEnvProperty(ENV_MONGO_USERNAME, null);
-    String password = getSystemEnvProperty(ENV_MONGO_PASSWORD, null);
+    String username = getSystemEnvProperty(ENV_MONGO_USERNAME);
+    String password = getSystemEnvProperty(ENV_MONGO_PASSWORD);
     return MongoClients.create(
         MongoClientSettings.builder()
             .applyConnectionString(

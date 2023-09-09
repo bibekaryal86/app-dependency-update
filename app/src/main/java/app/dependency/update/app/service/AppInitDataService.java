@@ -57,9 +57,12 @@ public class AppInitDataService {
   private Map<String, String> makeArgsMap() {
     log.debug("Make Args Map...");
     Map<String, String> map = new HashMap<>();
-    map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME, null));
-    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME, null));
-    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD, null));
+    map.put(PARAM_REPO_HOME, getSystemEnvProperty(PARAM_REPO_HOME));
+    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
+    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
+    map.put(ENV_MJ_APIKEY_PUBLIC, getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC));
+    map.put(ENV_MJ_APIKEY_PRIVATE, getSystemEnvProperty(ENV_MJ_APIKEY_PRIVATE));
+    map.put(ENV_MJ_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MJ_EMAIL_ADDRESS));
 
     log.info("Args Map After Conversion: [ {} ]", map.size());
     return map;

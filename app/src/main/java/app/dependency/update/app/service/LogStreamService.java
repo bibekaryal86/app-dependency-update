@@ -1,10 +1,6 @@
 package app.dependency.update.app.service;
 
-import static app.dependency.update.app.util.CommonUtils.getSystemEnvProperty;
-import static app.dependency.update.app.util.ConstantUtils.PARAM_REPO_HOME;
-
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.util.ConstantUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,14 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogStreamService {
 
-  private final String logHome;
-
-  public LogStreamService() {
-    this.logHome = getSystemEnvProperty(PARAM_REPO_HOME, "").concat("/logs/app-dependency-update");
-  }
-
-  public List<String> getLogFileNames() {
-    try (Stream<Path> pathStream = Files.walk(Paths.get(this.logHome))) {
+  public List<String> getLogFileNames(final String logHome) {
+    try (Stream<Path> pathStream = Files.walk(Paths.get(logHome))) {
       List<String> logFileNames =
           new ArrayList<>(
               pathStream.filter(Files::isRegularFile).toList().stream()
@@ -41,8 +31,7 @@ public class LogStreamService {
     }
   }
 
-  public String getLogFileContent(final String fileName) throws IOException {
-    Path path = Path.of(this.logHome + ConstantUtils.PATH_DELIMITER + fileName);
-    return Files.readString(path);
+  public String getLogFileContent(Path logPath) throws IOException {
+    return Files.readString(logPath);
   }
 }
