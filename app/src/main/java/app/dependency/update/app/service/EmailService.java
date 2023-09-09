@@ -31,7 +31,8 @@ public class EmailService {
             .getArgsMap()
             .get(ENV_REPO_NAME)
             .concat("/logs/app-dependency-update");
-    this.emailSenderEmail = appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_EMAIL_ADDRESS);
+    this.emailSenderEmail =
+        appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_EMAIL_ADDRESS);
     this.mailjetClient =
         new MailjetClient(
             ClientOptions.builder()

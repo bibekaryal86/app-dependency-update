@@ -3,10 +3,8 @@
  */
 package app.dependency.update;
 
-import static app.dependency.update.app.util.CommonUtils.*;
-import static app.dependency.update.app.util.ConstantUtils.*;
-
-import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.util.CommonUtils;
+import app.dependency.update.app.util.ConstantUtils;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -24,32 +22,12 @@ public class App {
 
   public static void main(String[] args) {
     log.info("Begin app-dependency-update initialization...");
-    validateInput();
+    CommonUtils.validateInputAndMakeArgsMap();
     SpringApplication app = new SpringApplication(App.class);
     app.setDefaultProperties(
-        Collections.singletonMap("server.port", getSystemEnvProperty(SERVER_PORT, "8888")));
+        Collections.singletonMap(
+            "server.port", CommonUtils.getSystemEnvProperty(ConstantUtils.SERVER_PORT, "8888")));
     app.run(args);
     log.info("End app-dependency-update initialization...");
-  }
-
-  private static void validateInput() {
-    if (getSystemEnvProperty(ENV_REPO_NAME, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
-    }
-    if (getSystemEnvProperty(ENV_MONGO_USERNAME, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
-    }
-    if (getSystemEnvProperty(ENV_MONGO_PASSWORD, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
-    }
-    if (getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mj_email env property must be provided");
-    }
-    if (getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mj_public env property must be provided");
-    }
-    if (getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY, null) == null) {
-      throw new AppDependencyUpdateRuntimeException("mj_private env property must be provided");
-    }
   }
 }

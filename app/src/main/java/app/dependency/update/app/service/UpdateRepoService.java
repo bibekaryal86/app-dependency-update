@@ -7,7 +7,6 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
-import app.dependency.update.app.util.CommonUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -99,7 +98,7 @@ public class UpdateRepoService {
   }
 
   private boolean isGithubPrCreateFailed() {
-    return !CommonUtils.getRepositoriesWithPrError().isEmpty();
+    return !getRepositoriesWithPrError().isEmpty();
   }
 
   private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
@@ -219,7 +218,7 @@ public class UpdateRepoService {
 
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
-    Set<String> beginSet = new HashSet<>(CommonUtils.getRepositoriesWithPrError());
+    Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
     AppInitData appInitData = appInitDataService.appInitData();
     List<Repository> repositories =
         isForceCreatePr

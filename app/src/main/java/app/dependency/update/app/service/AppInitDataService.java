@@ -56,14 +56,7 @@ public class AppInitDataService {
 
   private Map<String, String> makeArgsMap() {
     log.debug("Make Args Map...");
-    Map<String, String> map = new HashMap<>();
-    map.put(ENV_REPO_NAME, getSystemEnvProperty(ENV_REPO_NAME));
-    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
-    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
-    map.put(ENV_MAILJET_PUBLIC_KEY, getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY));
-    map.put(ENV_MAILJET_PRIVATE_KEY, getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY));
-    map.put(ENV_MAILJET_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS));
-
+    Map<String, String> map = validateInputAndMakeArgsMap();
     log.info("Args Map After Conversion: [ {} ]", map.size());
     return map;
   }
