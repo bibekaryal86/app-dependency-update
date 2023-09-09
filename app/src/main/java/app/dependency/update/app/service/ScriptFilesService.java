@@ -3,8 +3,8 @@ package app.dependency.update.app.service;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.AppInitDataUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,15 +19,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class ScriptFilesService {
-  private final List<ScriptFile> scriptFiles;
   private static final String TEMP_SCRIPTS_DIRECTORY =
       JAVA_SYSTEM_TMPDIR + PATH_DELIMITER + SCRIPTS_DIRECTORY;
   private final Path tempScriptsDirectoryPath = Path.of(TEMP_SCRIPTS_DIRECTORY);
-
-  public ScriptFilesService(final AppInitDataService appInitDataService) {
-    AppInitData appInitData = appInitDataService.appInitData();
-    this.scriptFiles = appInitData.getScriptFiles();
-  }
 
   public void deleteTempScriptFiles() {
     log.info("Delete Temp Script Files...");
@@ -50,7 +44,8 @@ public class ScriptFilesService {
           "Unable to create temp directory to store scripts...");
     }
 
-    for (final ScriptFile scriptFile : this.scriptFiles) {
+    List<ScriptFile> scriptFiles = AppInitDataUtils.appInitData().getScriptFiles();
+    for (final ScriptFile scriptFile : scriptFiles) {
       isError = createTempScriptFile(scriptFile);
       if (isError) {
         throw new AppDependencyUpdateRuntimeException(
@@ -68,7 +63,8 @@ public class ScriptFilesService {
         return true;
       }
 
-      for (final ScriptFile scriptFile : this.scriptFiles) {
+      List<ScriptFile> scriptFiles = AppInitDataUtils.appInitData().getScriptFiles();
+      for (final ScriptFile scriptFile : scriptFiles) {
         Path filePath =
             Path.of(TEMP_SCRIPTS_DIRECTORY + PATH_DELIMITER + scriptFile.getScriptFileName());
         if (!Files.exists(filePath)) {

@@ -3,6 +3,7 @@
  */
 package app.dependency.update;
 
+import app.dependency.update.app.util.AppInitDataUtils;
 import app.dependency.update.app.util.CommonUtils;
 import app.dependency.update.app.util.ConstantUtils;
 import java.util.Collections;
@@ -22,12 +23,13 @@ public class App {
 
   public static void main(String[] args) {
     log.info("Begin app-dependency-update initialization...");
-    CommonUtils.validateInputAndMakeArgsMap();
+    AppInitDataUtils.validateInputAndMakeArgsMap();
     SpringApplication app = new SpringApplication(App.class);
     app.setDefaultProperties(
         Collections.singletonMap(
             "server.port", CommonUtils.getSystemEnvProperty(ConstantUtils.SERVER_PORT, "8888")));
     app.run(args);
+    AppInitDataUtils.appInitData();
     log.info("End app-dependency-update initialization...");
   }
 }

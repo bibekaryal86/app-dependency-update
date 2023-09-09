@@ -1,4 +1,4 @@
-package app.dependency.update.app.service;
+package app.dependency.update.app.util;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
@@ -15,53 +15,86 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
-public class AppInitDataService {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class AppInitDataUtils {
 
-  private final GradleConnector gradleConnector;
+  // can't use spring cache in static class, so using local cache
+  private static AppInitData appInitDataCache = null;
 
-  public AppInitDataService(final GradleConnector gradleConnector) {
-    this.gradleConnector = gradleConnector;
-  }
-
-  @Cacheable(value = "appInitData", unless = "#result==null")
-  public AppInitData appInitData() {
+  public static AppInitData appInitData() {
     log.info("Set App Init Data...");
-    // get the input arguments
-    Map<String, String> argsMap = makeArgsMap();
-    // get the list of repositories and their type
-    List<Repository> repositories = getRepositoryLocations(argsMap);
-    // get the scripts included in resources folder
-    List<ScriptFile> scriptFiles = getScriptsInResources();
 
-    return AppInitData.builder()
-        .argsMap(argsMap)
-        .repositories(repositories)
-        .scriptFiles(scriptFiles)
-        .build();
+    if (appInitDataCache == null) {
+      // get the input arguments
+      Map<String, String> argsMap = makeArgsMap();
+      // get the list of repositories and their type
+      List<Repository> repositories = getRepositoryLocations(argsMap);
+      // get the scripts included in resources folder
+      List<ScriptFile> scriptFiles = getScriptsInResources();
+      // set to cache
+      appInitDataCache =
+          AppInitData.builder()
+              .argsMap(argsMap)
+              .repositories(repositories)
+              .scriptFiles(scriptFiles)
+              .build();
+    }
+
+    return appInitDataCache;
   }
 
-  @CacheEvict(value = "appInitData", allEntries = true, beforeInvocation = true)
-  public void clearAppInitData() {
+  public static void clearAppInitData() {
     log.info("Clear App Init Data...");
+    appInitDataCache = null;
   }
 
-  private Map<String, String> makeArgsMap() {
+  private static Map<String, String> makeArgsMap() {
     log.debug("Make Args Map...");
     Map<String, String> map = validateInputAndMakeArgsMap();
     log.info("Args Map After Conversion: [ {} ]", map.size());
     return map;
   }
 
-  private List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
+  public static Map<String, String> validateInputAndMakeArgsMap() {
+    Map<String, String> map = new HashMap<>();
+
+    if (getSystemEnvProperty(ENV_REPO_NAME) == null) {
+      throw new AppDependencyUpdateRuntimeException("repo_home env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_USERNAME) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_user env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MONGO_PASSWORD) == null) {
+      throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_email env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_public env property must be provided");
+    }
+    if (getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY) == null) {
+      throw new AppDependencyUpdateRuntimeException("mj_private env property must be provided");
+    }
+
+    map.put(ENV_REPO_NAME, getSystemEnvProperty(ENV_REPO_NAME));
+    map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
+    map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
+    map.put(ENV_MAILJET_PUBLIC_KEY, getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY));
+    map.put(ENV_MAILJET_PRIVATE_KEY, getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY));
+    map.put(ENV_MAILJET_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS));
+
+    return map;
+  }
+
+  private static List<Repository> getRepositoryLocations(final Map<String, String> argsMap) {
     log.debug("Get Repository Locations...");
     List<Path> repoPaths;
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(ENV_REPO_NAME)), 2)) {
@@ -129,11 +162,11 @@ public class AppInitDataService {
     repositories.addAll(gradleWrapperRepositories);
 
     log.info("Repository list: [ {} ]", repositories.size());
-    log.debug("Repository list: [ {} ]", repositories);
+    log.info("Repository list: [ {} ]", repositories);
     return repositories;
   }
 
-  private List<String> readGradleModules(final Path settingsGradlePath) {
+  private static List<String> readGradleModules(final Path settingsGradlePath) {
     try {
       List<String> allLines = Files.readAllLines(settingsGradlePath);
       Pattern pattern = Pattern.compile(String.format(GRADLE_BUILD_DEPENDENCIES_REGEX, "'", "'"));
@@ -156,7 +189,7 @@ public class AppInitDataService {
     }
   }
 
-  private List<ScriptFile> getScriptsInResources() {
+  private static List<ScriptFile> getScriptsInResources() {
     log.debug("Get Scripts in Resources...");
     List<ScriptFile> scriptFiles = new ArrayList<>();
 
@@ -179,7 +212,8 @@ public class AppInitDataService {
     return scriptFiles;
   }
 
-  private String getLatestGradleVersion() {
+  private static String getLatestGradleVersion() {
+    GradleConnector gradleConnector = ApplicationContextUtil.getBean(GradleConnector.class);
     List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
     // get rid of draft and prerelease and sort by name descending
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
@@ -200,7 +234,7 @@ public class AppInitDataService {
     return latestGradleRelease.getName();
   }
 
-  private String getCurrentGradleVersionInRepo(final Repository repository) {
+  private static String getCurrentGradleVersionInRepo(final Repository repository) {
     Path wrapperPath =
         Path.of(repository.getRepoPath().toString().concat(GRADLE_WRAPPER_PROPERTIES));
     try {
@@ -220,7 +254,7 @@ public class AppInitDataService {
     return null;
   }
 
-  private String parseDistributionUrlForGradleVersion(final String distributionUrl) {
+  private static String parseDistributionUrlForGradleVersion(final String distributionUrl) {
     // matches text between two hyphens
     // eg: distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
     Pattern pattern = Pattern.compile(GRADLE_WRAPPER_REGEX);
