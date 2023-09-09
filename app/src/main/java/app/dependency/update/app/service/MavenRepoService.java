@@ -202,18 +202,4 @@ public class MavenRepoService {
     }
     return null;
   }
-
-  private boolean isCheckPreReleaseVersion(final String version) {
-    return version.contains("alpha")
-        || version.contains("ALPHA")
-        || version.contains("b")
-        || version.contains("beta")
-        || version.contains("BETA")
-        || version.contains("rc")
-        || version.contains("RC")
-        || version.contains("m")
-        || version.contains("M")
-        || version.contains("snapshot")
-        || version.contains("SNAPSHOT");
-  }
 }

@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 /*
-  Utility class to access spring beans in static method/class
- */
+ Utility class to access spring beans in static method/class
+*/
 public class ApplicationContextUtil implements ApplicationContextAware {
   private static ApplicationContext context;
 
