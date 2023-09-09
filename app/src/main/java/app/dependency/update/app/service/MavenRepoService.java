@@ -78,12 +78,16 @@ public class MavenRepoService {
   // save dependency, no cache evict
   public void saveDependency(final String mavenId, final String latestVersion) {
     log.info("Save Dependency: [ {} ] | [ {} ]", mavenId, latestVersion);
-    dependenciesRepository.save(
-        Dependencies.builder()
-            .mavenId(mavenId)
-            .latestVersion(latestVersion)
-            .skipVersion(false)
-            .build());
+    try {
+      dependenciesRepository.save(
+          Dependencies.builder()
+              .mavenId(mavenId)
+              .latestVersion(latestVersion)
+              .skipVersion(false)
+              .build());
+    } catch (Exception ex) {
+      log.error("ERROR Save Dependency: [ {} ] | [ {} ]", mavenId, latestVersion, ex);
+    }
   }
 
   @CacheEvict(value = "dependenciesMap", allEntries = true, beforeInvocation = true)
