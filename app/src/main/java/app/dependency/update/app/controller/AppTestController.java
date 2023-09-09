@@ -2,9 +2,9 @@ package app.dependency.update.app.controller;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 
-import app.dependency.update.app.service.AppInitDataService;
 import app.dependency.update.app.service.MavenRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
+import app.dependency.update.app.util.AppInitDataUtils;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -20,15 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class AppTestController {
 
   private final UpdateRepoService updateRepoService;
-  private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
 
   public AppTestController(
-      final UpdateRepoService updateRepoService,
-      final AppInitDataService appInitDataService,
-      final MavenRepoService mavenRepoService) {
+      final UpdateRepoService updateRepoService, final MavenRepoService mavenRepoService) {
     this.updateRepoService = updateRepoService;
-    this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
   }
 
@@ -66,16 +62,16 @@ public class AppTestController {
     if (areYouSure) {
       switch (cacheType) {
         case ALL -> {
-          appInitDataService.clearAppInitData();
+          AppInitDataUtils.clearAppInitData();
           mavenRepoService.clearPluginsMap();
           mavenRepoService.clearDependenciesMap();
-          appInitDataService.appInitData();
+          AppInitDataUtils.appInitData();
           mavenRepoService.pluginsMap();
           mavenRepoService.dependenciesMap();
         }
         case APP_INIT_DATA -> {
-          appInitDataService.clearAppInitData();
-          appInitDataService.appInitData();
+          AppInitDataUtils.clearAppInitData();
+          AppInitDataUtils.appInitData();
         }
         case PLUGINS_MAP -> {
           mavenRepoService.clearPluginsMap();

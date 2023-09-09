@@ -7,6 +7,7 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
+import app.dependency.update.app.util.AppInitDataUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -25,18 +26,15 @@ import org.springframework.stereotype.Service;
 public class UpdateRepoService {
 
   private final ConcurrentTaskScheduler taskScheduler;
-  private final AppInitDataService appInitDataService;
   private final MavenRepoService mavenRepoService;
   private final ScriptFilesService scriptFilesService;
   private final EmailService emailService;
 
   public UpdateRepoService(
-      final AppInitDataService appInitDataService,
       final MavenRepoService mavenRepoService,
       final ScriptFilesService scriptFilesService,
       final EmailService emailService) {
     this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
-    this.appInitDataService = appInitDataService;
     this.mavenRepoService = mavenRepoService;
     this.scriptFilesService = scriptFilesService;
     this.emailService = emailService;
@@ -87,13 +85,13 @@ public class UpdateRepoService {
   }
 
   private void resetAllCaches() {
-    appInitDataService.clearAppInitData();
+    AppInitDataUtils.clearAppInitData();
     mavenRepoService.clearPluginsMap();
     mavenRepoService.clearDependenciesMap();
   }
 
   private void setAllCaches() {
-    appInitDataService.appInitData();
+    AppInitDataUtils.appInitData();
     mavenRepoService.pluginsMap();
     mavenRepoService.dependenciesMap();
   }
@@ -203,7 +201,7 @@ public class UpdateRepoService {
 
   private void executeUpdateRepos(final UpdateType updateType) {
     log.info("Execute Update Repos: [ {} ]", updateType);
-    AppInitData appInitData = appInitDataService.appInitData();
+    AppInitData appInitData = AppInitDataUtils.appInitData();
     switch (updateType) {
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
@@ -218,13 +216,13 @@ public class UpdateRepoService {
 
   private void executeUpdateReposNpmSnapshot(final String branchName) {
     log.info("Execute Update Repos NPM Snapshot: [ {} ]", branchName);
-    AppInitData appInitData = appInitDataService.appInitData();
+    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
   }
 
   private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
     log.info("Execute Update Repos GitHub Branch Delete: [ {} ]", isDeleteUpdateDependenciesOnly);
-    AppInitData appInitData = appInitDataService.appInitData();
+    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateGithubBranchDelete(appInitData, isDeleteUpdateDependenciesOnly)
         .updateGithubBranchDelete();
   }
@@ -233,7 +231,7 @@ public class UpdateRepoService {
       final String branchName, final boolean isForceCreatePr) {
     log.info("Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]", branchName, isForceCreatePr);
     Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
-    AppInitData appInitData = appInitDataService.appInitData();
+    AppInitData appInitData = AppInitDataUtils.appInitData();
     List<Repository> repositories =
         isForceCreatePr
             ? appInitData.getRepositories()
