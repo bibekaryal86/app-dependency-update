@@ -122,6 +122,8 @@ public class UpdateRepoService {
     // clear and set caches after pull (gradle version in repo could have changed)
     log.info("Update Repos All, Reset All Caches...");
     resetAllCaches();
+    log.info("Update Repos All, Update Plugins In Mongo...");
+    mavenRepoService.updatePluginsInMongo();
     log.info("Update Repos All, Update Dependencies In Mongo...");
     mavenRepoService.updateDependenciesInMongo();
     log.info("Update Repos All, Set All Caches...");

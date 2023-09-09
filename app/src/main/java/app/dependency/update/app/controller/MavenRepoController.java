@@ -121,10 +121,11 @@ public class MavenRepoController {
     }
   }
 
-  @Operation(summary = "On-demand Update Maven Dependencies in Mongo")
+  @Operation(summary = "On-demand Update Maven Plugins and Dependencies Repo in Mongo")
   @PostMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> updateMavenDependenciesInMongo() {
+  public ResponseEntity<String> updateMavenRepoInMongo() {
     CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
+    CompletableFuture.runAsync(mavenRepoService::updatePluginsInMongo);
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }

@@ -28,14 +28,17 @@ public class MavenRepoService {
   private final PluginsRepository pluginsRepository;
   private final DependenciesRepository dependenciesRepository;
   private final MavenConnector mavenConnector;
+  private final GradleRepoService gradleRepoService;
 
   public MavenRepoService(
       final PluginsRepository pluginsRepository,
       final DependenciesRepository dependenciesRepository,
-      final MavenConnector mavenConnector) {
+      final MavenConnector mavenConnector,
+      final GradleRepoService gradleRepoService) {
     this.pluginsRepository = pluginsRepository;
     this.dependenciesRepository = dependenciesRepository;
     this.mavenConnector = mavenConnector;
+    this.gradleRepoService = gradleRepoService;
   }
 
   @Cacheable(value = "pluginsMap", unless = "#result==null")
@@ -134,6 +137,42 @@ public class MavenRepoService {
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
       log.info("Mongo Dependencies Updated...");
+    }
+  }
+
+  @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
+  public void updatePluginsInMongo() {
+    // get from Mongo than local cache
+    List<Plugins> plugins = pluginsRepository.findAll();
+    List<Plugins> pluginsToUpdate = new ArrayList<>();
+
+    plugins.forEach(
+            plugin -> {
+              String group = plugin.getGroup();
+              String currentVersion = plugin.getVersion();
+              // get latest version from Gradle Plugin Repository
+              String latestVersion = gradleRepoService.getLatestGradlePlugin(group);
+              // check if local maven repo needs updating
+              if (isRequiresUpdate(currentVersion, latestVersion)) {
+                pluginsToUpdate.add(
+                        Plugins.builder()
+                                .id(pluginsMap().get(plugin.getGroup()).getId())
+                                .group(plugin.getGroup())
+                                .version(latestVersion)
+                                .skipVersion(false)
+                                .build()
+                );
+              }
+            });
+
+    log.info(
+            "Mongo Plugins to Update: [{}]\n[{}]",
+            pluginsToUpdate.size(),
+            pluginsToUpdate);
+
+    if (!pluginsToUpdate.isEmpty()) {
+      pluginsRepository.saveAll(pluginsToUpdate);
+      log.info("Mongo Plugins Updated...");
     }
   }
 
