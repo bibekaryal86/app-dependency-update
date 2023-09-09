@@ -31,13 +31,13 @@ public class EmailService {
             .getArgsMap()
             .get(ENV_REPO_NAME)
             .concat("/logs/app-dependency-update");
-    this.emailSenderEmail = appInitDataService.appInitData().getArgsMap().get(ENV_MJ_EMAIL_ADDRESS);
+    this.emailSenderEmail = appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_EMAIL_ADDRESS);
     this.mailjetClient =
         new MailjetClient(
             ClientOptions.builder()
-                .apiKey(appInitDataService.appInitData().getArgsMap().get(ENV_MJ_APIKEY_PUBLIC))
+                .apiKey(appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_PUBLIC_KEY))
                 .apiSecretKey(
-                    appInitDataService.appInitData().getArgsMap().get(ENV_MJ_APIKEY_PRIVATE))
+                    appInitDataService.appInitData().getArgsMap().get(ENV_MAILJET_PRIVATE_KEY))
                 .build());
   }
 

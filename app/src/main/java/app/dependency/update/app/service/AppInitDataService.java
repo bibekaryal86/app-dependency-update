@@ -60,9 +60,9 @@ public class AppInitDataService {
     map.put(ENV_REPO_NAME, getSystemEnvProperty(ENV_REPO_NAME));
     map.put(ENV_MONGO_USERNAME, getSystemEnvProperty(ENV_MONGO_USERNAME));
     map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
-    map.put(ENV_MJ_APIKEY_PUBLIC, getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC));
-    map.put(ENV_MJ_APIKEY_PRIVATE, getSystemEnvProperty(ENV_MJ_APIKEY_PRIVATE));
-    map.put(ENV_MJ_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MJ_EMAIL_ADDRESS));
+    map.put(ENV_MAILJET_PUBLIC_KEY, getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY));
+    map.put(ENV_MAILJET_PRIVATE_KEY, getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY));
+    map.put(ENV_MAILJET_EMAIL_ADDRESS, getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS));
 
     log.info("Args Map After Conversion: [ {} ]", map.size());
     return map;

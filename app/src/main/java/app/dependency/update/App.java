@@ -42,13 +42,13 @@ public class App {
     if (getSystemEnvProperty(ENV_MONGO_PASSWORD, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mongo_pwd env property must be provided");
     }
-    if (getSystemEnvProperty(ENV_MJ_EMAIL_ADDRESS, null) == null) {
+    if (getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mj_email env property must be provided");
     }
-    if (getSystemEnvProperty(ENV_MJ_APIKEY_PUBLIC, null) == null) {
+    if (getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mj_public env property must be provided");
     }
-    if (getSystemEnvProperty(ENV_MJ_APIKEY_PRIVATE, null) == null) {
+    if (getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY, null) == null) {
       throw new AppDependencyUpdateRuntimeException("mj_private env property must be provided");
     }
   }
