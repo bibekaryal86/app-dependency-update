@@ -7,6 +7,7 @@ import app.dependency.update.app.model.BuildGradleConfigs;
 import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
+import app.dependency.update.app.model.GradlePlugin;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.Dependencies;
@@ -173,7 +174,7 @@ public class ExecuteGradleUpdate implements Runnable {
   // suppressing sonarlint rule for cognitive complexity of method too high
   @SuppressWarnings({"java:S135", "java:S3776"})
   private GradleConfigBlock getPluginsBlock(final List<String> allLines) {
-    List<GradleDependency> plugins = new ArrayList<>();
+    List<GradlePlugin> plugins = new ArrayList<>();
     int pluginsBeginPosition = allLines.indexOf("plugins {");
 
     if (pluginsBeginPosition >= 0) {
@@ -192,32 +193,26 @@ public class ExecuteGradleUpdate implements Runnable {
         if (pluginArray.length != 4) {
           continue;
         }
-        String group = pluginArray[1].replace("'", "");
-        String version = pluginArray[3].replace("'", "");
-        Plugins pluginInCache = this.pluginsMap.get(group);
+        String group = "";
+        String version = "";
 
-        if (pluginInCache == null) {
-          // It is likely plugin information is not available in the local repository
-          // Do not throw error, log the event and continue updating others
-          log.error("Plugin information missing in local repo: [ {} ]", group);
-          continue;
+        if (pluginArray[1].contains("'")) {
+          group = pluginArray[1].replace("'", "");
+        } else {
+          group = pluginArray[1].replace("\"", "");
         }
-
-        String artifact = this.pluginsMap.get(group).getArtifact();
-
-        plugins.add(
-            GradleDependency.builder()
-                .original(plugin)
-                .group(group)
-                .artifact(artifact)
-                .version(version)
-                .build());
+        if (pluginArray[3].contains("'")) {
+          version = pluginArray[3].replace("'", "");
+        } else {
+          version = pluginArray[3].replace("\"", "");
+        }
+        plugins.add(GradlePlugin.builder().original(plugin).group(group).version(version).build());
       }
     } else {
       log.debug("No plugins in the project...");
     }
 
-    return GradleConfigBlock.builder().dependencies(plugins).build();
+    return GradleConfigBlock.builder().plugins(plugins).build();
   }
 
   // suppressing sonarlint rule for cognitive complexity of method too high
@@ -408,10 +403,10 @@ public class ExecuteGradleUpdate implements Runnable {
     final List<String> originals = new ArrayList<>(buildGradleConfigs.getOriginals());
 
     final GradleConfigBlock pluginsBlock = buildGradleConfigs.getPlugins();
-    modifyConfigurations(pluginsBlock, originals);
+    modifyPluginsBlock(pluginsBlock, originals);
 
     final GradleConfigBlock dependenciesBlock = buildGradleConfigs.getDependencies();
-    modifyConfigurations(dependenciesBlock, originals);
+    modifyDependenciesBlock(dependenciesBlock, originals);
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
       return Collections.emptyList();
@@ -422,7 +417,55 @@ public class ExecuteGradleUpdate implements Runnable {
 
   // suppressing sonarlint rule for cognitive complexity of method too high
   @SuppressWarnings("java:S3776")
-  private void modifyConfigurations(
+  private void modifyPluginsBlock(
+      final GradleConfigBlock pluginsBlock, final List<String> originals) {
+    List<String> updatedPlugins = new ArrayList<>();
+    if (pluginsBlock != null && !pluginsBlock.getPlugins().isEmpty()) {
+      for (final GradlePlugin gradlePlugin : pluginsBlock.getPlugins()) {
+        if (gradlePlugin.getVersion().startsWith("$")) {
+          // this updates definition
+          String definitionName = gradlePlugin.getVersion().replace("$", "");
+
+          if (updatedPlugins.contains(definitionName)) {
+            continue;
+          }
+
+          Optional<GradleDefinition> gradleDefinitionOptional =
+              pluginsBlock.getDefinitions().stream()
+                  .filter(gradleDefinition -> gradleDefinition.getName().equals(definitionName))
+                  .findFirst();
+          if (gradleDefinitionOptional.isPresent()) {
+            GradleDefinition gradleDefinition = gradleDefinitionOptional.get();
+            String version = gradleDefinition.getValue();
+            GradlePlugin modifiedGradlePlugin =
+                GradlePlugin.builder().group(gradlePlugin.getGroup()).version(version).build();
+
+            String updatedOriginal = modifyPlugin(modifiedGradlePlugin, gradleDefinition);
+
+            if (updatedOriginal != null) {
+              int index = originals.indexOf(gradleDefinition.getOriginal());
+              if (index >= 0) {
+                originals.set(index, updatedOriginal);
+                updatedPlugins.add(definitionName);
+              }
+            }
+          }
+        } else {
+          String updatedOriginal = modifyPlugin(gradlePlugin, null);
+          if (updatedOriginal != null) {
+            int index = originals.indexOf(gradlePlugin.getOriginal());
+            if (index >= 0) {
+              originals.set(index, updatedOriginal);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings("java:S3776")
+  private void modifyDependenciesBlock(
       final GradleConfigBlock dependenciesBlock, final List<String> originals) {
     List<String> updatedDefinitions = new ArrayList<>();
     if (dependenciesBlock != null && !dependenciesBlock.getDependencies().isEmpty()) {
@@ -449,8 +492,7 @@ public class ExecuteGradleUpdate implements Runnable {
                     .version(version)
                     .build();
 
-            String updatedOriginal =
-                modifyConfiguration(modifiedGradleDependency, gradleDefinition);
+            String updatedOriginal = modifyDependency(modifiedGradleDependency, gradleDefinition);
 
             if (updatedOriginal != null) {
               int index = originals.indexOf(gradleDefinition.getOriginal());
@@ -461,7 +503,7 @@ public class ExecuteGradleUpdate implements Runnable {
             }
           }
         } else {
-          String updatedOriginal = modifyConfiguration(gradleDependency, null);
+          String updatedOriginal = modifyDependency(gradleDependency, null);
           if (updatedOriginal != null) {
             int index = originals.indexOf(gradleDependency.getOriginal());
             if (index >= 0) {
@@ -473,16 +515,40 @@ public class ExecuteGradleUpdate implements Runnable {
     }
   }
 
-  private String modifyConfiguration(
+  private String modifyPlugin(
+      final GradlePlugin gradlePlugin, final GradleDefinition gradleDefinition) {
+    String group = gradlePlugin.getGroup();
+    Plugins plugin = this.pluginsMap.get(group);
+
+    if (plugin == null) {
+      // It is likely plugin information is not available in the local repository
+      log.info("Plugin information missing in local repo: [ {} ]", group);
+      // Save to mongo repository
+      mavenRepoService.savePlugin(group, gradlePlugin.getVersion());
+    }
+
+    String latestVersion = "";
+    if (plugin != null && !plugin.isSkipVersion()) {
+      latestVersion = plugin.getVersion();
+    }
+    if (isRequiresUpdate(gradlePlugin.getVersion(), latestVersion)) {
+      return gradleDefinition == null
+          ? gradlePlugin.getOriginal().replace(gradlePlugin.getVersion(), latestVersion)
+          : gradleDefinition.getOriginal().replace(gradleDefinition.getValue(), latestVersion);
+    }
+
+    return null;
+  }
+
+  private String modifyDependency(
       final GradleDependency gradleDependency, final GradleDefinition gradleDefinition) {
     String mavenId = gradleDependency.getGroup() + ":" + gradleDependency.getArtifact();
     Dependencies dependency = this.dependenciesMap.get(mavenId);
 
     if (dependency == null) {
       // It is likely dependency information is not available in the local repository
-      // Do not throw error, log the event and continue updating others
-      log.error("Dependency information missing in local repo: [ {} ]", mavenId);
-      // Also save to mongo repository
+      log.info("Dependency information missing in local repo: [ {} ]", mavenId);
+      // Save to mongo repository
       mavenRepoService.saveDependency(mavenId, gradleDependency.getVersion());
     }
 

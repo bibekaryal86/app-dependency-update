@@ -40,6 +40,7 @@ public class ConstantUtils {
       "mongodb+srv://%s:%s@cluster0.anwaeio.mongodb.net/?retryWrites=true&w=majority";
   public static final String GRADLE_RELEASES_ENDPOINT =
       "https://api.github.com/repos/gradle/gradle/releases";
+  public static final String GRADLE_PLUGINS_ENDPOINT = "https://plugins.gradle.org/plugin/%s";
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
 }

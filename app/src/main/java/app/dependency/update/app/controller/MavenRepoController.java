@@ -40,7 +40,7 @@ public class MavenRepoController {
                 plugin ->
                     MongoPlugins.builder()
                         .group(plugin.getGroup())
-                        .artifact(plugin.getArtifact())
+                        .version(plugin.getVersion())
                         .build())
             .toList();
     return ResponseEntity.ok(mongoPlugins);
@@ -51,7 +51,7 @@ public class MavenRepoController {
   public ResponseEntity<String> savePlugin(@RequestBody final MongoPlugins mongoPlugins) {
     if (mongoPlugins == null
         || isEmpty(mongoPlugins.getGroup())
-        || isEmpty(mongoPlugins.getArtifact())) {
+        || isEmpty(mongoPlugins.getVersion())) {
       return ResponseEntity.badRequest()
           .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
     }
@@ -121,10 +121,11 @@ public class MavenRepoController {
     }
   }
 
-  @Operation(summary = "On-demand Update Maven Dependencies in Mongo")
+  @Operation(summary = "On-demand Update Maven Plugins and Dependencies Repo in Mongo")
   @PostMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> updateMavenDependenciesInMongo() {
+  public ResponseEntity<String> updateMavenRepoInMongo() {
     CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
+    CompletableFuture.runAsync(mavenRepoService::updatePluginsInMongo);
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }

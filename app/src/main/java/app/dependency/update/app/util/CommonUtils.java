@@ -44,6 +44,20 @@ public class CommonUtils {
     return className + "--" + className;
   }
 
+  public static boolean isCheckPreReleaseVersion(final String version) {
+    return version.contains("alpha")
+        || version.contains("ALPHA")
+        || version.contains("b")
+        || version.contains("beta")
+        || version.contains("BETA")
+        || version.contains("rc")
+        || version.contains("RC")
+        || version.contains("m")
+        || version.contains("M")
+        || version.contains("snapshot")
+        || version.contains("SNAPSHOT");
+  }
+
   public static String getVersionToCompare(final String version) {
     List<String> strList = Stream.of(version.split("\\.")).limit(3).toList();
     StringBuilder sb = new StringBuilder();

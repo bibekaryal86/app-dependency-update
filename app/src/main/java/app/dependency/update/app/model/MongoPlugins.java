@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MongoPlugins {
   private String group;
-  private String artifact;
+  private String version;
 }

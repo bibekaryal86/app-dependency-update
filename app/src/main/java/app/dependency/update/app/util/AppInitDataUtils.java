@@ -3,12 +3,11 @@ package app.dependency.update.app.util;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.service.GradleRepoService;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -213,25 +212,8 @@ public class AppInitDataUtils {
   }
 
   private static String getLatestGradleVersion() {
-    GradleConnector gradleConnector = ApplicationContextUtil.getBean(GradleConnector.class);
-    List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
-    // get rid of draft and prerelease and sort by name descending
-    Optional<GradleReleaseResponse> optionalLatestGradleRelease =
-        gradleReleaseResponses.stream()
-            .filter(
-                gradleReleaseResponse ->
-                    !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
-            .max(Comparator.comparing(GradleReleaseResponse::getName));
-
-    GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
-
-    if (latestGradleRelease == null) {
-      log.error("Latest Gradle Release Null Error...");
-      return null;
-    }
-
-    return latestGradleRelease.getName();
+    GradleRepoService gradleRepoService = ApplicationContextUtil.getBean(GradleRepoService.class);
+    return gradleRepoService.getLatestGradleVersion();
   }
 
   private static String getCurrentGradleVersionInRepo(final Repository repository) {
