@@ -174,7 +174,14 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly) {
-    log.info("Update Repos By Update Type: [ {} ] | [ {} ] | [ {} ] | [ {} ] [ {} ] [ {} ]", isRecreateCaches, isRecreateScriptFiles, branchName, updateType, isForceCreatePr, isDeleteUpdateDependenciesOnly);
+    log.info(
+        "Update Repos By Update Type: [ {} ] | [ {} ] | [ {} ] | [ {} ] [ {} ] [ {} ]",
+        isRecreateCaches,
+        isRecreateScriptFiles,
+        branchName,
+        updateType,
+        isForceCreatePr,
+        isDeleteUpdateDependenciesOnly);
 
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -229,7 +236,10 @@ public class UpdateRepoService {
 
   private void executeUpdateReposGithubPrCreateRetry(
       final String branchName, final boolean isForceCreatePr) {
-    log.info("Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]", branchName, isForceCreatePr);
+    log.info(
+        "Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]",
+        branchName,
+        isForceCreatePr);
     Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
     AppInitData appInitData = AppInitDataUtils.appInitData();
     List<Repository> repositories =
