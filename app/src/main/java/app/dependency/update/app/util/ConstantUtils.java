@@ -11,6 +11,7 @@ public class ConstantUtils {
   public static final String ENV_REPO_NAME = "repo_home";
   public static final String ENV_MONGO_USERNAME = "mongo_user";
   public static final String ENV_MONGO_PASSWORD = "mongo_pwd";
+  public static final String ENV_SEND_EMAIL_LOG = "send_email";
   public static final String ENV_MAILJET_PUBLIC_KEY = "mj_public";
   public static final String ENV_MAILJET_PRIVATE_KEY = "mj_private";
   public static final String ENV_MAILJET_EMAIL_ADDRESS = "mj_email";

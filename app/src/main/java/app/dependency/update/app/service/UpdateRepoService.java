@@ -2,6 +2,7 @@ package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDENCIES;
+import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL_LOG;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
@@ -146,8 +147,11 @@ public class UpdateRepoService {
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry();
     // email log file
-    log.info("Update Repos All Continue, Sending Email...");
-    emailService.sendLogEmail();
+    boolean isSendEmail = "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
+    if (isSendEmail) {
+      log.info("Update Repos All Continue, Sending Email...");
+      emailService.sendLogEmail();
+    }
   }
 
   /**
