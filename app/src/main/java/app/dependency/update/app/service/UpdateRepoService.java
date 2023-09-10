@@ -147,7 +147,8 @@ public class UpdateRepoService {
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry();
     // email log file
-    boolean isSendEmail = "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
+    boolean isSendEmail =
+        "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
     if (isSendEmail) {
       log.info("Update Repos All Continue, Sending Email...");
       emailService.sendLogEmail();
