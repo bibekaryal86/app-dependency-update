@@ -13,6 +13,7 @@ import app.dependency.update.app.repository.PluginsRepository;
 import app.dependency.update.app.util.CommonUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ public class MavenRepoService {
     pluginsRepository.save(plugin);
   }
 
+  // save plugin, no cache evict
   public void savePlugin(final String group, final String version) {
     log.info("Save Plugin: [ {} ] | [ {} ]", group, version);
     try {
@@ -103,9 +105,16 @@ public class MavenRepoService {
     }
   }
 
-  @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
   public void updatePluginsInMongo() {
-    Map<String, Plugins> pluginsLocal = pluginsMap();
+    updatePluginsInMongo(new HashMap<>(pluginsMap()));
+  }
+
+  public void updateDependenciesInMongo() {
+    updateDependenciesInMongo(new HashMap<>(dependenciesMap()));
+  }
+
+  @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
+  private void updatePluginsInMongo(final Map<String, Plugins> pluginsLocal) {
     List<Plugins> plugins = pluginsRepository.findAll();
     List<Plugins> pluginsToUpdate = new ArrayList<>();
 
@@ -136,8 +145,7 @@ public class MavenRepoService {
   }
 
   @CacheEvict(value = "dependenciesMap", allEntries = true, beforeInvocation = true)
-  public void updateDependenciesInMongo() {
-    Map<String, Dependencies> dependenciesLocal = dependenciesMap();
+  private void updateDependenciesInMongo(final Map<String, Dependencies> dependenciesLocal) {
     List<Dependencies> dependencies = dependenciesRepository.findAll();
     List<Dependencies> dependenciesToUpdate = new ArrayList<>();
 
@@ -175,8 +183,6 @@ public class MavenRepoService {
   private String getLatestDependencyVersion(
       final String group, final String artifact, final String currentVersion) {
 
-    String mavenId = group + ":" + artifact;
-
     // the group:artifact likely does not exist in the cache yet
     // so get it from maven central repository
     MavenSearchResponse mavenSearchResponse =
@@ -193,10 +199,7 @@ public class MavenRepoService {
       return currentVersion;
     }
 
-    String latestVersion = mavenDoc.getV();
-    // save to mongodb as well
-    saveDependency(mavenId, latestVersion);
-    return latestVersion;
+    return mavenDoc.getV();
   }
 
   private MavenDoc getLatestDependencyVersion(final MavenSearchResponse mavenSearchResponse) {
