@@ -28,25 +28,25 @@ public class AppInitDataUtils {
   private static AppInitData appInitDataCache = null;
 
   public static AppInitData appInitData() {
-    log.info("Set App Init Data...");
-
     if (appInitDataCache == null) {
-      // get the input arguments
-      Map<String, String> argsMap = makeArgsMap();
-      // get the list of repositories and their type
-      List<Repository> repositories = getRepositoryLocations(argsMap);
-      // get the scripts included in resources folder
-      List<ScriptFile> scriptFiles = getScriptsInResources();
-      // set to cache
-      appInitDataCache =
-          AppInitData.builder()
-              .argsMap(argsMap)
-              .repositories(repositories)
-              .scriptFiles(scriptFiles)
-              .build();
+      appInitDataCache = setAppInitData();
     }
-
     return appInitDataCache;
+  }
+
+  public static AppInitData setAppInitData() {
+    log.info("Set App Init Data...");
+    // get the input arguments
+    Map<String, String> argsMap = makeArgsMap();
+    // get the list of repositories and their type
+    List<Repository> repositories = getRepositoryLocations(argsMap);
+    // get the scripts included in resources folder
+    List<ScriptFile> scriptFiles = getScriptsInResources();
+    return AppInitData.builder()
+        .argsMap(argsMap)
+        .repositories(repositories)
+        .scriptFiles(scriptFiles)
+        .build();
   }
 
   public static void clearAppInitData() {
@@ -161,7 +161,7 @@ public class AppInitDataUtils {
     repositories.addAll(gradleWrapperRepositories);
 
     log.info("Repository list: [ {} ]", repositories.size());
-    log.info("Repository list: [ {} ]", repositories);
+    log.debug("Repository list: [ {} ]", repositories);
     return repositories;
   }
 
