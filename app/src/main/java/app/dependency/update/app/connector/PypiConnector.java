@@ -21,12 +21,11 @@ public class PypiConnector {
   public PypiSearchResponse getPypiSearchResponse(final String name) {
     try {
       return restTemplate.getForObject(
-              String.format(PYPI_SEARCH_ENDPOINT, name), PypiSearchResponse.class);
+          String.format(PYPI_SEARCH_ENDPOINT, name), PypiSearchResponse.class);
     } catch (RestClientException ex) {
       log.error("ERROR in Get Pypi Search Response: [ {} ]", name, ex);
     }
 
     return null;
   }
-
 }
