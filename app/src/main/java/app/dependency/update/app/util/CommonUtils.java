@@ -109,7 +109,8 @@ public class CommonUtils {
     GITHUB_RESET,
     GRADLE_DEPENDENCIES,
     NPM_DEPENDENCIES,
-    NPM_SNAPSHOT
+    NPM_SNAPSHOT,
+    PYTHON_DEPENDENCIES
   }
 
   public enum CacheType {

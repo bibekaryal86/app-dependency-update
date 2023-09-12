@@ -118,6 +118,7 @@ public class AppInitDataUtils {
 
     List<Repository> npmRepositories = new ArrayList<>();
     List<Repository> gradleRepositories = new ArrayList<>();
+    List<Repository> pythonRepositories = new ArrayList<>();
     for (Path path : repoPaths) {
       try (Stream<Path> pathStream = Files.list(path)) {
         npmRepositories.addAll(
@@ -142,6 +143,16 @@ public class AppInitDataUtils {
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
             "Gradle Repositories not found in the repo path provided!", ex);
+      }
+      try (Stream<Path> pathStream = Files.list(path)) {
+        pythonRepositories.addAll(
+                pathStream
+                        .filter(stream -> "pyproject.toml".equals(stream.getFileName().toString()))
+                        .map(mapper -> new Repository(path, UpdateType.PYTHON_DEPENDENCIES))
+                        .toList());
+      } catch (Exception ex) {
+        throw new AppDependencyUpdateRuntimeException(
+                "Python Files not found in the repo path provided!", ex);
       }
     }
 
