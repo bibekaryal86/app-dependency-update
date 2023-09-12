@@ -34,6 +34,7 @@ public class ConstantUtils {
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String MONGODB_COLLECTION_DEPENDENCIES = "dependencies";
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";
+  public static final String MONGODB_COLLECTION_PACKAGES = "packages";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
 
   // endpoints
@@ -44,4 +45,6 @@ public class ConstantUtils {
   public static final String GRADLE_PLUGINS_ENDPOINT = "https://plugins.gradle.org/plugin/%s";
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
+  public static final String PYPI_SEARCH_ENDPOINT =
+          "https://pypi.org/pypi/%s/json";
 }

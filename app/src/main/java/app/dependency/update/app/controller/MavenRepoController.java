@@ -41,6 +41,7 @@ public class MavenRepoController {
                     MongoPlugins.builder()
                         .group(plugin.getGroup())
                         .version(plugin.getVersion())
+                        .skipVersion(plugin.isSkipVersion())
                         .build())
             .toList();
     return ResponseEntity.ok(mongoPlugins);
