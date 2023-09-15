@@ -71,7 +71,14 @@ public class ExecutePythonUpdate implements Runnable {
     }
   }
 
-  private void executeRequirementsTxtUpdate() {}
+  private List<String> readFromFile(final Path path) {
+    try {
+      return Files.readAllLines(path);
+    } catch (IOException ex) {
+      log.error("Error reading file: [ {} ]", path);
+    }
+    return null;
+  }
 
   private void writeToFile(final Path path, final List<String> content) {
     try {
@@ -83,6 +90,9 @@ public class ExecutePythonUpdate implements Runnable {
   }
 
   // TODO requirements.txt
+  private void executeRequirementsTxtUpdate() {
+
+  }
 
   /*
    * PYPROJECT.TOML UPDATE
@@ -92,22 +102,13 @@ public class ExecutePythonUpdate implements Runnable {
     Path pyProjectTomlPath =
         Path.of(
             this.repository.getRepoPath().toString().concat(PATH_DELIMITER).concat(PYPROJECT_TOML));
-    List<String> pyProjectContent = readPyProjectToml(pyProjectTomlPath);
+    List<String> pyProjectContent = readFromFile(pyProjectTomlPath);
 
     if (pyProjectContent == null) {
       log.error("PyProject Toml Content is null: [ {} ]", this.repository.getRepoPath());
     } else {
       modifyPyProjectToml(pyProjectTomlPath, pyProjectContent);
     }
-  }
-
-  private List<String> readPyProjectToml(final Path pyProjectTomlPath) {
-    try {
-      return Files.readAllLines(pyProjectTomlPath);
-    } catch (IOException ex) {
-      log.error("Error reading pyproject.toml: [ {} ]", this.repository.getRepoName());
-    }
-    return null;
   }
 
   private void modifyPyProjectToml(
