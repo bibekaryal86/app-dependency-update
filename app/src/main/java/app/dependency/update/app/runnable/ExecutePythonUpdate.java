@@ -136,7 +136,6 @@ public class ExecutePythonUpdate implements Runnable {
   }
 
   private String updateBuildTools(final String line) {
-    // extract build tools
     List<String> buildTools = new ArrayList<>();
     Pattern pattern = Pattern.compile(PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX);
     Matcher matcher = pattern.matcher(line);
@@ -154,7 +153,9 @@ public class ExecutePythonUpdate implements Runnable {
       String[] buildToolArray;
       if (buildTool.contains(">=")) {
         buildToolArray = buildTool.split(">=");
-      } else buildToolArray = buildTool.split("==");
+      } else {
+        buildToolArray = buildTool.split("==");
+      }
 
       if (buildToolArray.length == 2) {
         String name = buildToolArray[0].trim();
