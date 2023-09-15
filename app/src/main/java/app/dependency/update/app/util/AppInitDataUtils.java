@@ -146,13 +146,13 @@ public class AppInitDataUtils {
       }
       try (Stream<Path> pathStream = Files.list(path)) {
         pythonRepositories.addAll(
-                pathStream
-                        .filter(stream -> "pyproject.toml".equals(stream.getFileName().toString()))
-                        .map(mapper -> new Repository(path, UpdateType.PYTHON_DEPENDENCIES))
-                        .toList());
+            pathStream
+                .filter(stream -> "pyproject.toml".equals(stream.getFileName().toString()))
+                .map(mapper -> new Repository(path, UpdateType.PYTHON_DEPENDENCIES))
+                .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
-                "Python Files not found in the repo path provided!", ex);
+            "Python Files not found in the repo path provided!", ex);
       }
     }
 

@@ -22,6 +22,7 @@ public class ConstantUtils {
   public static final String GRADLE_BUILD_BLOCK_END_REGEX = "([a-z]+\\s\\{)";
   public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
   public static final String GRADLE_BUILD_DEFINITION_REGEX = "\\w+\\s+\\w+";
+  public static final String PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX = "'(.*?)'";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String COMMAND_WINDOWS = "cmd.exe";
   public static final String SCRIPTS_DIRECTORY = "scripts";
@@ -31,6 +32,7 @@ public class ConstantUtils {
   public static final String GRADLE_WRAPPER_PROPERTIES =
       "/gradle/wrapper/gradle-wrapper.properties";
   public static final String BUILD_GRADLE = "build.gradle";
+  public static final String PYPROJECT_TOML = "pyproject.toml";
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String MONGODB_COLLECTION_DEPENDENCIES = "dependencies";
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";
