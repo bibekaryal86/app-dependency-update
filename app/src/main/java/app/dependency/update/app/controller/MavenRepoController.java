@@ -3,8 +3,10 @@ package app.dependency.update.app.controller;
 import static app.dependency.update.app.util.CommonUtils.*;
 
 import app.dependency.update.app.model.MongoDependencies;
+import app.dependency.update.app.model.MongoPackages;
 import app.dependency.update.app.model.MongoPlugins;
 import app.dependency.update.app.model.dto.Dependencies;
+import app.dependency.update.app.model.dto.Packages;
 import app.dependency.update.app.model.dto.Plugins;
 import app.dependency.update.app.service.MavenRepoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -119,6 +121,50 @@ public class MavenRepoController {
               "{\"save\": \"unsuccessful\", \"message\": \""
                   + ex.getMessage().replace("\"", "'")
                   + "\"}");
+    }
+  }
+
+  @Operation(summary = "Get Python Packages in Mongo Repository")
+  @GetMapping(value = "/packages", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<MongoPackages>> getPackages() {
+    List<Packages> packages = mavenRepoService.packagesMap().values().stream().toList();
+    List<MongoPackages> mongoPackages =
+            packages.stream()
+                    .map(
+                            onePackage ->
+                                    MongoPackages.builder()
+                                            .name(onePackage.getName())
+                                            .version(onePackage.getVersion())
+                                            .skipVersion(onePackage.isSkipVersion())
+                                            .build())
+                    .toList();
+    return ResponseEntity.ok(mongoPackages);
+  }
+
+  @Operation(summary = "Save Python Package in Mongo Repository")
+  @PostMapping(value = "/packages", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> savePackage(@RequestBody final MongoPackages mongoPackages) {
+    if (mongoPackages == null
+            || isEmpty(mongoPackages.getName())
+            || isEmpty(mongoPackages.getVersion())) {
+      return ResponseEntity.badRequest()
+              .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
+    }
+
+    try {
+      Packages onePackage = mavenRepoService.packagesMap().get(mongoPackages.getName());
+      if (onePackage == null) {
+        onePackage = Packages.builder().build();
+      }
+      BeanUtils.copyProperties(mongoPackages, onePackage);
+      mavenRepoService.savePackage(onePackage);
+      return ResponseEntity.ok("{\"save\": \"successful\"}");
+    } catch (Exception ex) {
+      return ResponseEntity.status(500)
+              .body(
+                      "{\"save\": \"unsuccessful\", \"message\": \""
+                              + ex.getMessage().replace("\"", "'")
+                              + "\"}");
     }
   }
 
