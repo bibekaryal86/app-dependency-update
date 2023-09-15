@@ -173,6 +173,7 @@ public class MavenRepoController {
   public ResponseEntity<String> updateMavenRepoInMongo() {
     CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
     CompletableFuture.runAsync(mavenRepoService::updatePluginsInMongo);
+    CompletableFuture.runAsync(mavenRepoService::updatePackagesInMongo);
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }
