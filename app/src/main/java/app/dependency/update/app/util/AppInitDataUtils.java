@@ -185,7 +185,7 @@ public class AppInitDataUtils {
     repositories.addAll(pythonRepositories);
 
     log.info("Repository list: [ {} ]", repositories.size());
-    log.info("Repository list: [ {} ]", repositories);
+    log.debug("Repository list: [ {} ]", repositories);
     return repositories;
   }
 
