@@ -148,7 +148,11 @@ public class AppInitDataUtils {
         pythonRepositories.addAll(
             pathStream
                 .filter(stream -> "pyproject.toml".equals(stream.getFileName().toString()))
-                .map(mapper -> new Repository(path, UpdateType.PYTHON_DEPENDENCIES))
+                .map(
+                    mapper -> {
+                      List<String> requirementsTxts = readRequirementsTxts(path);
+                      return new Repository(path, UpdateType.PYTHON_DEPENDENCIES, requirementsTxts);
+                    })
                 .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
@@ -178,9 +182,10 @@ public class AppInitDataUtils {
     List<Repository> repositories = new ArrayList<>();
     repositories.addAll(npmRepositories);
     repositories.addAll(gradleWrapperRepositories);
+    repositories.addAll(pythonRepositories);
 
     log.info("Repository list: [ {} ]", repositories.size());
-    log.debug("Repository list: [ {} ]", repositories);
+    log.info("Repository list: [ {} ]", repositories);
     return repositories;
   }
 
@@ -264,6 +269,18 @@ public class AppInitDataUtils {
       return matcher.group();
     } else {
       return null;
+    }
+  }
+
+  private static List<String> readRequirementsTxts(final Path path) {
+    try (Stream<Path> pathStream = Files.list(path)) {
+      return pathStream
+          .filter(stream -> stream.getFileName().toString().startsWith("requirements"))
+          .map(stream -> stream.getFileName().toString())
+          .toList();
+    } catch (Exception ex) {
+      throw new AppDependencyUpdateRuntimeException(
+          "Requirements Texts Files not found in the repo path provided!", ex);
     }
   }
 }

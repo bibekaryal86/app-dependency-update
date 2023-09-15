@@ -17,6 +17,7 @@ public class Repository {
   private final String latestGradleVersion;
   private final String currentGradleVersion;
   private final List<String> gradleModules;
+  private final List<String> requirementsTxts;
 
   public Repository(Path repoPath, UpdateType type) {
     this.repoPath = repoPath;
@@ -25,15 +26,25 @@ public class Repository {
     this.latestGradleVersion = "";
     this.currentGradleVersion = "";
     this.gradleModules = Collections.emptyList();
+    this.requirementsTxts = Collections.emptyList();
   }
 
-  public Repository(Path repoPath, UpdateType type, List<String> gradleModules) {
+  public Repository(Path repoPath, UpdateType type, List<String> stringList) {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
     this.latestGradleVersion = "";
     this.currentGradleVersion = "";
-    this.gradleModules = gradleModules;
+    if (type.equals(UpdateType.GRADLE_DEPENDENCIES)) {
+      this.gradleModules = stringList;
+      this.requirementsTxts = Collections.emptyList();
+    } else if (type.equals(UpdateType.PYTHON_DEPENDENCIES)) {
+      this.gradleModules = Collections.emptyList();
+      this.requirementsTxts = stringList;
+    } else {
+      this.gradleModules = Collections.emptyList();
+      this.requirementsTxts = Collections.emptyList();
+    }
   }
 
   public Repository(
@@ -48,5 +59,6 @@ public class Repository {
     this.repoName = repoPath.getFileName().toString();
     this.latestGradleVersion = latestGradleVersion;
     this.currentGradleVersion = currentGradleVersion;
+    this.requirementsTxts = Collections.emptyList();
   }
 }
