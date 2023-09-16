@@ -49,7 +49,7 @@ public class UpdateRepoService {
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
       log.info("Starting Scheduler to Update Repos...");
-      updateReposScheduler(false, false, null, UpdateType.ALL, false, true);
+      updateRepos(false, false, null, UpdateType.ALL, false, true, true);
     }
   }
 
@@ -60,16 +60,17 @@ public class UpdateRepoService {
     return executor.getActiveCount() > 0;
   }
 
-  public void updateReposScheduler(
+  public void updateRepos(
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final String branchName,
       final UpdateType updateType,
       final boolean isForceCreatePr,
-      final boolean isDeleteUpdateDependenciesOnly) {
+      final boolean isDeleteUpdateDependenciesOnly,
+      final boolean isShouldSendEmail) {
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
-          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles),
+          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
           Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
@@ -101,7 +102,10 @@ public class UpdateRepoService {
     return !getRepositoriesWithPrError().isEmpty();
   }
 
-  private void updateReposAll(final boolean isRecreateCaches, final boolean isRecreateScriptFiles) {
+  private void updateReposAll(
+      final boolean isRecreateCaches,
+      final boolean isRecreateScriptFiles,
+      final boolean isShouldSendEmail) {
     log.info("Update Repos All [ {} ] | [ {} ]", isRecreateCaches, isRecreateScriptFiles);
     // clear and set caches as needed
     if (isRecreateCaches) {
@@ -134,22 +138,25 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.NPM_DEPENDENCIES);
     // gradle dependencies
     executeUpdateRepos(UpdateType.GRADLE_DEPENDENCIES);
+    // python dependencies
+    executeUpdateRepos(UpdateType.PYTHON_DEPENDENCIES);
     // wait 5 minutes to complete github PR checks and resume process
-    taskScheduler.schedule(this::updateReposAllContinue, Instant.now().plusSeconds(300));
+    taskScheduler.schedule(
+        () -> updateReposAllContinue(isShouldSendEmail), Instant.now().plusSeconds(300));
   }
 
-  private void updateReposAllContinue() {
+  private void updateReposAllContinue(final boolean isShouldSendEmail) {
     log.info("Update Repos All Continue...");
     // merge PRs
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry();
+    updateReposContinueGithubPrCreateRetry(isShouldSendEmail);
     // email log file
     boolean isSendEmail =
         "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
-    if (isSendEmail) {
+    if (isSendEmail && isShouldSendEmail) {
       log.info("Update Repos All Continue, Sending Email...");
       emailService.sendLogEmail();
     }
@@ -161,7 +168,7 @@ public class UpdateRepoService {
    * given time There is no documentation about this limit, but some GitHub issues do mention this
    * So if the app encounters this limit, retry pr create after 1 hour
    */
-  private void updateReposContinueGithubPrCreateRetry() {
+  private void updateReposContinueGithubPrCreateRetry(final boolean isShouldSendEmail) {
     log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
@@ -170,7 +177,8 @@ public class UpdateRepoService {
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
-          this::updateReposAllContinue, Instant.now().plus(66, ChronoUnit.MINUTES));
+          () -> updateReposAllContinue(isShouldSendEmail),
+          Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
 
@@ -210,7 +218,7 @@ public class UpdateRepoService {
       default -> executeUpdateRepos(updateType);
     }
 
-    updateReposContinueGithubPrCreateRetry();
+    updateReposContinueGithubPrCreateRetry(false);
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {

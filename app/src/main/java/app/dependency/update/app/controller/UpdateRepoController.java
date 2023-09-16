@@ -57,13 +57,14 @@ public class UpdateRepoController {
       }
 
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, branchDate);
-      updateRepoService.updateReposScheduler(
+      updateRepoService.updateRepos(
           isRecreateCaches,
           isRecreateScriptFiles,
           branchName,
           updateType,
           isForceCreatePr,
-          isDeleteUpdateDependenciesOnly);
+          isDeleteUpdateDependenciesOnly,
+          false);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
