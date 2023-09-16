@@ -27,6 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class MavenRepoController {
 
   private final MavenRepoService mavenRepoService;
+  private static final String SAVE_SUCCESSFUL = "{\"save\": \"successful\"}";
+  private static final String SAVE_UNSUCCESSFUL = "{\"save\": \"unsuccessful\", \"message\": \"";
+  private static final String SAVE_UNSUCCESSFUL_MISSING_INPUT =
+      "{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}";
 
   public MavenRepoController(final MavenRepoService mavenRepoService) {
     this.mavenRepoService = mavenRepoService;
@@ -55,8 +59,7 @@ public class MavenRepoController {
     if (mongoPlugins == null
         || isEmpty(mongoPlugins.getGroup())
         || isEmpty(mongoPlugins.getVersion())) {
-      return ResponseEntity.badRequest()
-          .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
+      return ResponseEntity.badRequest().body(SAVE_UNSUCCESSFUL_MISSING_INPUT);
     }
 
     try {
@@ -66,13 +69,10 @@ public class MavenRepoController {
       }
       BeanUtils.copyProperties(mongoPlugins, plugin);
       mavenRepoService.savePlugin(plugin);
-      return ResponseEntity.ok("{\"save\": \"successful\"}");
+      return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
-          .body(
-              "{\"save\": \"unsuccessful\", \"message\": \""
-                  + ex.getMessage().replace("\"", "'")
-                  + "\"}");
+          .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
     }
   }
 
@@ -102,8 +102,7 @@ public class MavenRepoController {
     if (mongoDependencies == null
         || isEmpty(mongoDependencies.getMavenId())
         || isEmpty(mongoDependencies.getLatestVersion())) {
-      return ResponseEntity.badRequest()
-          .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
+      return ResponseEntity.badRequest().body(SAVE_UNSUCCESSFUL);
     }
 
     try {
@@ -114,13 +113,10 @@ public class MavenRepoController {
       }
       BeanUtils.copyProperties(mongoDependencies, dependency);
       mavenRepoService.saveDependency(dependency);
-      return ResponseEntity.ok("{\"save\": \"successful\"}");
+      return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
-          .body(
-              "{\"save\": \"unsuccessful\", \"message\": \""
-                  + ex.getMessage().replace("\"", "'")
-                  + "\"}");
+          .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
     }
   }
 
@@ -147,8 +143,7 @@ public class MavenRepoController {
     if (mongoPackages == null
         || isEmpty(mongoPackages.getName())
         || isEmpty(mongoPackages.getVersion())) {
-      return ResponseEntity.badRequest()
-          .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
+      return ResponseEntity.badRequest().body(SAVE_UNSUCCESSFUL_MISSING_INPUT);
     }
 
     try {
@@ -158,13 +153,10 @@ public class MavenRepoController {
       }
       BeanUtils.copyProperties(mongoPackages, onePackage);
       mavenRepoService.savePackage(onePackage);
-      return ResponseEntity.ok("{\"save\": \"successful\"}");
+      return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
-          .body(
-              "{\"save\": \"unsuccessful\", \"message\": \""
-                  + ex.getMessage().replace("\"", "'")
-                  + "\"}");
+          .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
     }
   }
 

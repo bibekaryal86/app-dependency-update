@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -77,7 +78,7 @@ public class ExecutePythonUpdate implements Runnable {
     } catch (IOException ex) {
       log.error("Error reading file: [ {} ]", path);
     }
-    return null;
+    return Collections.emptyList();
   }
 
   private void writeToFile(final Path path, final List<String> content) {
@@ -105,9 +106,9 @@ public class ExecutePythonUpdate implements Runnable {
                 .concat(requirementsTxt));
     List<String> requirementsTxtContent = readFromFile(requirementsTxtPath);
 
-    if (requirementsTxtContent == null) {
+    if (requirementsTxtContent.isEmpty()) {
       log.error(
-          "[ {} ] content is null: in [ {} ]", requirementsTxt, this.repository.getRepoName());
+          "[ {} ] content is empty: in [ {} ]", requirementsTxt, this.repository.getRepoName());
     } else {
       modifyRequirementsTxt(requirementsTxtPath, requirementsTxtContent);
     }
@@ -126,7 +127,7 @@ public class ExecutePythonUpdate implements Runnable {
       updatedRequirementsTxtContent.add(updatedS);
     }
 
-    if (isUpdated) {
+    if (isUpdated) { // NOSONAR
       writeToFile(requirementsTxtPath, updatedRequirementsTxtContent);
     }
   }
@@ -180,8 +181,8 @@ public class ExecutePythonUpdate implements Runnable {
             this.repository.getRepoPath().toString().concat(PATH_DELIMITER).concat(PYPROJECT_TOML));
     List<String> pyProjectContent = readFromFile(pyProjectTomlPath);
 
-    if (pyProjectContent == null) {
-      log.error("PyProject Toml Content is null: [ {} ]", this.repository.getRepoName());
+    if (pyProjectContent.isEmpty()) {
+      log.error("PyProject Toml Content is empty: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(pyProjectTomlPath, pyProjectContent);
     }
@@ -203,7 +204,7 @@ public class ExecutePythonUpdate implements Runnable {
       }
     }
 
-    if (isUpdated) {
+    if (isUpdated) { // NOSONAR
       writeToFile(pyProjectTomlPath, updatedPyProjectContent);
     }
   }
@@ -224,6 +225,8 @@ public class ExecutePythonUpdate implements Runnable {
     return updateBuildTools(line, buildTools);
   }
 
+  // suppressing sonarlint rule for cognitive complexity of method too high
+  @SuppressWarnings({"java:S3776"})
   private String updateBuildTools(final String line, final List<String> buildTools) {
     String updatedLine = line;
     for (String buildTool : buildTools) {
