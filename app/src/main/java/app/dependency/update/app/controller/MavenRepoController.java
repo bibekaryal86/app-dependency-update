@@ -129,15 +129,15 @@ public class MavenRepoController {
   public ResponseEntity<List<MongoPackages>> getPackages() {
     List<Packages> packages = mavenRepoService.packagesMap().values().stream().toList();
     List<MongoPackages> mongoPackages =
-            packages.stream()
-                    .map(
-                            onePackage ->
-                                    MongoPackages.builder()
-                                            .name(onePackage.getName())
-                                            .version(onePackage.getVersion())
-                                            .skipVersion(onePackage.isSkipVersion())
-                                            .build())
-                    .toList();
+        packages.stream()
+            .map(
+                onePackage ->
+                    MongoPackages.builder()
+                        .name(onePackage.getName())
+                        .version(onePackage.getVersion())
+                        .skipVersion(onePackage.isSkipVersion())
+                        .build())
+            .toList();
     return ResponseEntity.ok(mongoPackages);
   }
 
@@ -145,10 +145,10 @@ public class MavenRepoController {
   @PostMapping(value = "/packages", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> savePackage(@RequestBody final MongoPackages mongoPackages) {
     if (mongoPackages == null
-            || isEmpty(mongoPackages.getName())
-            || isEmpty(mongoPackages.getVersion())) {
+        || isEmpty(mongoPackages.getName())
+        || isEmpty(mongoPackages.getVersion())) {
       return ResponseEntity.badRequest()
-              .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
+          .body("{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}");
     }
 
     try {
@@ -161,10 +161,10 @@ public class MavenRepoController {
       return ResponseEntity.ok("{\"save\": \"successful\"}");
     } catch (Exception ex) {
       return ResponseEntity.status(500)
-              .body(
-                      "{\"save\": \"unsuccessful\", \"message\": \""
-                              + ex.getMessage().replace("\"", "'")
-                              + "\"}");
+          .body(
+              "{\"save\": \"unsuccessful\", \"message\": \""
+                  + ex.getMessage().replace("\"", "'")
+                  + "\"}");
     }
   }
 

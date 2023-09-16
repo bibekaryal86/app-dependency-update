@@ -97,18 +97,24 @@ public class ExecutePythonUpdate implements Runnable {
 
   private void updateRequirementsTxt(final String requirementsTxt) {
     Path requirementsTxtPath =
-            Path.of(
-                    this.repository.getRepoPath().toString().concat(PATH_DELIMITER).concat(requirementsTxt));
+        Path.of(
+            this.repository
+                .getRepoPath()
+                .toString()
+                .concat(PATH_DELIMITER)
+                .concat(requirementsTxt));
     List<String> requirementsTxtContent = readFromFile(requirementsTxtPath);
 
     if (requirementsTxtContent == null) {
-      log.error("[ {} ] content is null: in [ {} ]", requirementsTxt, this.repository.getRepoName());
+      log.error(
+          "[ {} ] content is null: in [ {} ]", requirementsTxt, this.repository.getRepoName());
     } else {
       modifyRequirementsTxt(requirementsTxtPath, requirementsTxtContent);
     }
   }
 
-  private void modifyRequirementsTxt(final Path requirementsTxtPath, final List<String> requirementsTxtContent) {
+  private void modifyRequirementsTxt(
+      final Path requirementsTxtPath, final List<String> requirementsTxtContent) {
     boolean isUpdated = false;
     List<String> updatedRequirementsTxtContent = new ArrayList<>();
 

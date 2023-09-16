@@ -275,7 +275,10 @@ public class AppInitDataUtils {
   private static List<String> readRequirementsTxts(final Path path) {
     try (Stream<Path> pathStream = Files.list(path)) {
       return pathStream
-          .filter(stream -> stream.getFileName().toString().startsWith("requirements"))
+          .filter(
+              stream ->
+                  stream.getFileName().toString().startsWith("requirements")
+                      && stream.getFileName().toString().contains(".txt"))
           .map(stream -> stream.getFileName().toString())
           .toList();
     } catch (Exception ex) {
