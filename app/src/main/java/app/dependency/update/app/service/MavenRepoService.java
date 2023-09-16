@@ -7,8 +7,10 @@ import app.dependency.update.app.model.MavenDoc;
 import app.dependency.update.app.model.MavenResponse;
 import app.dependency.update.app.model.MavenSearchResponse;
 import app.dependency.update.app.model.dto.Dependencies;
+import app.dependency.update.app.model.dto.Packages;
 import app.dependency.update.app.model.dto.Plugins;
 import app.dependency.update.app.repository.DependenciesRepository;
+import app.dependency.update.app.repository.PackagesRepository;
 import app.dependency.update.app.repository.PluginsRepository;
 import app.dependency.update.app.util.CommonUtils;
 import java.util.ArrayList;
@@ -28,18 +30,24 @@ public class MavenRepoService {
 
   private final PluginsRepository pluginsRepository;
   private final DependenciesRepository dependenciesRepository;
+  private final PackagesRepository packagesRepository;
   private final MavenConnector mavenConnector;
   private final GradleRepoService gradleRepoService;
+  private final PypiRepoService pypiRepoService;
 
   public MavenRepoService(
       final PluginsRepository pluginsRepository,
       final DependenciesRepository dependenciesRepository,
+      final PackagesRepository packagesRepository,
       final MavenConnector mavenConnector,
-      final GradleRepoService gradleRepoService) {
+      final GradleRepoService gradleRepoService,
+      final PypiRepoService pypiRepoService) {
     this.pluginsRepository = pluginsRepository;
     this.dependenciesRepository = dependenciesRepository;
+    this.packagesRepository = packagesRepository;
     this.mavenConnector = mavenConnector;
     this.gradleRepoService = gradleRepoService;
+    this.pypiRepoService = pypiRepoService;
   }
 
   @Cacheable(value = "pluginsMap", unless = "#result==null")
@@ -105,12 +113,45 @@ public class MavenRepoService {
     }
   }
 
+  @Cacheable(value = "packagesMap", unless = "#result==null")
+  public Map<String, Packages> packagesMap() {
+    List<Packages> packages = packagesRepository.findAll();
+    log.info("Packages Map: [ {} ]", packages.size());
+    return packages.stream().collect(Collectors.toMap(Packages::getName, onePackage -> onePackage));
+  }
+
+  @CacheEvict(value = "packagesMap", allEntries = true, beforeInvocation = true)
+  public void clearPackagesMap() {
+    log.info("Clear Packages Map...");
+  }
+
+  @CacheEvict(value = "packagesMap", allEntries = true, beforeInvocation = true)
+  public void savePackage(final Packages onePackage) {
+    log.info("Save Package: [ {} ]", onePackage);
+    packagesRepository.save(onePackage);
+  }
+
+  // save package, no cache evict
+  public void savePackage(final String name, final String version) {
+    log.info("Save Package: [ {} ] | [ {} ]", name, version);
+    try {
+      packagesRepository.save(
+          Packages.builder().name(name).version(version).skipVersion(false).build());
+    } catch (Exception ex) {
+      log.error("ERROR Save Package: [ {} ] | [ {} ]", name, version, ex);
+    }
+  }
+
   public void updatePluginsInMongo() {
     updatePluginsInMongo(new HashMap<>(pluginsMap()));
   }
 
   public void updateDependenciesInMongo() {
     updateDependenciesInMongo(new HashMap<>(dependenciesMap()));
+  }
+
+  public void updatePackagesInMongo() {
+    updatePackagesInMongo(new HashMap<>(packagesMap()));
   }
 
   @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
@@ -217,5 +258,36 @@ public class MavenRepoService {
           .orElse(null);
     }
     return null;
+  }
+
+  @CacheEvict(value = "packagesMap", allEntries = true, beforeInvocation = true)
+  private void updatePackagesInMongo(final Map<String, Packages> packagesLocal) {
+    List<Packages> packages = packagesRepository.findAll();
+    List<Packages> packagesToUpdate = new ArrayList<>();
+
+    packages.forEach(
+        onePackage -> {
+          String name = onePackage.getName();
+          String currentVersion = onePackage.getVersion();
+          // get latest version from Pypi Search
+          String latestVersion = pypiRepoService.getLatestPackageVersion(name);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            packagesToUpdate.add(
+                Packages.builder()
+                    .id(packagesLocal.get(onePackage.getName()).getId())
+                    .name(onePackage.getName())
+                    .version(latestVersion)
+                    .skipVersion(false)
+                    .build());
+          }
+        });
+
+    log.info("Mongo Packages to Update: [{}]\n[{}]", packagesToUpdate.size(), packagesToUpdate);
+
+    if (!packagesToUpdate.isEmpty()) {
+      packagesRepository.saveAll(packagesToUpdate);
+      log.info("Mongo Packages Updated...");
+    }
   }
 }

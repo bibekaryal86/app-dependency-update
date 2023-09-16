@@ -223,6 +223,8 @@ public class UpdateRepoService {
       case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(appInitData, mavenRepoService)
           .updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
+      case PYTHON_DEPENDENCIES -> new UpdatePythonDependencies(appInitData, mavenRepoService)
+          .updatePythonDependencies();
       default -> throw new AppDependencyUpdateRuntimeException(
           String.format("Invalid Update Type: %s", updateType));
     }

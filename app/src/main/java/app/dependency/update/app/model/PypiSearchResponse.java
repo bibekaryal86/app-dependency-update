@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MongoPlugins {
-  private String group;
-  private String version;
-  private boolean skipVersion;
+public class PypiSearchResponse {
+  private PypiInfo info;
 }

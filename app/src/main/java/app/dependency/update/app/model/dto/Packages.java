@@ -1,4 +1,6 @@
-package app.dependency.update.app.model;
+package app.dependency.update.app.model.dto;
+
+import static app.dependency.update.app.util.ConstantUtils.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Data
 @Builder
@@ -13,8 +18,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MongoPlugins {
-  private String group;
+@Document(collection = MONGODB_COLLECTION_PACKAGES)
+public class Packages {
+  @MongoId private ObjectId id;
+  private String name;
   private String version;
   private boolean skipVersion;
 }

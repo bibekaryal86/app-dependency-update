@@ -118,6 +118,7 @@ public class AppInitDataUtils {
 
     List<Repository> npmRepositories = new ArrayList<>();
     List<Repository> gradleRepositories = new ArrayList<>();
+    List<Repository> pythonRepositories = new ArrayList<>();
     for (Path path : repoPaths) {
       try (Stream<Path> pathStream = Files.list(path)) {
         npmRepositories.addAll(
@@ -143,6 +144,20 @@ public class AppInitDataUtils {
         throw new AppDependencyUpdateRuntimeException(
             "Gradle Repositories not found in the repo path provided!", ex);
       }
+      try (Stream<Path> pathStream = Files.list(path)) {
+        pythonRepositories.addAll(
+            pathStream
+                .filter(stream -> "pyproject.toml".equals(stream.getFileName().toString()))
+                .map(
+                    mapper -> {
+                      List<String> requirementsTxts = readRequirementsTxts(path);
+                      return new Repository(path, UpdateType.PYTHON_DEPENDENCIES, requirementsTxts);
+                    })
+                .toList());
+      } catch (Exception ex) {
+        throw new AppDependencyUpdateRuntimeException(
+            "Python Files not found in the repo path provided!", ex);
+      }
     }
 
     // add gradle wrapper version data
@@ -167,6 +182,7 @@ public class AppInitDataUtils {
     List<Repository> repositories = new ArrayList<>();
     repositories.addAll(npmRepositories);
     repositories.addAll(gradleWrapperRepositories);
+    repositories.addAll(pythonRepositories);
 
     log.info("Repository list: [ {} ]", repositories.size());
     log.debug("Repository list: [ {} ]", repositories);
@@ -253,6 +269,21 @@ public class AppInitDataUtils {
       return matcher.group();
     } else {
       return null;
+    }
+  }
+
+  private static List<String> readRequirementsTxts(final Path path) {
+    try (Stream<Path> pathStream = Files.list(path)) {
+      return pathStream
+          .filter(
+              stream ->
+                  stream.getFileName().toString().startsWith("requirements")
+                      && stream.getFileName().toString().contains(".txt"))
+          .map(stream -> stream.getFileName().toString())
+          .toList();
+    } catch (Exception ex) {
+      throw new AppDependencyUpdateRuntimeException(
+          "Requirements Texts Files not found in the repo path provided!", ex);
     }
   }
 }
