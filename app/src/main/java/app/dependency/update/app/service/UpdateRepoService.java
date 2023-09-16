@@ -90,12 +90,14 @@ public class UpdateRepoService {
     AppInitDataUtils.clearAppInitData();
     mavenRepoService.clearPluginsMap();
     mavenRepoService.clearDependenciesMap();
+    mavenRepoService.clearPackagesMap();
   }
 
   private void setAllCaches() {
     AppInitDataUtils.appInitData();
     mavenRepoService.pluginsMap();
     mavenRepoService.dependenciesMap();
+    mavenRepoService.packagesMap();
   }
 
   private boolean isGithubPrCreateFailed() {
@@ -131,6 +133,8 @@ public class UpdateRepoService {
     mavenRepoService.updatePluginsInMongo();
     log.info("Update Repos All, Update Dependencies In Mongo...");
     mavenRepoService.updateDependenciesInMongo();
+    log.info("Update Repos All, Update Packages In Mongo...");
+    mavenRepoService.updatePackagesInMongo();
     log.info("Update Repos All, Set All Caches...");
     setAllCaches();
 
