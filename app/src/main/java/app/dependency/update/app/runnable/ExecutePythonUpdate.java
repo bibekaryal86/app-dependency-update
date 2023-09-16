@@ -89,9 +89,79 @@ public class ExecutePythonUpdate implements Runnable {
     }
   }
 
-  // TODO requirements.txt
   private void executeRequirementsTxtUpdate() {
+    for (String requirementsTxt : this.repository.getRequirementsTxts()) {
+      updateRequirementsTxt(requirementsTxt);
+    }
+  }
 
+  private void updateRequirementsTxt(final String requirementsTxt) {
+    Path requirementsTxtPath =
+            Path.of(
+                    this.repository.getRepoPath().toString().concat(PATH_DELIMITER).concat(requirementsTxt));
+    List<String> requirementsTxtContent = readFromFile(requirementsTxtPath);
+
+    if (requirementsTxtContent == null) {
+      log.error("[ {} ] content is null: in [ {} ]", requirementsTxt, this.repository.getRepoName());
+    } else {
+      modifyRequirementsTxt(requirementsTxtPath, requirementsTxtContent);
+    }
+  }
+
+  private void modifyRequirementsTxt(final Path requirementsTxtPath, final List<String> requirementsTxtContent) {
+    boolean isUpdated = false;
+    List<String> updatedRequirementsTxtContent = new ArrayList<>();
+
+    for (String s : requirementsTxtContent) {
+      String updatedS = updateRequirement(s);
+      if (!s.equals(updatedS)) {
+        isUpdated = true;
+      }
+      updatedRequirementsTxtContent.add(updatedS);
+    }
+
+    if (isUpdated) {
+      writeToFile(requirementsTxtPath, updatedRequirementsTxtContent);
+    }
+  }
+
+  private String updateRequirement(final String requirement) {
+    // ignore commented out lines
+    if (requirement.startsWith("#")) {
+      return requirement;
+    }
+    String updatedLine = requirement;
+    String[] requirementArray;
+    if (requirement.contains(">=")) {
+      requirementArray = requirement.split(">=");
+    } else {
+      requirementArray = requirement.split("==");
+    }
+
+    if (requirementArray.length == 2) {
+      String name = requirementArray[0].trim();
+      String version = requirementArray[1].trim();
+      Packages onePackage = this.packagesMap.get(name);
+
+      if (onePackage == null) {
+        // It is likely plugin information is not available in the local repository
+        log.info("Packages information missing in local repo: [ {} ]", name);
+        // Save to mongo repository
+        mavenRepoService.savePackage(name, version);
+      }
+
+      String latestVersion = "";
+      if (onePackage != null && !onePackage.isSkipVersion()) {
+        latestVersion = onePackage.getVersion();
+      }
+
+      if (isRequiresUpdate(version, latestVersion)) {
+        updatedLine = updatedLine.replace(version, latestVersion);
+      }
+    } else {
+      log.error("Python Requirement Array Size Incorrect: [ {} ]", requirement);
+    }
+    return updatedLine;
   }
 
   /*
@@ -105,7 +175,7 @@ public class ExecutePythonUpdate implements Runnable {
     List<String> pyProjectContent = readFromFile(pyProjectTomlPath);
 
     if (pyProjectContent == null) {
-      log.error("PyProject Toml Content is null: [ {} ]", this.repository.getRepoPath());
+      log.error("PyProject Toml Content is null: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(pyProjectTomlPath, pyProjectContent);
     }
