@@ -29,7 +29,7 @@ bootJar {
 }
 
 dependencies {
-    def springVersion = "3.1.4"
+    def springVersion = "3.1.5"
     implementation "org.springframework.boot:spring-boot-starter-actuator:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-cache:$springVersion"
@@ -41,7 +41,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation 'com.mailjet:mailjet-client:5.2.4'
-    implementation 'org.jsoup:jsoup:1.16.1'
+    implementation 'org.jsoup:jsoup:1.16.2'
 }
 
 application {
