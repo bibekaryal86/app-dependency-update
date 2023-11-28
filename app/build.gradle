@@ -11,7 +11,7 @@ plugins {
     id 'java'
     id 'io.freefair.lombok' version '8.4'
     id 'org.springframework.boot' version '3.2.0'
-    id 'com.diffplug.spotless' version '6.22.0'
+    id 'com.diffplug.spotless' version '6.23.0'
 }
 
 java {
@@ -34,14 +34,14 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-cache:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-data-mongodb:$springVersion"
-    implementation 'ch.qos.logback:logback-core:1.4.11'
-    implementation 'ch.qos.logback:logback-classic:1.4.11'
+    implementation 'ch.qos.logback:logback-core:1.4.12'
+    implementation 'ch.qos.logback:logback-classic:1.4.12'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.2'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation 'com.mailjet:mailjet-client:5.2.5'
-    implementation 'org.jsoup:jsoup:1.16.2'
+    implementation 'org.jsoup:jsoup:1.17.1'
 }
 
 application {
