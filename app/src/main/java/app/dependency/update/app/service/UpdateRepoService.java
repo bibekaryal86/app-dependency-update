@@ -49,7 +49,7 @@ public class UpdateRepoService {
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
       log.info("Starting Scheduler to Update Repos...");
-      updateRepos(false, false, null, UpdateType.ALL, false, true, true);
+      updateRepos(false, false, null, null, UpdateType.ALL, false, true, true);
     }
   }
 
@@ -64,6 +64,7 @@ public class UpdateRepoService {
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final String branchName,
+      final String repoName,
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
@@ -79,6 +80,7 @@ public class UpdateRepoService {
                   isRecreateCaches,
                   isRecreateScriptFiles,
                   branchName,
+                  repoName,
                   updateType,
                   isForceCreatePr,
                   isDeleteUpdateDependenciesOnly),
@@ -190,14 +192,16 @@ public class UpdateRepoService {
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final String branchName,
+      final String repoName,
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly) {
     log.info(
-        "Update Repos By Update Type: [ {} ] | [ {} ] | [ {} ] | [ {} ] [ {} ] [ {} ]",
+        "Update Repos By Update Type: [ {} ] | [ {} ] | [ {} ] | [ {} ] | [ {} ] | [ {} ] | [ {} ]",
         isRecreateCaches,
         isRecreateScriptFiles,
         branchName,
+        repoName,
         updateType,
         isForceCreatePr,
         isDeleteUpdateDependenciesOnly);
@@ -217,8 +221,9 @@ public class UpdateRepoService {
     switch (updateType) {
       case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName);
       case GITHUB_PR_CREATE -> executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
-      case GITHUB_BRANCH_DELETE -> executeUpdateReposGithubBranchDelete(
-          isDeleteUpdateDependenciesOnly);
+      case GITHUB_BRANCH_DELETE ->
+          executeUpdateReposGithubBranchDelete(isDeleteUpdateDependenciesOnly);
+      case GRADLE_SPOTLESS -> executeUpdateReposGradleSpotless(branchName, repoName);
       default -> executeUpdateRepos(updateType);
     }
 
@@ -232,13 +237,14 @@ public class UpdateRepoService {
       case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
-      case GRADLE_DEPENDENCIES -> new UpdateGradleDependencies(appInitData, mavenRepoService)
-          .updateGradleDependencies();
+      case GRADLE_DEPENDENCIES ->
+          new UpdateGradleDependencies(appInitData, mavenRepoService).updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
-      case PYTHON_DEPENDENCIES -> new UpdatePythonDependencies(appInitData, mavenRepoService)
-          .updatePythonDependencies();
-      default -> throw new AppDependencyUpdateRuntimeException(
-          String.format("Invalid Update Type: %s", updateType));
+      case PYTHON_DEPENDENCIES ->
+          new UpdatePythonDependencies(appInitData, mavenRepoService).updatePythonDependencies();
+      default ->
+          throw new AppDependencyUpdateRuntimeException(
+              String.format("Invalid Update Type: %s", updateType));
     }
   }
 
@@ -246,6 +252,12 @@ public class UpdateRepoService {
     log.info("Execute Update Repos NPM Snapshot: [ {} ]", branchName);
     AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
+  }
+
+  private void executeUpdateReposGradleSpotless(final String branchName, final String repoName) {
+    log.info("Execute Update Repos Gradle Spotless: [ {} ] [ {} ]", branchName, repoName);
+    AppInitData appInitData = AppInitDataUtils.appInitData();
+    new UpdateGradleSpotless(appInitData, branchName, repoName).updateGradleSpotless();
   }
 
   private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
