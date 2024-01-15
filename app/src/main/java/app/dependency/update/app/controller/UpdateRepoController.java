@@ -48,7 +48,10 @@ public class UpdateRepoController {
           final boolean isDeleteUpdateDependenciesOnly,
       @Parameter(in = ParameterIn.QUERY, description = "For NPM Snapshots, YYYY-MM-DD")
           @RequestParam(required = false)
-          final String branchDate) {
+          final String branchDate,
+      @Parameter(in = ParameterIn.QUERY, description = "For Gradle Spotless Apply")
+          @RequestParam(required = false)
+          final String repoName) {
     if (updateRepoService.isTaskRunning()) {
       return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
@@ -61,6 +64,7 @@ public class UpdateRepoController {
           isRecreateCaches,
           isRecreateScriptFiles,
           branchName,
+          repoName,
           updateType,
           isForceCreatePr,
           isDeleteUpdateDependenciesOnly,
