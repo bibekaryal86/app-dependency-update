@@ -76,12 +76,12 @@ public class UpdateRepoController {
   @SuppressWarnings("ResultOfMethodCallIgnored")
   private boolean isInvalidBranchDate(final String branchDate, final UpdateType updateType) {
     if (updateType.equals(UpdateType.NPM_SNAPSHOT)
-        || updateType.equals(UpdateType.GITHUB_PR_CREATE)) {
+        || updateType.equals(UpdateType.GITHUB_PR_CREATE)
+        || updateType.equals(UpdateType.GRADLE_SPOTLESS)) {
       try {
         if (isEmpty(branchDate)) {
           return true;
         }
-
         LocalDate.parse(branchDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return false;
       } catch (DateTimeParseException e) {
