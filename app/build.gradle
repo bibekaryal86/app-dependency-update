@@ -41,7 +41,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     implementation 'com.mailjet:mailjet-client:5.2.5'
-    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'org.jsoup:jsoup:1.18.1'
 }
 
 application {
