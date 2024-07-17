@@ -5,6 +5,7 @@
 # echo "Process Id--$$"
 repo_loc="$1"
 branch_name="$2"
+npm_skips="$3"
 
 # Give access to current user
 current_user=$(whoami)
@@ -30,7 +31,7 @@ git checkout -b "$branch_name" 2>&1
 
 # Update dependencies
 echo "Running npm check update"
-ncu -u 2>&1
+ncu -u -x "$npm_skips" 2>&1
 npm install --package-lock-only  2>&1
 
 # Commit and push

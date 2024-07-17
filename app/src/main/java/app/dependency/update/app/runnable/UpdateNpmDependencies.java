@@ -11,14 +11,19 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import app.dependency.update.app.model.dto.NpmSkips;
+import app.dependency.update.app.service.MongoRepoService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdateNpmDependencies {
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
+  private final MongoRepoService mongoRepoService;
 
-  public UpdateNpmDependencies(final AppInitData appInitData) {
+  public UpdateNpmDependencies(final AppInitData appInitData, final MongoRepoService mongoRepoService) {
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.NPM_DEPENDENCIES))
@@ -31,6 +36,7 @@ public class UpdateNpmDependencies {
                 () ->
                     new AppDependencyUpdateRuntimeException(
                         "NPM Dependencies Script Not Found..."));
+    this.mongoRepoService = mongoRepoService;
   }
 
   public void updateNpmDependencies() {
@@ -46,9 +52,24 @@ public class UpdateNpmDependencies {
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
+    arguments.add(getNpmSkips());
     return new ExecuteScriptFile(
             threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
+  }
+
+  private String getNpmSkips() {
+    Map<String, NpmSkips> npmSkipsMap = this.mongoRepoService.npmSkipsMap();
+    List<String> npmSkips = npmSkipsMap
+            .values()
+            .stream()
+            .filter(NpmSkips::isActive)
+            .map(NpmSkips::getName)
+            .toList();
+    if (npmSkips.isEmpty()) {
+      return ",";
+    }
+    return String.join(",", npmSkips);
   }
 
   // suppressing sonarlint rule for interrupting thread

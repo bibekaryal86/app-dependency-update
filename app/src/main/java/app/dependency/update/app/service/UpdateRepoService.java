@@ -241,7 +241,7 @@ public class UpdateRepoService {
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
       case GRADLE_DEPENDENCIES ->
           new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
-      case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
+      case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
       case PYTHON_DEPENDENCIES ->
           new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
       default ->
