@@ -79,7 +79,8 @@ public class ExecuteGradleUpdate implements Runnable {
                   threadName(repository, "-" + this.getClass().getSimpleName()),
                   // simple name used in thread name for current class already, so use "-"
                   this.scriptFile,
-                  this.arguments)
+                  this.arguments,
+                  repository)
               .start();
       join(executeThread);
     }

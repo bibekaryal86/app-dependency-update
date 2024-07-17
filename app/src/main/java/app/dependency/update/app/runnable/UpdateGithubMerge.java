@@ -33,7 +33,7 @@ public class UpdateGithubMerge {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments, null)
             .start();
     join(executeThread);
   }

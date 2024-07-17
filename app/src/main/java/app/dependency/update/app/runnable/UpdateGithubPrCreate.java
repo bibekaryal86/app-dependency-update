@@ -45,7 +45,10 @@ public class UpdateGithubPrCreate {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
     return new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+            threadName(repository, this.getClass().getSimpleName()),
+            this.scriptFile,
+            arguments,
+            repository)
         .start();
   }
 

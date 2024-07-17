@@ -6,6 +6,7 @@ import static app.dependency.update.app.util.ProcessUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
+import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,9 +23,13 @@ public class ExecuteScriptFile implements Runnable {
   private final String scriptPath;
   private final List<String> arguments;
   private Thread thread;
+  private final Repository repository;
 
   public ExecuteScriptFile(
-      final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
+      final String threadName,
+      final ScriptFile scriptFile,
+      final List<String> arguments,
+      final Repository repository) {
     this.threadName = threadName;
     this.arguments = arguments;
     this.scriptPath =
@@ -33,6 +38,7 @@ public class ExecuteScriptFile implements Runnable {
             + SCRIPTS_DIRECTORY
             + PATH_DELIMITER
             + scriptFile.getScriptFileName();
+    this.repository = repository;
   }
 
   @Override
