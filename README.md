@@ -5,7 +5,7 @@
   * Documentation
 
 * System Requirements:
-  * Java 17 (https://adoptium.net/temurin/releases/)
+  * Java 21 (https://adoptium.net/temurin/releases/)
   * NPM (https://nodejs.org/en/download)
   * npm-check-updates (https://www.npmjs.com/package/npm-check-updates)
   * git (https://git-scm.com/downloads)

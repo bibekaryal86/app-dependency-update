@@ -27,16 +27,16 @@ import org.springframework.stereotype.Service;
 public class UpdateRepoService {
 
   private final ConcurrentTaskScheduler taskScheduler;
-  private final MavenRepoService mavenRepoService;
+  private final MongoRepoService mongoRepoService;
   private final ScriptFilesService scriptFilesService;
   private final EmailService emailService;
 
   public UpdateRepoService(
-      final MavenRepoService mavenRepoService,
+      final MongoRepoService mongoRepoService,
       final ScriptFilesService scriptFilesService,
       final EmailService emailService) {
     this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
-    this.mavenRepoService = mavenRepoService;
+    this.mongoRepoService = mongoRepoService;
     this.scriptFilesService = scriptFilesService;
     this.emailService = emailService;
   }
@@ -90,16 +90,18 @@ public class UpdateRepoService {
 
   private void resetAllCaches() {
     AppInitDataUtils.clearAppInitData();
-    mavenRepoService.clearPluginsMap();
-    mavenRepoService.clearDependenciesMap();
-    mavenRepoService.clearPackagesMap();
+    mongoRepoService.clearPluginsMap();
+    mongoRepoService.clearDependenciesMap();
+    mongoRepoService.clearPackagesMap();
+    mongoRepoService.clearNpmSkipsMap();
   }
 
   private void setAllCaches() {
     AppInitDataUtils.appInitData();
-    mavenRepoService.pluginsMap();
-    mavenRepoService.dependenciesMap();
-    mavenRepoService.packagesMap();
+    mongoRepoService.pluginsMap();
+    mongoRepoService.dependenciesMap();
+    mongoRepoService.packagesMap();
+    mongoRepoService.npmSkipsMap();
   }
 
   private boolean isGithubPrCreateFailed() {
@@ -132,11 +134,11 @@ public class UpdateRepoService {
     log.info("Update Repos All, Reset All Caches...");
     resetAllCaches();
     log.info("Update Repos All, Update Plugins In Mongo...");
-    mavenRepoService.updatePluginsInMongo();
+    mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap());
     log.info("Update Repos All, Update Dependencies In Mongo...");
-    mavenRepoService.updateDependenciesInMongo();
+    mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap());
     log.info("Update Repos All, Update Packages In Mongo...");
-    mavenRepoService.updatePackagesInMongo();
+    mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap());
     log.info("Update Repos All, Set All Caches...");
     setAllCaches();
 
@@ -238,10 +240,10 @@ public class UpdateRepoService {
       case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
       case GRADLE_DEPENDENCIES ->
-          new UpdateGradleDependencies(appInitData, mavenRepoService).updateGradleDependencies();
+          new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
       case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
       case PYTHON_DEPENDENCIES ->
-          new UpdatePythonDependencies(appInitData, mavenRepoService).updatePythonDependencies();
+          new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
       default ->
           throw new AppDependencyUpdateRuntimeException(
               String.format("Invalid Update Type: %s", updateType));
