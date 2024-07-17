@@ -2,27 +2,16 @@ package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDENCIES;
-import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
-import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
-import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
-import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
-import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
+import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL_LOG;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.ProcessSummary;
-import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.AppInitDataUtils;
-import app.dependency.update.app.util.ProcessUtils;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -80,8 +69,6 @@ public class UpdateRepoService {
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
       final boolean isShouldSendEmail) {
-    // reset processed repository map from previous run if anything remaining
-    resetProcessedRepositoriesAndSummary();
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
           () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
@@ -174,10 +161,13 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry(isShouldSendEmail);
-    // send process summary email if applicable
-    sendProcessSummaryEmail(isShouldSendEmail);
-    // this is the final step, clear processed repositories
-    resetProcessedRepositoriesAndSummary();
+    // email log file
+    boolean isSendEmail =
+        "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
+    if (isSendEmail && isShouldSendEmail) {
+      log.info("Update Repos All Continue, Sending Email...");
+      emailService.sendLogEmail();
+    }
   }
 
   /**
@@ -240,8 +230,6 @@ public class UpdateRepoService {
     }
 
     updateReposContinueGithubPrCreateRetry(false);
-    // reset processed repositories
-    resetProcessedRepositoriesAndSummary();
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {
@@ -253,8 +241,7 @@ public class UpdateRepoService {
       case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
       case GRADLE_DEPENDENCIES ->
           new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
-      case NPM_DEPENDENCIES ->
-          new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
+      case NPM_DEPENDENCIES -> new UpdateNpmDependencies(appInitData).updateNpmDependencies();
       case PYTHON_DEPENDENCIES ->
           new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
       default ->
@@ -297,166 +284,5 @@ public class UpdateRepoService {
                 .filter(repository -> beginSet.contains(repository.getRepoName()))
                 .toList();
     new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
-  }
-
-  private void sendProcessSummaryEmail(final boolean isShouldSendEmail) {
-    boolean isSendEmail =
-        "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL));
-    if (isSendEmail && isShouldSendEmail) {
-      log.info("Update Repos All Continue, Sending Email...");
-
-      String subject = "App Dependency Update Daily Logs";
-      String html = getProcessSummaryContent();
-      log.debug(html);
-      String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
-      String attachment = getLogFileContent();
-      emailService.sendEmail(subject, null, html, attachmentFileName, attachment);
-    }
-  }
-
-  private String getLogFileContent() {
-    String logHome =
-        AppInitDataUtils.appInitData()
-            .getArgsMap()
-            .get(ENV_REPO_NAME)
-            .concat("/logs/app-dependency-update");
-    try {
-      Path path = Path.of(logHome + PATH_DELIMITER + "app-dependency-update.log");
-      byte[] fileContent = Files.readAllBytes(path);
-      return Base64.getEncoder().encodeToString(fileContent);
-    } catch (Exception ex) {
-      log.error("Get Log File Content Error...", ex);
-    }
-    return null;
-  }
-
-  private String getProcessSummaryContent() {
-    List<ProcessedRepository> processedRepositories =
-        ProcessUtils.getProcessedRepositoriesMap().values().stream()
-            .sorted(Comparator.comparing(ProcessedRepository::getRepoName))
-            .toList();
-
-    ProcessSummary processSummary =
-        ProcessSummary.builder()
-            .mongoPluginsToUpdate(ProcessUtils.getMongoPluginsToUpdate())
-            .mongoDependenciesToUpdate(ProcessUtils.getMongoDependenciesToUpdate())
-            .mongoPackagesToUpdate(ProcessUtils.getMongoPackagesToUpdate())
-            .mongoNpmSkipsActive(ProcessUtils.getMongoNpmSkipsActive())
-            .totalPrCreatedCount(
-                (int)
-                    processedRepositories.stream().filter(ProcessedRepository::isPrCreated).count())
-            .totalPrCreateErrorsCount(
-                (int)
-                    processedRepositories.stream()
-                        .filter(ProcessedRepository::isPrCreateError)
-                        .count())
-            .totalPrMergedCount(
-                (int)
-                    processedRepositories.stream().filter(ProcessedRepository::isPrMerged).count())
-            .processedRepositories(processedRepositories)
-            .build();
-
-    return getProcessSummaryContent(processSummary);
-  }
-
-  private String getProcessSummaryContent(ProcessSummary processSummary) {
-    StringBuilder html = new StringBuilder();
-    html.append(
-        """
-            <html>
-              <head>
-                <style>
-                  th {
-                      border-bottom: 2px solid #9e9e9e;
-                      position: sticky;
-                      top: 0;
-                      background-color: lightgrey;
-                    }
-                  td {
-                    padding: 5px;
-                    text-align: left;
-                    border-bottom: 1px solid #9e9e9e;
-                  }
-                </style>
-              </head>
-              <body>
-            """);
-
-    html.append(
-        """
-          <p style='font-size: 14px; font-weight: bold;'>App Dependency Update Process Summary</p>
-          <table cellpadding='10' cellspacing='0' style='font-size: 12px; border-collapse: collapse;'>
-            <tr>
-              <th>Item</th>
-              <th>Value</th>
-            </tr>
-            <tr>
-              <td>Mongo Plugins To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo Dependencies To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo Packages To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo NPM Skips Active</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Created Count</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Create Errors Count</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Merged Count</td>
-              <td>%d</td>
-            </tr>
-          </table>
-        """
-            .formatted(
-                processSummary.getMongoPluginsToUpdate(),
-                processSummary.getMongoDependenciesToUpdate(),
-                processSummary.getMongoPackagesToUpdate(),
-                processSummary.getMongoNpmSkipsActive(),
-                processSummary.getTotalPrCreatedCount(),
-                processSummary.getTotalPrCreateErrorsCount(),
-                processSummary.getTotalPrMergedCount()));
-
-    html.append(
-        """
-          <br />
-          <p style='font-size: 14px; font-weight: bold;'>Processed Repositories</p>
-          <table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
-            <tr>
-              <th>Repository</th>
-              <th>PR Created</th>
-              <th>PR Create Error</th>
-              <th>PR Merged</th>
-            </tr>
-        """);
-
-    for (ProcessedRepository processedRepository : processSummary.getProcessedRepositories()) {
-      html.append("<tr>");
-      html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
-      html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
-      html.append("<td>").append(processedRepository.isPrCreateError() ? "Y" : "N").append("</td>");
-      html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
-      html.append("</tr>");
-    }
-
-    html.append("""
-          </table>
-          </body>
-        </html>
-        """);
-
-    return html.toString();
   }
 }

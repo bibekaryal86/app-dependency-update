@@ -167,15 +167,15 @@ public class MongoRepoController {
   public ResponseEntity<List<MongoNpmSkips>> getNpmSkips() {
     List<NpmSkips> npmSkips = mongoRepoService.npmSkipsMap().values().stream().toList();
     List<MongoNpmSkips> mongoNpmSkips =
-        npmSkips.stream()
-            .map(
-                npmSkip ->
-                    MongoNpmSkips.builder()
-                        .name(npmSkip.getName())
-                        .version(npmSkip.getVersion())
-                        .isActive(npmSkip.isActive())
-                        .build())
-            .toList();
+            npmSkips.stream()
+                    .map(
+                            npmSkip ->
+                                    MongoNpmSkips.builder()
+                                            .name(npmSkip.getName())
+                                            .version(npmSkip.getVersion())
+                                            .isActive(npmSkip.isActive())
+                                            .build())
+                    .toList();
     return ResponseEntity.ok(mongoNpmSkips);
   }
 
@@ -183,8 +183,8 @@ public class MongoRepoController {
   @PostMapping(value = "/npm_skips", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> saveNpmSkip(@RequestBody final MongoNpmSkips mongoNpmSkips) {
     if (mongoNpmSkips == null
-        || isEmpty(mongoNpmSkips.getName())
-        || isEmpty(mongoNpmSkips.getVersion())) {
+            || isEmpty(mongoNpmSkips.getName())
+            || isEmpty(mongoNpmSkips.getVersion())) {
       return ResponseEntity.badRequest().body(SAVE_UNSUCCESSFUL_MISSING_INPUT);
     }
 
@@ -198,19 +198,16 @@ public class MongoRepoController {
       return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
-          .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
+              .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
     }
   }
 
   @Operation(summary = "On-demand Update Dependencies and Plugins Repo in Mongo")
   @PostMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> updateMavenRepoInMongo() {
-    CompletableFuture.runAsync(
-        () -> mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap()));
-    CompletableFuture.runAsync(
-        () -> mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap()));
-    CompletableFuture.runAsync(
-        () -> mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap()));
+    CompletableFuture.runAsync(() -> mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap()));
+    CompletableFuture.runAsync(() -> mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap()));
+    CompletableFuture.runAsync(() -> mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap()));
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }
