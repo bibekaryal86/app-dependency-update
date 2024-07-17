@@ -41,17 +41,15 @@ do
               then
                   # Change to the subdirectory
                   cd "$sub_dir" || { echo "Error 2"; exit 2; }
-                  echo "$sub_dir"
+                  echo "Merging PR: $sub_dir"
 
                   # Check if build passed for PR of the branch
-                  # echo "Checking if all checks/workflows have completed"
                   pr_check=$(gh pr checks "$branch_name" 2>&1)
-                  echo "$pr_check"
+                  echo "Checking PR: $pr_check"
 
                   if [[ ("$pr_check" != *"fail"*) && ("$pr_check" != *"no pull requests found"*) ]]; then
-                    # echo "Merging pull request"
                   	pr_merge=$(gh pr merge "$branch_name" -s -d 2>&1)
-                  	echo "$pr_merge"
+                  	echo "Merged PR: $pr_merge"
                   fi
 
                   # Change back to the current subdirectory
