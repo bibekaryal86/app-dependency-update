@@ -2,19 +2,15 @@ package app.dependency.update.app.runnable;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
-import static app.dependency.update.app.util.ProcessUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,13 +19,9 @@ public class ExecuteScriptFile implements Runnable {
   private final String scriptPath;
   private final List<String> arguments;
   private Thread thread;
-  private final Repository repository;
 
   public ExecuteScriptFile(
-      final String threadName,
-      final ScriptFile scriptFile,
-      final List<String> arguments,
-      final Repository repository) {
+      final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
     this.scriptPath =
@@ -38,7 +30,6 @@ public class ExecuteScriptFile implements Runnable {
             + SCRIPTS_DIRECTORY
             + PATH_DELIMITER
             + scriptFile.getScriptFileName();
-    this.repository = repository;
   }
 
   @Override
@@ -101,74 +92,29 @@ public class ExecuteScriptFile implements Runnable {
       log.debug("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
-          "Error in Process Stream Output: " + ", " + this.scriptPath, ex.getCause());
+          "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());
     }
 
-    boolean isPrCreateCheckRequired = checkPrCreateRequired();
-    boolean isPrMergeCheckRequired = checkPrMergeRequired();
-
-    if (isPrCreateCheckRequired) {
-      checkRepositoryPrCreateRelated(stringBuilder.toString());
-    } else if (isPrMergeCheckRequired) {
-      checkRepositoryPrMergeRelated(stringBuilder.toString());
+    boolean isCheckPr = isCheckPrRequired();
+    if (isCheckPr) {
+      String output = stringBuilder.toString();
+      checkPrCreationError(output);
     }
   }
 
-  private void checkRepositoryPrCreateRelated(final String output) {
-    String repoName = this.threadName.split("--")[0];
-    boolean isPrCreateAttempted = checkPrCreateAttempted(output);
-    boolean isPrCreateError = checkPrCreationError(output, repoName);
-    addProcessedRepositories(repoName, isPrCreateAttempted, isPrCreateError);
+  private boolean isCheckPrRequired() {
+    return this.scriptPath.contains("NPM_DEPENDENCIES")
+        || this.scriptPath.contains("GRADLE_DEPENDENCIES")
+        || this.scriptPath.contains("PYTHON_DEPENDENCIES")
+        || this.scriptPath.contains("GITHUB_PR_CREATE");
   }
 
-  private void checkRepositoryPrMergeRelated(final String output) {
-    boolean isPrMerged = checkPrMerged(output);
-    if (isPrMerged) {
-      // GITHUB_MERGE does not include repository name in threadName
-      String repoName = findRepoNameForPrMerge(output);
-      if (!isEmpty(repoName)) {
-        updateProcessedRepositoriesToPrMerged(repoName);
-      }
-    }
-  }
-
-  private boolean checkPrCreateRequired() {
-    return this.scriptPath.contains(UpdateType.NPM_DEPENDENCIES.toString())
-        || this.scriptPath.contains(UpdateType.GRADLE_DEPENDENCIES.toString())
-        || this.scriptPath.contains(UpdateType.PYTHON_DEPENDENCIES.toString())
-        || this.scriptPath.contains(UpdateType.GITHUB_PR_CREATE.toString());
-  }
-
-  private boolean checkPrMergeRequired() {
-    return this.scriptPath.contains(UpdateType.GITHUB_MERGE.toString());
-  }
-
-  private boolean checkPrCreateAttempted(final String output) {
-    return output.contains("Creating PR");
-  }
-
-  private boolean checkPrCreationError(final String output, final String repoName) {
+  private void checkPrCreationError(final String output) {
     if (output.contains("pull request create failed")) {
       log.info("Pull Request Create Failed: [ {} ]", this.threadName);
-      addRepositoriesWithPrError(repoName);
-      return true;
+      addRepositoriesWithPrError(this.threadName.split("--")[0]);
     } else {
-      removeRepositoriesWithPrError(repoName);
+      removeRepositoriesWithPrError(this.threadName.split("--")[0]);
     }
-    return false;
-  }
-
-  private boolean checkPrMerged(final String output) {
-    return output.contains("Merged PR") && !output.contains("already merged");
-  }
-
-  private String findRepoNameForPrMerge(final String output) {
-    String regex = "Merging PR: .*/([^/\\s]+)";
-    Pattern pattern = Pattern.compile(regex);
-    Matcher matcher = pattern.matcher(output);
-    if (matcher.find()) {
-      return matcher.group(1);
-    }
-    return null;
   }
 }
