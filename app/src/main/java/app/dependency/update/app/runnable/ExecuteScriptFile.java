@@ -5,7 +5,6 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
-import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,13 +19,9 @@ public class ExecuteScriptFile implements Runnable {
   private final String scriptPath;
   private final List<String> arguments;
   private Thread thread;
-  private final Repository repository;
 
   public ExecuteScriptFile(
-      final String threadName,
-      final ScriptFile scriptFile,
-      final List<String> arguments,
-      final Repository repository) {
+      final String threadName, final ScriptFile scriptFile, final List<String> arguments) {
     this.threadName = threadName;
     this.arguments = arguments;
     this.scriptPath =
@@ -35,7 +30,6 @@ public class ExecuteScriptFile implements Runnable {
             + SCRIPTS_DIRECTORY
             + PATH_DELIMITER
             + scriptFile.getScriptFileName();
-    this.repository = repository;
   }
 
   @Override
@@ -101,17 +95,25 @@ public class ExecuteScriptFile implements Runnable {
           "Error in Display Stream Output: " + ", " + this.scriptPath, ex.getCause());
     }
 
-    checkPrCreationError(stringBuilder);
+    boolean isCheckPr = isCheckPrRequired();
+    if (isCheckPr) {
+      String output = stringBuilder.toString();
+      checkPrCreationError(output);
+    }
   }
 
-  private void checkPrCreationError(final StringBuilder stringBuilder) {
-    if ((this.scriptPath.contains("NPM_DEPENDENCIES")
-            || this.scriptPath.contains("GRADLE_DEPENDENCIES")
-            || this.scriptPath.contains("GITHUB_PR_CREATE"))
-        && (stringBuilder.toString().contains("pull request create failed"))) {
+  private boolean isCheckPrRequired() {
+    return this.scriptPath.contains("NPM_DEPENDENCIES")
+        || this.scriptPath.contains("GRADLE_DEPENDENCIES")
+        || this.scriptPath.contains("PYTHON_DEPENDENCIES")
+        || this.scriptPath.contains("GITHUB_PR_CREATE");
+  }
+
+  private void checkPrCreationError(final String output) {
+    if (output.contains("pull request create failed")) {
       log.info("Pull Request Create Failed: [ {} ]", this.threadName);
       addRepositoriesWithPrError(this.threadName.split("--")[0]);
-    } else if (this.scriptPath.contains("GITHUB_PR_CREATE")) {
+    } else {
       removeRepositoriesWithPrError(this.threadName.split("--")[0]);
     }
   }

@@ -31,7 +31,7 @@ public class UpdateGithubReset {
     arguments.add(this.repoHome);
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments, null)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
             .start();
     join(executeThread);
   }

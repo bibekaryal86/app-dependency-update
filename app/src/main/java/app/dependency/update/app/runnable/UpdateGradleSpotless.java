@@ -52,10 +52,7 @@ public class UpdateGradleSpotless {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
     new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()),
-            this.scriptFile,
-            arguments,
-            repository)
+            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
         .start();
   }
 }
