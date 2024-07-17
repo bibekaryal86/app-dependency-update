@@ -45,17 +45,13 @@ public class CommonUtils {
   }
 
   public static boolean isCheckPreReleaseVersion(final String version) {
-    return version.contains("alpha")
-        || version.contains("ALPHA")
-        || version.contains("b")
-        || version.contains("beta")
-        || version.contains("BETA")
-        || version.contains("rc")
-        || version.contains("RC")
-        || version.contains("m")
-        || version.contains("M")
-        || version.contains("snapshot")
-        || version.contains("SNAPSHOT");
+    String versionLowercase = version.toLowerCase();
+    return versionLowercase.contains("alpha")
+        || versionLowercase.contains("beta")
+        || versionLowercase.contains("b")
+        || versionLowercase.contains("rc")
+        || versionLowercase.contains("m")
+        || versionLowercase.contains("snapshot");
   }
 
   public static String getVersionToCompare(final String version) {
