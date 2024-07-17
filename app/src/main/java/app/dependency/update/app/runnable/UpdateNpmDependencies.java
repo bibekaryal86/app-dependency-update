@@ -7,14 +7,13 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.model.dto.NpmSkips;
+import app.dependency.update.app.service.MongoRepoService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import app.dependency.update.app.model.dto.NpmSkips;
-import app.dependency.update.app.service.MongoRepoService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,7 +22,8 @@ public class UpdateNpmDependencies {
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
-  public UpdateNpmDependencies(final AppInitData appInitData, final MongoRepoService mongoRepoService) {
+  public UpdateNpmDependencies(
+      final AppInitData appInitData, final MongoRepoService mongoRepoService) {
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.NPM_DEPENDENCIES))
@@ -54,18 +54,17 @@ public class UpdateNpmDependencies {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     arguments.add(getNpmSkips());
     return new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+            threadName(repository, this.getClass().getSimpleName()),
+            this.scriptFile,
+            arguments,
+            repository)
         .start();
   }
 
   private String getNpmSkips() {
     Map<String, NpmSkips> npmSkipsMap = this.mongoRepoService.npmSkipsMap();
-    List<String> npmSkips = npmSkipsMap
-            .values()
-            .stream()
-            .filter(NpmSkips::isActive)
-            .map(NpmSkips::getName)
-            .toList();
+    List<String> npmSkips =
+        npmSkipsMap.values().stream().filter(NpmSkips::isActive).map(NpmSkips::getName).toList();
     if (npmSkips.isEmpty()) {
       return ",";
     }

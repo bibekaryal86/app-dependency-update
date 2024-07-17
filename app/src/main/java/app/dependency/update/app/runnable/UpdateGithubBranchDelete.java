@@ -37,7 +37,7 @@ public class UpdateGithubBranchDelete {
     arguments.add(String.valueOf(this.isDeleteUpdateDependenciesOnly));
     Thread executeThread =
         new ExecuteScriptFile(
-                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments)
+                threadName(this.getClass().getSimpleName()), this.scriptFile, arguments, null)
             .start();
     join(executeThread);
   }

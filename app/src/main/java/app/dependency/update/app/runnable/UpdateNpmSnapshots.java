@@ -42,7 +42,10 @@ public class UpdateNpmSnapshots {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(branchName);
     new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+            threadName(repository, this.getClass().getSimpleName()),
+            this.scriptFile,
+            arguments,
+            repository)
         .start();
   }
 }

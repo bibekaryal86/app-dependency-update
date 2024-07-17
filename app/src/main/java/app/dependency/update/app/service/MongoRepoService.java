@@ -167,28 +167,28 @@ public class MongoRepoService {
     npmSkipsRepository.save(npmSkip);
   }
 
-   @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
-   public void updatePluginsInMongo(final Map<String, Plugins> pluginsLocal) {
+  @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
+  public void updatePluginsInMongo(final Map<String, Plugins> pluginsLocal) {
     List<Plugins> plugins = pluginsRepository.findAll();
     List<Plugins> pluginsToUpdate = new ArrayList<>();
 
     plugins.forEach(
-            plugin -> {
-              String group = plugin.getGroup();
-              String currentVersion = plugin.getVersion();
-              // get latest version from Gradle Plugin Repository
-              String latestVersion = gradleRepoService.getLatestGradlePlugin(group);
-              // check if local maven repo needs updating
-              if (isRequiresUpdate(currentVersion, latestVersion)) {
-                pluginsToUpdate.add(
-                        Plugins.builder()
-                                .id(pluginsLocal.get(plugin.getGroup()).getId())
-                                .group(plugin.getGroup())
-                                .version(latestVersion)
-                                .skipVersion(false)
-                                .build());
-              }
-            });
+        plugin -> {
+          String group = plugin.getGroup();
+          String currentVersion = plugin.getVersion();
+          // get latest version from Gradle Plugin Repository
+          String latestVersion = gradleRepoService.getLatestGradlePlugin(group);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            pluginsToUpdate.add(
+                Plugins.builder()
+                    .id(pluginsLocal.get(plugin.getGroup()).getId())
+                    .group(plugin.getGroup())
+                    .version(latestVersion)
+                    .skipVersion(false)
+                    .build());
+          }
+        });
 
     log.info("Mongo Plugins to Update: [{}]\n[{}]", pluginsToUpdate.size(), pluginsToUpdate);
 
@@ -204,29 +204,29 @@ public class MongoRepoService {
     List<Dependencies> dependenciesToUpdate = new ArrayList<>();
 
     dependencies.forEach(
-            dependency -> {
-              String[] mavenIdArray = dependency.getMavenId().split(":");
-              String currentVersion = dependency.getLatestVersion();
-              // get current version from Maven Central Repository
-              String latestVersion =
-                      getLatestDependencyVersion(mavenIdArray[0], mavenIdArray[1], currentVersion);
-              // check if local maven repo needs updating
-              if (isRequiresUpdate(currentVersion, latestVersion)) {
-                dependenciesToUpdate.add(
-                        Dependencies.builder()
-                                .id(dependenciesLocal.get(dependency.getMavenId()).getId())
-                                .mavenId(dependency.getMavenId())
-                                .latestVersion(latestVersion)
-                                .skipVersion(false)
-                                // set skipVersion as false when bumping to a new version
-                                .build());
-              }
-            });
+        dependency -> {
+          String[] mavenIdArray = dependency.getMavenId().split(":");
+          String currentVersion = dependency.getLatestVersion();
+          // get current version from Maven Central Repository
+          String latestVersion =
+              getLatestDependencyVersion(mavenIdArray[0], mavenIdArray[1], currentVersion);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            dependenciesToUpdate.add(
+                Dependencies.builder()
+                    .id(dependenciesLocal.get(dependency.getMavenId()).getId())
+                    .mavenId(dependency.getMavenId())
+                    .latestVersion(latestVersion)
+                    .skipVersion(false)
+                    // set skipVersion as false when bumping to a new version
+                    .build());
+          }
+        });
 
     log.info(
-            "Mongo Dependencies to Update: [{}]\n[{}]",
-            dependenciesToUpdate.size(),
-            dependenciesToUpdate);
+        "Mongo Dependencies to Update: [{}]\n[{}]",
+        dependenciesToUpdate.size(),
+        dependenciesToUpdate);
 
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
@@ -240,22 +240,22 @@ public class MongoRepoService {
     List<Packages> packagesToUpdate = new ArrayList<>();
 
     packages.forEach(
-            onePackage -> {
-              String name = onePackage.getName();
-              String currentVersion = onePackage.getVersion();
-              // get latest version from Pypi Search
-              String latestVersion = pypiRepoService.getLatestPackageVersion(name);
-              // check if local maven repo needs updating
-              if (isRequiresUpdate(currentVersion, latestVersion)) {
-                packagesToUpdate.add(
-                        Packages.builder()
-                                .id(packagesLocal.get(onePackage.getName()).getId())
-                                .name(onePackage.getName())
-                                .version(latestVersion)
-                                .skipVersion(false)
-                                .build());
-              }
-            });
+        onePackage -> {
+          String name = onePackage.getName();
+          String currentVersion = onePackage.getVersion();
+          // get latest version from Pypi Search
+          String latestVersion = pypiRepoService.getLatestPackageVersion(name);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            packagesToUpdate.add(
+                Packages.builder()
+                    .id(packagesLocal.get(onePackage.getName()).getId())
+                    .name(onePackage.getName())
+                    .version(latestVersion)
+                    .skipVersion(false)
+                    .build());
+          }
+        });
 
     log.info("Mongo Packages to Update: [{}]\n[{}]", packagesToUpdate.size(), packagesToUpdate);
 
