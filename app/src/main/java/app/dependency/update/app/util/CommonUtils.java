@@ -1,13 +1,8 @@
 package app.dependency.update.app.util;
 
-import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -79,54 +74,6 @@ public class CommonUtils {
       return false;
     }
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
-  }
-
-  private static Set<String> repositoriesWithPrError = new HashSet<>();
-  private static ConcurrentMap<String, ProcessedRepository> processedRepositories =
-      new ConcurrentHashMap<>();
-
-  public static synchronized void addRepositoriesWithPrError(final String repoName) {
-    repositoriesWithPrError.add(repoName);
-  }
-
-  public static synchronized void removeRepositoriesWithPrError(final String repoName) {
-    repositoriesWithPrError.remove(repoName);
-  }
-
-  public static synchronized Set<String> getRepositoriesWithPrError() {
-    return repositoriesWithPrError;
-  }
-
-  public static synchronized void resetRepositoriesWithPrError() {
-    repositoriesWithPrError = new HashSet<>();
-  }
-
-  public static void addProcessedRepositories(
-      String repoName, boolean isPrCreateAttempted, boolean isPrCreateError) {
-    processedRepositories.put(
-        repoName,
-        ProcessedRepository.builder()
-            .repoName(repoName)
-            .isPrCreated(isPrCreateAttempted && !isPrCreateError)
-            .isPrCreateError(isPrCreateError)
-            .build());
-  }
-
-  public static void updateProcessedRepositoriesToPrMerged(String repoName) {
-    processedRepositories.computeIfPresent(
-        repoName,
-        (key, processedRepository) -> {
-          processedRepository.setPrMerged(true);
-          return processedRepository;
-        });
-  }
-
-  public static ConcurrentMap<String, ProcessedRepository> getProcessedRepositoriesMap() {
-    return processedRepositories;
-  }
-
-  public static void resetProcessedRepositories() {
-    processedRepositories = new ConcurrentHashMap<>();
   }
 
   public enum UpdateType {

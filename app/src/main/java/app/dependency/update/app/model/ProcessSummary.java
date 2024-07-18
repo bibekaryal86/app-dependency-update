@@ -19,11 +19,8 @@ public class ProcessSummary {
   private int mongoDependenciesToUpdate;
   private int mongoPackagesToUpdate;
   private int mongoNpmSkipsActive;
-  private int npmRepositoriesUpdatedCount;
-  private int gradleRepositoriesUpdatedCount;
-  private int pythonRepositoriesUpdatedCount;
-  private int npmRepositoriesMergedCount;
-  private int gradleRepositoriesMergedCount;
-  private int pythonRepositoriesMergedCount;
+  private int totalPrCreatedCount;
+  private int totalPrCreateErrorsCount;
+  private int totalPrMergedCount;
   private List<ProcessedRepository> processedRepositories;
 }
