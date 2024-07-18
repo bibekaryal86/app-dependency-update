@@ -1,8 +1,9 @@
 package app.dependency.update.app.controller;
 
 import static app.dependency.update.app.util.CommonUtils.*;
+import static app.dependency.update.app.util.ProcessUtils.*;
 
-import app.dependency.update.app.service.MavenRepoService;
+import app.dependency.update.app.service.MongoRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
 import app.dependency.update.app.util.AppInitDataUtils;
 import ch.qos.logback.classic.Level;
@@ -20,12 +21,12 @@ import org.springframework.web.bind.annotation.*;
 public class AppTestController {
 
   private final UpdateRepoService updateRepoService;
-  private final MavenRepoService mavenRepoService;
+  private final MongoRepoService mongoRepoService;
 
   public AppTestController(
-      final UpdateRepoService updateRepoService, final MavenRepoService mavenRepoService) {
+      final UpdateRepoService updateRepoService, final MongoRepoService mongoRepoService) {
     this.updateRepoService = updateRepoService;
-    this.mavenRepoService = mavenRepoService;
+    this.mongoRepoService = mongoRepoService;
   }
 
   @Operation(
@@ -63,27 +64,28 @@ public class AppTestController {
       switch (cacheType) {
         case ALL -> {
           AppInitDataUtils.clearAppInitData();
-          mavenRepoService.clearPluginsMap();
-          mavenRepoService.clearDependenciesMap();
+          mongoRepoService.clearPluginsMap();
+          mongoRepoService.clearDependenciesMap();
           AppInitDataUtils.appInitData();
-          mavenRepoService.pluginsMap();
-          mavenRepoService.dependenciesMap();
+          mongoRepoService.pluginsMap();
+          mongoRepoService.dependenciesMap();
         }
         case APP_INIT_DATA -> {
           AppInitDataUtils.clearAppInitData();
           AppInitDataUtils.appInitData();
         }
         case PLUGINS_MAP -> {
-          mavenRepoService.clearPluginsMap();
-          mavenRepoService.pluginsMap();
+          mongoRepoService.clearPluginsMap();
+          mongoRepoService.pluginsMap();
         }
         case DEPENDENCIES_MAP -> {
-          mavenRepoService.clearDependenciesMap();
-          mavenRepoService.dependenciesMap();
+          mongoRepoService.clearDependenciesMap();
+          mongoRepoService.dependenciesMap();
         }
       }
 
       resetRepositoriesWithPrError();
+      resetProcessedRepositoriesAndSummary();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

@@ -3,12 +3,14 @@ package app.dependency.update.app.controller;
 import static app.dependency.update.app.util.CommonUtils.*;
 
 import app.dependency.update.app.model.MongoDependencies;
+import app.dependency.update.app.model.MongoNpmSkips;
 import app.dependency.update.app.model.MongoPackages;
 import app.dependency.update.app.model.MongoPlugins;
 import app.dependency.update.app.model.dto.Dependencies;
+import app.dependency.update.app.model.dto.NpmSkips;
 import app.dependency.update.app.model.dto.Packages;
 import app.dependency.update.app.model.dto.Plugins;
-import app.dependency.update.app.service.MavenRepoService;
+import app.dependency.update.app.service.MongoRepoService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,23 +25,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/maven-repo")
-public class MavenRepoController {
+@RequestMapping("/mongo-repo")
+public class MongoRepoController {
 
-  private final MavenRepoService mavenRepoService;
+  private final MongoRepoService mongoRepoService;
   private static final String SAVE_SUCCESSFUL = "{\"save\": \"successful\"}";
   private static final String SAVE_UNSUCCESSFUL = "{\"save\": \"unsuccessful\", \"message\": \"";
   private static final String SAVE_UNSUCCESSFUL_MISSING_INPUT =
       "{\"save\": \"unsuccessful\", \"message\": \"Missing Input\"}";
 
-  public MavenRepoController(final MavenRepoService mavenRepoService) {
-    this.mavenRepoService = mavenRepoService;
+  public MongoRepoController(final MongoRepoService mongoRepoService) {
+    this.mongoRepoService = mongoRepoService;
   }
 
   @Operation(summary = "Get Plugins in Mongo Repository")
   @GetMapping(value = "/plugins", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MongoPlugins>> getPlugins() {
-    List<Plugins> plugins = mavenRepoService.pluginsMap().values().stream().toList();
+    List<Plugins> plugins = mongoRepoService.pluginsMap().values().stream().toList();
     List<MongoPlugins> mongoPlugins =
         plugins.stream()
             .map(
@@ -63,12 +65,12 @@ public class MavenRepoController {
     }
 
     try {
-      Plugins plugin = mavenRepoService.pluginsMap().get(mongoPlugins.getGroup());
+      Plugins plugin = mongoRepoService.pluginsMap().get(mongoPlugins.getGroup());
       if (plugin == null) {
         plugin = Plugins.builder().build();
       }
       BeanUtils.copyProperties(mongoPlugins, plugin);
-      mavenRepoService.savePlugin(plugin);
+      mongoRepoService.savePlugin(plugin);
       return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
@@ -80,7 +82,7 @@ public class MavenRepoController {
   @GetMapping(value = "/dependencies", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MongoDependencies>> getDependencies(
       @RequestParam(required = false) final String mavenId) {
-    List<Dependencies> dependencies = mavenRepoService.dependenciesMap().values().stream().toList();
+    List<Dependencies> dependencies = mongoRepoService.dependenciesMap().values().stream().toList();
     List<MongoDependencies> mongoDependencies =
         dependencies.stream()
             .filter(dependency -> mavenId == null || mavenId.equals(dependency.getMavenId()))
@@ -107,12 +109,12 @@ public class MavenRepoController {
 
     try {
       Dependencies dependency =
-          mavenRepoService.dependenciesMap().get(mongoDependencies.getMavenId());
+          mongoRepoService.dependenciesMap().get(mongoDependencies.getMavenId());
       if (dependency == null) {
         dependency = Dependencies.builder().build();
       }
       BeanUtils.copyProperties(mongoDependencies, dependency);
-      mavenRepoService.saveDependency(dependency);
+      mongoRepoService.saveDependency(dependency);
       return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
@@ -123,7 +125,7 @@ public class MavenRepoController {
   @Operation(summary = "Get Python Packages in Mongo Repository")
   @GetMapping(value = "/packages", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MongoPackages>> getPackages() {
-    List<Packages> packages = mavenRepoService.packagesMap().values().stream().toList();
+    List<Packages> packages = mongoRepoService.packagesMap().values().stream().toList();
     List<MongoPackages> mongoPackages =
         packages.stream()
             .map(
@@ -147,12 +149,12 @@ public class MavenRepoController {
     }
 
     try {
-      Packages onePackage = mavenRepoService.packagesMap().get(mongoPackages.getName());
+      Packages onePackage = mongoRepoService.packagesMap().get(mongoPackages.getName());
       if (onePackage == null) {
         onePackage = Packages.builder().build();
       }
       BeanUtils.copyProperties(mongoPackages, onePackage);
-      mavenRepoService.savePackage(onePackage);
+      mongoRepoService.savePackage(onePackage);
       return ResponseEntity.ok(SAVE_SUCCESSFUL);
     } catch (Exception ex) {
       return ResponseEntity.status(500)
@@ -160,12 +162,55 @@ public class MavenRepoController {
     }
   }
 
-  @Operation(summary = "On-demand Update Maven Plugins and Dependencies Repo in Mongo")
+  @Operation(summary = "Get Skipped NPM Dependencies in Mongo Repository")
+  @GetMapping(value = "/npm_skips", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<MongoNpmSkips>> getNpmSkips() {
+    List<NpmSkips> npmSkips = mongoRepoService.npmSkipsMap().values().stream().toList();
+    List<MongoNpmSkips> mongoNpmSkips =
+        npmSkips.stream()
+            .map(
+                npmSkip ->
+                    MongoNpmSkips.builder()
+                        .name(npmSkip.getName())
+                        .version(npmSkip.getVersion())
+                        .isActive(npmSkip.isActive())
+                        .build())
+            .toList();
+    return ResponseEntity.ok(mongoNpmSkips);
+  }
+
+  @Operation(summary = "Save NPM Dependencies to Skip in Mongo Repository")
+  @PostMapping(value = "/npm_skips", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> saveNpmSkip(@RequestBody final MongoNpmSkips mongoNpmSkips) {
+    if (mongoNpmSkips == null
+        || isEmpty(mongoNpmSkips.getName())
+        || isEmpty(mongoNpmSkips.getVersion())) {
+      return ResponseEntity.badRequest().body(SAVE_UNSUCCESSFUL_MISSING_INPUT);
+    }
+
+    try {
+      NpmSkips npmSkip = mongoRepoService.npmSkipsMap().get(mongoNpmSkips.getName());
+      if (npmSkip == null) {
+        npmSkip = NpmSkips.builder().build();
+      }
+      BeanUtils.copyProperties(mongoNpmSkips, npmSkip);
+      mongoRepoService.saveNpmSkip(npmSkip);
+      return ResponseEntity.ok(SAVE_SUCCESSFUL);
+    } catch (Exception ex) {
+      return ResponseEntity.status(500)
+          .body(SAVE_UNSUCCESSFUL + ex.getMessage().replace("\"", "'") + "\"}");
+    }
+  }
+
+  @Operation(summary = "On-demand Update Dependencies and Plugins Repo in Mongo")
   @PostMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> updateMavenRepoInMongo() {
-    CompletableFuture.runAsync(mavenRepoService::updateDependenciesInMongo);
-    CompletableFuture.runAsync(mavenRepoService::updatePluginsInMongo);
-    CompletableFuture.runAsync(mavenRepoService::updatePackagesInMongo);
+    CompletableFuture.runAsync(
+        () -> mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap()));
+    CompletableFuture.runAsync(
+        () -> mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap()));
+    CompletableFuture.runAsync(
+        () -> mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap()));
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 }

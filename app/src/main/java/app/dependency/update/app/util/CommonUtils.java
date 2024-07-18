@@ -2,9 +2,7 @@ package app.dependency.update.app.util;
 
 import app.dependency.update.app.model.Repository;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -45,17 +43,13 @@ public class CommonUtils {
   }
 
   public static boolean isCheckPreReleaseVersion(final String version) {
-    return version.contains("alpha")
-        || version.contains("ALPHA")
-        || version.contains("b")
-        || version.contains("beta")
-        || version.contains("BETA")
-        || version.contains("rc")
-        || version.contains("RC")
-        || version.contains("m")
-        || version.contains("M")
-        || version.contains("snapshot")
-        || version.contains("SNAPSHOT");
+    String versionLowercase = version.toLowerCase();
+    return versionLowercase.contains("alpha")
+        || versionLowercase.contains("beta")
+        || versionLowercase.contains("b")
+        || versionLowercase.contains("rc")
+        || versionLowercase.contains("m")
+        || versionLowercase.contains("snapshot");
   }
 
   public static String getVersionToCompare(final String version) {
@@ -80,24 +74,6 @@ public class CommonUtils {
       return false;
     }
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
-  }
-
-  private static Set<String> repositoriesWithPrError = new HashSet<>();
-
-  public static synchronized void addRepositoriesWithPrError(final String repository) {
-    repositoriesWithPrError.add(repository);
-  }
-
-  public static synchronized void removeRepositoriesWithPrError(final String repository) {
-    repositoriesWithPrError.remove(repository);
-  }
-
-  public static synchronized Set<String> getRepositoriesWithPrError() {
-    return repositoriesWithPrError;
-  }
-
-  public static synchronized void resetRepositoriesWithPrError() {
-    repositoriesWithPrError = new HashSet<>();
   }
 
   public enum UpdateType {

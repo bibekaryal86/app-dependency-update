@@ -79,8 +79,8 @@ public class AppInitDataUtils {
     }
     map.put(ENV_MONGO_PASSWORD, getSystemEnvProperty(ENV_MONGO_PASSWORD));
 
-    if ("true".equals(getSystemEnvProperty(ENV_SEND_EMAIL_LOG))) {
-      map.put(ENV_SEND_EMAIL_LOG, getSystemEnvProperty(ENV_SEND_EMAIL_LOG));
+    if ("true".equals(getSystemEnvProperty(ENV_SEND_EMAIL))) {
+      map.put(ENV_SEND_EMAIL, getSystemEnvProperty(ENV_SEND_EMAIL));
 
       if (getSystemEnvProperty(ENV_MAILJET_EMAIL_ADDRESS) == null) {
         throw new AppDependencyUpdateRuntimeException("mj_email env property must be provided");

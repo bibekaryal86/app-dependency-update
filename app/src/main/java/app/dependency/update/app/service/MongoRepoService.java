@@ -7,15 +7,17 @@ import app.dependency.update.app.model.MavenDoc;
 import app.dependency.update.app.model.MavenResponse;
 import app.dependency.update.app.model.MavenSearchResponse;
 import app.dependency.update.app.model.dto.Dependencies;
+import app.dependency.update.app.model.dto.NpmSkips;
 import app.dependency.update.app.model.dto.Packages;
 import app.dependency.update.app.model.dto.Plugins;
 import app.dependency.update.app.repository.DependenciesRepository;
+import app.dependency.update.app.repository.NpmSkipsRepository;
 import app.dependency.update.app.repository.PackagesRepository;
 import app.dependency.update.app.repository.PluginsRepository;
 import app.dependency.update.app.util.CommonUtils;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,25 +28,28 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class MavenRepoService {
+public class MongoRepoService {
 
   private final PluginsRepository pluginsRepository;
   private final DependenciesRepository dependenciesRepository;
   private final PackagesRepository packagesRepository;
+  private final NpmSkipsRepository npmSkipsRepository;
   private final MavenConnector mavenConnector;
   private final GradleRepoService gradleRepoService;
   private final PypiRepoService pypiRepoService;
 
-  public MavenRepoService(
+  public MongoRepoService(
       final PluginsRepository pluginsRepository,
       final DependenciesRepository dependenciesRepository,
       final PackagesRepository packagesRepository,
+      final NpmSkipsRepository npmSkipsRepository,
       final MavenConnector mavenConnector,
       final GradleRepoService gradleRepoService,
       final PypiRepoService pypiRepoService) {
     this.pluginsRepository = pluginsRepository;
     this.dependenciesRepository = dependenciesRepository;
     this.packagesRepository = packagesRepository;
+    this.npmSkipsRepository = npmSkipsRepository;
     this.mavenConnector = mavenConnector;
     this.gradleRepoService = gradleRepoService;
     this.pypiRepoService = pypiRepoService;
@@ -69,6 +74,7 @@ public class MavenRepoService {
   }
 
   // save plugin, no cache evict
+  // reason: called from middle of execution, will be reset at the end
   public void savePlugin(final String group, final String version) {
     log.info("Save Plugin: [ {} ] | [ {} ]", group, version);
     try {
@@ -99,6 +105,7 @@ public class MavenRepoService {
   }
 
   // save dependency, no cache evict
+  // reason: called from middle of execution, will be reset at the end
   public void saveDependency(final String mavenId, final String latestVersion) {
     log.info("Save Dependency: [ {} ] | [ {} ]", mavenId, latestVersion);
     try {
@@ -132,6 +139,7 @@ public class MavenRepoService {
   }
 
   // save package, no cache evict
+  // reason: called from middle of execution, will be reset at the end
   public void savePackage(final String name, final String version) {
     log.info("Save Package: [ {} ] | [ {} ]", name, version);
     try {
@@ -142,20 +150,26 @@ public class MavenRepoService {
     }
   }
 
-  public void updatePluginsInMongo() {
-    updatePluginsInMongo(new HashMap<>(pluginsMap()));
+  @Cacheable(value = "npmSkipsMap", unless = "#result==null")
+  public Map<String, NpmSkips> npmSkipsMap() {
+    List<NpmSkips> npmSkips = npmSkipsRepository.findAll();
+    log.info("NpmSkips Map: [ {} ]", npmSkips.size());
+    return npmSkips.stream().collect(Collectors.toMap(NpmSkips::getName, npmSkip -> npmSkip));
   }
 
-  public void updateDependenciesInMongo() {
-    updateDependenciesInMongo(new HashMap<>(dependenciesMap()));
+  @CacheEvict(value = "npmSkipsMap", allEntries = true, beforeInvocation = true)
+  public void clearNpmSkipsMap() {
+    log.info("Clear NpmSkips Map...");
   }
 
-  public void updatePackagesInMongo() {
-    updatePackagesInMongo(new HashMap<>(packagesMap()));
+  @CacheEvict(value = "npmSkipsMap", allEntries = true, beforeInvocation = true)
+  public void saveNpmSkip(final NpmSkips npmSkip) {
+    log.info("Save NpmSkips: [ {} ]", npmSkip);
+    npmSkipsRepository.save(npmSkip);
   }
 
   @CacheEvict(value = "pluginsMap", allEntries = true, beforeInvocation = true)
-  private void updatePluginsInMongo(final Map<String, Plugins> pluginsLocal) {
+  public void updatePluginsInMongo(final Map<String, Plugins> pluginsLocal) {
     List<Plugins> plugins = pluginsRepository.findAll();
     List<Plugins> pluginsToUpdate = new ArrayList<>();
 
@@ -182,11 +196,12 @@ public class MavenRepoService {
     if (!pluginsToUpdate.isEmpty()) {
       pluginsRepository.saveAll(pluginsToUpdate);
       log.info("Mongo Plugins Updated...");
+      ProcessUtils.setMongoPluginsToUpdate(pluginsToUpdate.size());
     }
   }
 
   @CacheEvict(value = "dependenciesMap", allEntries = true, beforeInvocation = true)
-  private void updateDependenciesInMongo(final Map<String, Dependencies> dependenciesLocal) {
+  public void updateDependenciesInMongo(final Map<String, Dependencies> dependenciesLocal) {
     List<Dependencies> dependencies = dependenciesRepository.findAll();
     List<Dependencies> dependenciesToUpdate = new ArrayList<>();
 
@@ -218,6 +233,39 @@ public class MavenRepoService {
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
       log.info("Mongo Dependencies Updated...");
+      ProcessUtils.setMongoDependenciesToUpdate(dependenciesToUpdate.size());
+    }
+  }
+
+  @CacheEvict(value = "packagesMap", allEntries = true, beforeInvocation = true)
+  public void updatePackagesInMongo(final Map<String, Packages> packagesLocal) {
+    List<Packages> packages = packagesRepository.findAll();
+    List<Packages> packagesToUpdate = new ArrayList<>();
+
+    packages.forEach(
+        onePackage -> {
+          String name = onePackage.getName();
+          String currentVersion = onePackage.getVersion();
+          // get latest version from Pypi Search
+          String latestVersion = pypiRepoService.getLatestPackageVersion(name);
+          // check if local maven repo needs updating
+          if (isRequiresUpdate(currentVersion, latestVersion)) {
+            packagesToUpdate.add(
+                Packages.builder()
+                    .id(packagesLocal.get(onePackage.getName()).getId())
+                    .name(onePackage.getName())
+                    .version(latestVersion)
+                    .skipVersion(false)
+                    .build());
+          }
+        });
+
+    log.info("Mongo Packages to Update: [{}]\n[{}]", packagesToUpdate.size(), packagesToUpdate);
+
+    if (!packagesToUpdate.isEmpty()) {
+      packagesRepository.saveAll(packagesToUpdate);
+      log.info("Mongo Packages Updated...");
+      ProcessUtils.setMongoPackagesToUpdate(packagesToUpdate.size());
     }
   }
 
@@ -258,36 +306,5 @@ public class MavenRepoService {
           .orElse(null);
     }
     return null;
-  }
-
-  @CacheEvict(value = "packagesMap", allEntries = true, beforeInvocation = true)
-  private void updatePackagesInMongo(final Map<String, Packages> packagesLocal) {
-    List<Packages> packages = packagesRepository.findAll();
-    List<Packages> packagesToUpdate = new ArrayList<>();
-
-    packages.forEach(
-        onePackage -> {
-          String name = onePackage.getName();
-          String currentVersion = onePackage.getVersion();
-          // get latest version from Pypi Search
-          String latestVersion = pypiRepoService.getLatestPackageVersion(name);
-          // check if local maven repo needs updating
-          if (isRequiresUpdate(currentVersion, latestVersion)) {
-            packagesToUpdate.add(
-                Packages.builder()
-                    .id(packagesLocal.get(onePackage.getName()).getId())
-                    .name(onePackage.getName())
-                    .version(latestVersion)
-                    .skipVersion(false)
-                    .build());
-          }
-        });
-
-    log.info("Mongo Packages to Update: [{}]\n[{}]", packagesToUpdate.size(), packagesToUpdate);
-
-    if (!packagesToUpdate.isEmpty()) {
-      packagesRepository.saveAll(packagesToUpdate);
-      log.info("Mongo Packages Updated...");
-    }
   }
 }

@@ -12,7 +12,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.Dependencies;
 import app.dependency.update.app.model.dto.Plugins;
-import app.dependency.update.app.service.MavenRepoService;
+import app.dependency.update.app.service.MongoRepoService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,7 +38,7 @@ public class ExecuteGradleUpdate implements Runnable {
   private final List<String> arguments;
   private final Map<String, Plugins> pluginsMap;
   private final Map<String, Dependencies> dependenciesMap;
-  private final MavenRepoService mavenRepoService;
+  private final MongoRepoService mongoRepoService;
   private Thread thread;
   private boolean isExecuteScriptRequired = false;
 
@@ -46,14 +46,14 @@ public class ExecuteGradleUpdate implements Runnable {
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
-      final MavenRepoService mavenRepoService) {
+      final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
-    this.pluginsMap = mavenRepoService.pluginsMap();
-    this.dependenciesMap = mavenRepoService.dependenciesMap();
-    this.mavenRepoService = mavenRepoService;
+    this.pluginsMap = mongoRepoService.pluginsMap();
+    this.dependenciesMap = mongoRepoService.dependenciesMap();
+    this.mongoRepoService = mongoRepoService;
   }
 
   @Override
@@ -524,7 +524,7 @@ public class ExecuteGradleUpdate implements Runnable {
       // It is likely plugin information is not available in the local repository
       log.info("Plugin information missing in local repo: [ {} ]", group);
       // Save to mongo repository
-      mavenRepoService.savePlugin(group, gradlePlugin.getVersion());
+      mongoRepoService.savePlugin(group, gradlePlugin.getVersion());
     }
 
     String latestVersion = "";
@@ -549,7 +549,7 @@ public class ExecuteGradleUpdate implements Runnable {
       // It is likely dependency information is not available in the local repository
       log.info("Dependency information missing in local repo: [ {} ]", mavenId);
       // Save to mongo repository
-      mavenRepoService.saveDependency(mavenId, gradleDependency.getVersion());
+      mongoRepoService.saveDependency(mavenId, gradleDependency.getVersion());
     }
 
     String latestVersion = "";

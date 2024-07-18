@@ -6,7 +6,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.Packages;
-import app.dependency.update.app.service.MavenRepoService;
+import app.dependency.update.app.service.MongoRepoService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ public class ExecutePythonUpdate implements Runnable {
   private final ScriptFile scriptFile;
   private final List<String> arguments;
   private final Map<String, Packages> packagesMap;
-  private final MavenRepoService mavenRepoService;
+  private final MongoRepoService mongoRepoService;
   private Thread thread;
   private boolean isExecuteScriptRequired = false;
 
@@ -34,13 +34,13 @@ public class ExecutePythonUpdate implements Runnable {
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
-      final MavenRepoService mavenRepoService) {
+      final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
-    this.packagesMap = mavenRepoService.packagesMap();
-    this.mavenRepoService = mavenRepoService;
+    this.packagesMap = mongoRepoService.packagesMap();
+    this.mongoRepoService = mongoRepoService;
   }
 
   @Override
@@ -154,7 +154,7 @@ public class ExecutePythonUpdate implements Runnable {
         // It is likely plugin information is not available in the local repository
         log.info("Packages information missing in local repo: [ {} ]", name);
         // Save to mongo repository
-        mavenRepoService.savePackage(name, version);
+        mongoRepoService.savePackage(name, version);
       }
 
       String latestVersion = "";
@@ -246,7 +246,7 @@ public class ExecutePythonUpdate implements Runnable {
           // It is likely plugin information is not available in the local repository
           log.info("Packages information missing in local repo: [ {} ]", name);
           // Save to mongo repository
-          mavenRepoService.savePackage(name, version);
+          mongoRepoService.savePackage(name, version);
         }
 
         String latestVersion = "";
