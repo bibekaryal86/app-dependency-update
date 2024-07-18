@@ -307,6 +307,7 @@ public class UpdateRepoService {
 
       String subject = "App Dependency Update Daily Logs";
       String html = getProcessSummaryContent();
+      log.debug(html);
       String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
       String attachment = getLogFileContent();
       emailService.sendEmail(subject, null, html, attachmentFileName, attachment);
