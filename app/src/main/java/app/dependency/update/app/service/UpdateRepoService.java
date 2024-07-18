@@ -2,16 +2,21 @@ package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDENCIES;
-import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL_LOG;
+import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
+import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
+import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.AppInitDataUtils;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -163,13 +168,8 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry(isShouldSendEmail);
-    // email log file
-    boolean isSendEmail =
-        "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL_LOG));
-    if (isSendEmail && isShouldSendEmail) {
-      log.info("Update Repos All Continue, Sending Email...");
-      emailService.sendLogEmail();
-    }
+    // send process summary email if applicable
+    sendProcessSummaryEmail(isShouldSendEmail);
     // this is the final step, clear processed repositories
     resetProcessedRepositories();
   }
@@ -291,5 +291,35 @@ public class UpdateRepoService {
                 .filter(repository -> beginSet.contains(repository.getRepoName()))
                 .toList();
     new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
+  }
+
+  private void sendProcessSummaryEmail(final boolean isShouldSendEmail) {
+    boolean isSendEmail =
+        "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL));
+    if (isSendEmail && isShouldSendEmail) {
+      log.info("Update Repos All Continue, Sending Email...");
+
+      String subject = "App Dependency Update Daily Logs";
+      String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
+      String attachment = getLogFileContent();
+      // TODO add html component
+      emailService.sendEmail(subject, null, null, attachmentFileName, attachment);
+    }
+  }
+
+  private String getLogFileContent() {
+    String logHome =
+        AppInitDataUtils.appInitData()
+            .getArgsMap()
+            .get(ENV_REPO_NAME)
+            .concat("/logs/app-dependency-update");
+    try {
+      Path path = Path.of(logHome + PATH_DELIMITER + "app-dependency-update.log");
+      byte[] fileContent = Files.readAllBytes(path);
+      return Base64.getEncoder().encodeToString(fileContent);
+    } catch (Exception ex) {
+      log.error("Get Log File Content Error...", ex);
+    }
+    return null;
   }
 }

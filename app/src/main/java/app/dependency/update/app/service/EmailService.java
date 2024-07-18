@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.isEmpty;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.util.AppInitDataUtils;
@@ -8,9 +9,6 @@ import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.resource.Emailv31;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -29,39 +27,57 @@ public class EmailService {
             .build());
   }
 
-  private void sendEmail(final String text) {
+  public void sendEmail(
+      final String subject,
+      final String text,
+      final String html,
+      final String attachmentFileName,
+      final String attachment) {
     log.info("Sending Email...");
 
     try {
       String emailSenderEmail =
           AppInitDataUtils.appInitData().getArgsMap().get(ENV_MAILJET_EMAIL_ADDRESS);
 
-      MailjetRequest request =
-          new MailjetRequest(Emailv31.resource)
-              .property(
-                  Emailv31.MESSAGES,
+      JSONObject message =
+          new JSONObject()
+              .put(Emailv31.Message.CUSTOMID, UUID.randomUUID().toString())
+              .put(
+                  Emailv31.Message.FROM,
+                  new JSONObject()
+                      .put("Email", emailSenderEmail)
+                      .put("Name", "MailJet--" + emailSenderEmail))
+              .put(
+                  Emailv31.Message.TO,
                   new JSONArray()
                       .put(
                           new JSONObject()
-                              .put(
-                                  Emailv31.Message.FROM,
-                                  new JSONObject()
-                                      .put("Email", emailSenderEmail)
-                                      .put("Name", "MailJet--" + emailSenderEmail))
-                              .put(
-                                  Emailv31.Message.TO,
-                                  new JSONArray()
-                                      .put(
-                                          new JSONObject()
-                                              .put("Email", emailSenderEmail)
-                                              .put("Name", "MailJet--" + emailSenderEmail)))
-                              .put(
-                                  Emailv31.Message.SUBJECT,
-                                  text.contains("ERROR")
-                                      ? "**ERROR** App Dependency Update Logs"
-                                      : "App Dependency Update Logs")
-                              .put(Emailv31.Message.TEXTPART, text)
-                              .put(Emailv31.Message.CUSTOMID, UUID.randomUUID().toString())));
+                              .put("Email", emailSenderEmail)
+                              .put("Name", "MailJet--" + emailSenderEmail)))
+              .put(Emailv31.Message.SUBJECT, subject);
+
+      if (!isEmpty(text)) {
+        message.put(Emailv31.Message.TEXTPART, text);
+      }
+
+      if (!isEmpty(html)) {
+        message.put(Emailv31.Message.HTMLPART, html);
+      }
+
+      if (!isEmpty(attachmentFileName) && !isEmpty(attachment)) {
+        message.put(
+            Emailv31.Message.ATTACHMENTS,
+            new JSONArray()
+                .put(
+                    new JSONObject()
+                        .put("ContentType", "text/plain")
+                        .put("Filename", attachmentFileName)
+                        .put("Base64Content", attachment)));
+      }
+
+      MailjetRequest request =
+          new MailjetRequest(Emailv31.resource)
+              .property(Emailv31.MESSAGES, new JSONArray().put(message));
 
       MailjetResponse response = mailjetClient().post(request);
 
@@ -72,24 +88,6 @@ public class EmailService {
       }
     } catch (Exception ex) {
       log.error("Send Email Error...", ex);
-    }
-  }
-
-  private String getLogFileContent() throws IOException {
-    String logHome =
-        AppInitDataUtils.appInitData()
-            .getArgsMap()
-            .get(ENV_REPO_NAME)
-            .concat("/logs/app-dependency-update");
-    Path path = Path.of(logHome + PATH_DELIMITER + "app-dependency-update.log");
-    return Files.readString(path);
-  }
-
-  public void sendLogEmail() {
-    try {
-      sendEmail(getLogFileContent());
-    } catch (Exception ex) {
-      log.error("Send Log Email Error...", ex);
     }
   }
 }

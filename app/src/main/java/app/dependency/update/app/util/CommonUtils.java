@@ -1,7 +1,7 @@
 package app.dependency.update.app.util;
 
+import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.model.RepositoryProcessed;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +82,7 @@ public class CommonUtils {
   }
 
   private static Set<String> repositoriesWithPrError = new HashSet<>();
-  private static ConcurrentMap<String, RepositoryProcessed> processedRepositories =
+  private static ConcurrentMap<String, ProcessedRepository> processedRepositories =
       new ConcurrentHashMap<>();
 
   public static synchronized void addRepositoriesWithPrError(final String repoName) {
@@ -105,7 +105,7 @@ public class CommonUtils {
       String repoName, boolean isPrCreateAttempted, boolean isPrCreateError) {
     processedRepositories.put(
         repoName,
-        RepositoryProcessed.builder()
+        ProcessedRepository.builder()
             .repoName(repoName)
             .isPrCreated(isPrCreateAttempted && !isPrCreateError)
             .isPrCreateError(isPrCreateError)
@@ -115,13 +115,13 @@ public class CommonUtils {
   public static void updateProcessedRepositoriesToPrMerged(String repoName) {
     processedRepositories.computeIfPresent(
         repoName,
-        (key, repositoryProcessed) -> {
-          repositoryProcessed.setPrMerged(true);
-          return repositoryProcessed;
+        (key, processedRepository) -> {
+          processedRepository.setPrMerged(true);
+          return processedRepository;
         });
   }
 
-  public static ConcurrentMap<String, RepositoryProcessed> getProcessedRepositoriesMap() {
+  public static ConcurrentMap<String, ProcessedRepository> getProcessedRepositoriesMap() {
     return processedRepositories;
   }
 

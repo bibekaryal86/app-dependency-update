@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EmailContent {
+public class ProcessSummary {
   private int mongoPluginsToUpdate;
   private int mongoDependenciesToUpdate;
   private int mongoPackagesToUpdate;
@@ -25,5 +25,5 @@ public class EmailContent {
   private int npmRepositoriesMergedCount;
   private int gradleRepositoriesMergedCount;
   private int pythonRepositoriesMergedCount;
-  private List<RepositoryProcessed> repositoryList;
+  private List<ProcessedRepository> processedRepositories;
 }

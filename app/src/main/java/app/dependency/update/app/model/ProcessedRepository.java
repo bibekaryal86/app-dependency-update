@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RepositoryProcessed {
+public class ProcessedRepository {
   private String repoName;
   private boolean isPrCreated;
   private boolean isPrCreateError;
