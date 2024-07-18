@@ -23,7 +23,7 @@ public class LogStreamService {
                   .filter(path -> !path.equals("app-dependency-update.log"))
                   .sorted(Comparator.reverseOrder())
                   .toList());
-      logFileNames.add(0, "app-dependency-update.log");
+      logFileNames.addFirst("app-dependency-update.log");
       return logFileNames;
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(
