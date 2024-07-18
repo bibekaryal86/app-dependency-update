@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+
 # The above bash location was retrieved using `which bash` in raspberry pi
 
 # Location of the repo

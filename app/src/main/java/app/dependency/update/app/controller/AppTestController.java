@@ -84,6 +84,7 @@ public class AppTestController {
       }
 
       resetRepositoriesWithPrError();
+      resetProcessedRepositories();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");
