@@ -68,7 +68,7 @@ public class UpdateRepoController {
           updateType,
           isForceCreatePr,
           isDeleteUpdateDependenciesOnly,
-          false);
+          true);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
