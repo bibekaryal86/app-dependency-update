@@ -97,12 +97,12 @@ public class ExecuteScriptFile implements Runnable {
           "Error in Process Stream Output: " + ", " + this.scriptPath, ex.getCause());
     }
 
-    boolean isCheckPrCreateRelatedRequired = isCheckPrCreateRequired();
-    boolean isCheckPrMergeRelatedRequired = isCheckPrMergeRequired();
+    boolean isPrCreateCheckRequired = checkPrCreateRequired();
+    boolean isPrMergeCheckRequired = checkPrMergeRequired();
 
-    if (isCheckPrCreateRelatedRequired) {
+    if (isPrCreateCheckRequired) {
       checkRepositoryPrCreateRelated(stringBuilder.toString());
-    } else if (isCheckPrMergeRelatedRequired) {
+    } else if (isPrMergeCheckRequired) {
       checkRepositoryPrMergeRelated(stringBuilder.toString());
     }
   }
@@ -125,14 +125,14 @@ public class ExecuteScriptFile implements Runnable {
     }
   }
 
-  private boolean isCheckPrCreateRequired() {
+  private boolean checkPrCreateRequired() {
     return this.scriptPath.contains(UpdateType.NPM_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.GRADLE_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.PYTHON_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.GITHUB_PR_CREATE.toString());
   }
 
-  private boolean isCheckPrMergeRequired() {
+  private boolean checkPrMergeRequired() {
     return this.scriptPath.contains(UpdateType.GITHUB_MERGE.toString());
   }
 
@@ -152,7 +152,7 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private boolean checkPrMerged(final String output) {
-    return output.contains("Merged PR");
+    return output.contains("Merged PR") && !output.contains("already merged");
   }
 
   private String findRepoNameForPrMerge(final String output) {
