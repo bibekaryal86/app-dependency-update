@@ -5,18 +5,24 @@ import static app.dependency.update.app.util.ConstantUtils.BRANCH_UPDATE_DEPENDE
 import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
+import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
+import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.ProcessSummary;
+import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.AppInitDataUtils;
+import app.dependency.update.app.util.ProcessUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +81,7 @@ public class UpdateRepoService {
       final boolean isDeleteUpdateDependenciesOnly,
       final boolean isShouldSendEmail) {
     // reset processed repository map from previous run if anything remaining
-    resetProcessedRepositories();
+    resetProcessedRepositoriesAndSummary();
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
           () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
@@ -171,7 +177,7 @@ public class UpdateRepoService {
     // send process summary email if applicable
     sendProcessSummaryEmail(isShouldSendEmail);
     // this is the final step, clear processed repositories
-    resetProcessedRepositories();
+    resetProcessedRepositoriesAndSummary();
   }
 
   /**
@@ -235,7 +241,7 @@ public class UpdateRepoService {
 
     updateReposContinueGithubPrCreateRetry(false);
     // reset processed repositories
-    resetProcessedRepositories();
+    resetProcessedRepositoriesAndSummary();
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {
@@ -300,10 +306,10 @@ public class UpdateRepoService {
       log.info("Update Repos All Continue, Sending Email...");
 
       String subject = "App Dependency Update Daily Logs";
+      String html = getProcessSummaryContent();
       String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
       String attachment = getLogFileContent();
-      // TODO add html component
-      emailService.sendEmail(subject, null, null, attachmentFileName, attachment);
+      emailService.sendEmail(subject, null, html, attachmentFileName, attachment);
     }
   }
 
@@ -321,5 +327,33 @@ public class UpdateRepoService {
       log.error("Get Log File Content Error...", ex);
     }
     return null;
+  }
+
+  private String getProcessSummaryContent() {
+    ProcessSummary processSummary = getProcessSummary();
+
+    return null;
+  }
+
+  private ProcessSummary getProcessSummary() {
+    List<ProcessedRepository> processedRepositories =
+        ProcessUtils.getProcessedRepositoriesMap().values().stream()
+            .sorted(Comparator.comparing(ProcessedRepository::getRepoName))
+            .toList();
+
+    return ProcessSummary.builder()
+        .mongoPluginsToUpdate(ProcessUtils.getMongoPluginsToUpdate())
+        .mongoDependenciesToUpdate(ProcessUtils.getMongoDependenciesToUpdate())
+        .mongoPackagesToUpdate(ProcessUtils.getMongoPackagesToUpdate())
+        .mongoNpmSkipsActive(ProcessUtils.getMongoNpmSkipsActive())
+        .totalPrCreatedCount(
+            (int) processedRepositories.stream().filter(ProcessedRepository::isPrCreated).count())
+        .totalPrCreateErrorsCount(
+            (int)
+                processedRepositories.stream().filter(ProcessedRepository::isPrCreateError).count())
+        .totalPrMergedCount(
+            (int) processedRepositories.stream().filter(ProcessedRepository::isPrMerged).count())
+        .processedRepositories(processedRepositories)
+        .build();
   }
 }

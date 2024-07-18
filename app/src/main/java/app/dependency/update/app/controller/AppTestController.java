@@ -1,6 +1,7 @@
 package app.dependency.update.app.controller;
 
 import static app.dependency.update.app.util.CommonUtils.*;
+import static app.dependency.update.app.util.ProcessUtils.*;
 
 import app.dependency.update.app.service.MongoRepoService;
 import app.dependency.update.app.service.UpdateRepoService;
@@ -84,7 +85,7 @@ public class AppTestController {
       }
 
       resetRepositoriesWithPrError();
-      resetProcessedRepositories();
+      resetProcessedRepositoriesAndSummary();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"wrong\": \"answer\"}");

@@ -9,6 +9,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.dto.NpmSkips;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -64,6 +65,8 @@ public class UpdateNpmDependencies {
         npmSkipsMap.values().stream().filter(NpmSkips::isActive).map(NpmSkips::getName).toList();
     if (npmSkips.isEmpty()) {
       return ",";
+    } else {
+      ProcessUtils.setMongoNpmSkipsActive(npmSkips.size());
     }
     return String.join(",", npmSkips);
   }

@@ -15,6 +15,7 @@ import app.dependency.update.app.repository.NpmSkipsRepository;
 import app.dependency.update.app.repository.PackagesRepository;
 import app.dependency.update.app.repository.PluginsRepository;
 import app.dependency.update.app.util.CommonUtils;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -195,6 +196,7 @@ public class MongoRepoService {
     if (!pluginsToUpdate.isEmpty()) {
       pluginsRepository.saveAll(pluginsToUpdate);
       log.info("Mongo Plugins Updated...");
+      ProcessUtils.setMongoPluginsToUpdate(pluginsToUpdate.size());
     }
   }
 
@@ -231,6 +233,7 @@ public class MongoRepoService {
     if (!dependenciesToUpdate.isEmpty()) {
       dependenciesRepository.saveAll(dependenciesToUpdate);
       log.info("Mongo Dependencies Updated...");
+      ProcessUtils.setMongoDependenciesToUpdate(dependenciesToUpdate.size());
     }
   }
 
@@ -262,6 +265,7 @@ public class MongoRepoService {
     if (!packagesToUpdate.isEmpty()) {
       packagesRepository.saveAll(packagesToUpdate);
       log.info("Mongo Packages Updated...");
+      ProcessUtils.setMongoPackagesToUpdate(packagesToUpdate.size());
     }
   }
 
