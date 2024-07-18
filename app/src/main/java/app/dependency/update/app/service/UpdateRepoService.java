@@ -69,6 +69,8 @@ public class UpdateRepoService {
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
       final boolean isShouldSendEmail) {
+    // reset processed repository map from previous run if anything remaining
+    resetProcessedRepositories();
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
           () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
@@ -168,6 +170,8 @@ public class UpdateRepoService {
       log.info("Update Repos All Continue, Sending Email...");
       emailService.sendLogEmail();
     }
+    // this is the final step, clear processed repositories
+    resetProcessedRepositories();
   }
 
   /**
@@ -230,6 +234,8 @@ public class UpdateRepoService {
     }
 
     updateReposContinueGithubPrCreateRetry(false);
+    // reset processed repositories
+    resetProcessedRepositories();
   }
 
   private void executeUpdateRepos(final UpdateType updateType) {
