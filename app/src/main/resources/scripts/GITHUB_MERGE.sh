@@ -50,7 +50,7 @@ do
 
                   if [[ ("$pr_check" != *"fail"*) && ("$pr_check" != *"no pull requests found"*) ]]; then
                   	pr_merge=$(gh pr merge "$branch_name" -s -d 2>&1)
-                  	echo "Merged PR: $pr_merge"
+                  	echo "Merged PR: $pr_merge $sub_dir"
                   fi
 
                   # Change back to the current subdirectory
