@@ -1,4 +1,4 @@
-package app.dependency.update.app.model.dto;
+package app.dependency.update.app.model.entities;
 
 import static app.dependency.update.app.util.ConstantUtils.*;
 
