@@ -21,10 +21,12 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -331,10 +333,25 @@ public class UpdateRepoService {
   }
 
   private String getProcessSummaryContent() {
+    Map<String, ProcessedRepository> processedRepositoryMap =
+        ProcessUtils.getProcessedRepositoriesMap();
     List<ProcessedRepository> processedRepositories =
-        ProcessUtils.getProcessedRepositoriesMap().values().stream()
-            .sorted(Comparator.comparing(ProcessedRepository::getRepoName))
-            .toList();
+        new ArrayList<>(ProcessUtils.getProcessedRepositoriesMap().values().stream().toList());
+    List<Repository> allRepositories = AppInitDataUtils.appInitData().getRepositories();
+
+    for (Repository repository : allRepositories) {
+      if (!processedRepositoryMap.containsKey(repository.getRepoName())) {
+        processedRepositories.add(
+            ProcessedRepository.builder()
+                .repoName(repository.getRepoName())
+                .isPrCreated(false)
+                .isPrCreateError(false)
+                .isPrMerged(false)
+                .build());
+      }
+    }
+
+    processedRepositories.sort(Comparator.comparing(ProcessedRepository::getRepoName));
 
     ProcessSummary processSummary =
         ProcessSummary.builder()
