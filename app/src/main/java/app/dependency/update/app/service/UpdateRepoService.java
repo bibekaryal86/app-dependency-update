@@ -377,6 +377,12 @@ public class UpdateRepoService {
                     text-align: left;
                     border-bottom: 1px solid #9e9e9e;
                   }
+                  td:first-child {
+                     text-align: left;
+                   }
+                   td:not(:first-child) {
+                     text-align: center;
+                   }
                 </style>
               </head>
               <body>
