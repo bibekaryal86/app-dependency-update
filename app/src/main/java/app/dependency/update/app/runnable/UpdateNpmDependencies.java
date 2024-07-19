@@ -7,7 +7,7 @@ import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.model.dto.NpmSkips;
+import app.dependency.update.app.model.entities.NpmSkips;
 import app.dependency.update.app.service.MongoRepoService;
 import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDate;
