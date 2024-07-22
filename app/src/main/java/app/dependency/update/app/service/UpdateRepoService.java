@@ -7,6 +7,7 @@ import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
 import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
+import static app.dependency.update.app.util.ProcessUtils.updateProcessedRepositoriesRepoType;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
@@ -165,19 +166,19 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.PYTHON_DEPENDENCIES);
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllContinue(isShouldSendEmail), Instant.now().plusSeconds(300));
+        () -> updateReposAllContinue(isShouldSendEmail, UpdateType.ALL), Instant.now().plusSeconds(300));
   }
 
-  private void updateReposAllContinue(final boolean isShouldSendEmail) {
+  private void updateReposAllContinue(final boolean isShouldSendEmail, final UpdateType updateType) {
     log.info("Update Repos All Continue...");
     // merge PRs
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry(isShouldSendEmail);
+    updateReposContinueGithubPrCreateRetry(isShouldSendEmail, updateType);
     // send process summary email if applicable
-    sendProcessSummaryEmail(isShouldSendEmail);
+    sendProcessSummaryEmail(isShouldSendEmail, updateType);
     // this is the final step, clear processed repositories
     resetProcessedRepositoriesAndSummary();
   }
@@ -188,7 +189,7 @@ public class UpdateRepoService {
    * given time There is no documentation about this limit, but some GitHub issues do mention this
    * So if the app encounters this limit, retry pr create after 1 hour
    */
-  private void updateReposContinueGithubPrCreateRetry(final boolean isShouldSendEmail) {
+  private void updateReposContinueGithubPrCreateRetry(final boolean isShouldSendEmail, final UpdateType updateType) {
     log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
@@ -197,7 +198,7 @@ public class UpdateRepoService {
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
-          () -> updateReposAllContinue(isShouldSendEmail),
+          () -> updateReposAllContinue(isShouldSendEmail, updateType),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
@@ -241,7 +242,7 @@ public class UpdateRepoService {
       default -> executeUpdateRepos(updateType);
     }
 
-    updateReposContinueGithubPrCreateRetry(false);
+    updateReposContinueGithubPrCreateRetry(false, updateType);
     // reset processed repositories
     resetProcessedRepositoriesAndSummary();
   }
@@ -301,14 +302,14 @@ public class UpdateRepoService {
     new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
   }
 
-  private void sendProcessSummaryEmail(final boolean isShouldSendEmail) {
+  private void sendProcessSummaryEmail(final boolean isShouldSendEmail, final UpdateType updateType) {
     boolean isSendEmail =
         "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL));
     if (isSendEmail && isShouldSendEmail) {
       log.info("Update Repos All Continue, Sending Email...");
 
       String subject = "App Dependency Update Daily Logs";
-      String html = getProcessSummaryContent();
+      String html = getProcessSummaryContent(updateType);
       log.debug(html);
       String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
       String attachment = getLogFileContent();
@@ -332,7 +333,7 @@ public class UpdateRepoService {
     return null;
   }
 
-  private String getProcessSummaryContent() {
+  private String getProcessSummaryContent(final UpdateType updateType) {
     Map<String, ProcessedRepository> processedRepositoryMap =
         ProcessUtils.getProcessedRepositoriesMap();
     List<ProcessedRepository> processedRepositories =
@@ -340,10 +341,13 @@ public class UpdateRepoService {
     List<Repository> allRepositories = AppInitDataUtils.appInitData().getRepositories();
 
     for (Repository repository : allRepositories) {
-      if (!processedRepositoryMap.containsKey(repository.getRepoName())) {
+      if (processedRepositoryMap.containsKey(repository.getRepoName())) {
+        updateProcessedRepositoriesRepoType(repository.getRepoName(), repository.getType().name().split("_")[0]);
+      } else {
         processedRepositories.add(
             ProcessedRepository.builder()
                 .repoName(repository.getRepoName())
+                .repoType(repository.getType().name().split("_")[0])
                 .isPrCreated(false)
                 .isPrCreateError(false)
                 .isPrMerged(false)
@@ -355,6 +359,7 @@ public class UpdateRepoService {
 
     ProcessSummary processSummary =
         ProcessSummary.builder()
+            .updateType(updateType)
             .mongoPluginsToUpdate(ProcessUtils.getMongoPluginsToUpdate())
             .mongoDependenciesToUpdate(ProcessUtils.getMongoDependenciesToUpdate())
             .mongoPackagesToUpdate(ProcessUtils.getMongoPackagesToUpdate())
@@ -407,7 +412,7 @@ public class UpdateRepoService {
 
     html.append(
         """
-          <p style='font-size: 14px; font-weight: bold;'>App Dependency Update Process Summary</p>
+          <p style='font-size: 14px; font-weight: bold;'>App Dependency Update Process Summary: %s</p>
           <table cellpadding='10' cellspacing='0' style='font-size: 12px; border-collapse: collapse;'>
             <tr>
               <th>Item</th>
@@ -444,6 +449,7 @@ public class UpdateRepoService {
           </table>
         """
             .formatted(
+                processSummary.getUpdateType().name(),
                 processSummary.getMongoPluginsToUpdate(),
                 processSummary.getMongoDependenciesToUpdate(),
                 processSummary.getMongoPackagesToUpdate(),
@@ -468,6 +474,7 @@ public class UpdateRepoService {
     for (ProcessedRepository processedRepository : processSummary.getProcessedRepositories()) {
       html.append("<tr>");
       html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
+      html.append("<td>").append(processedRepository.getRepoType()).append("</td>");
       html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
       html.append("<td>").append(processedRepository.isPrCreateError() ? "Y" : "N").append("</td>");
       html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
