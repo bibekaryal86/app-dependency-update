@@ -1,6 +1,7 @@
 package app.dependency.update.app.util;
 
 import app.dependency.update.app.model.ProcessedRepository;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,6 +85,15 @@ public class ProcessUtils {
         repoName,
         (key, processedRepository) -> {
           processedRepository.setPrMerged(true);
+          return processedRepository;
+        });
+  }
+
+  public static void updateProcessedRepositoriesRepoType(String repoName, String repoType) {
+    processedRepositories.computeIfPresent(
+        repoName,
+        (key, processedRepository) -> {
+          processedRepository.setRepoType(repoType);
           return processedRepository;
         });
   }

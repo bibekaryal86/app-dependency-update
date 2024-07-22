@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessedRepository {
   private String repoName;
+  private String repoType;
   private boolean isPrCreated;
   private boolean isPrCreateError;
   private boolean isPrMerged;
