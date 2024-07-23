@@ -82,12 +82,12 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
-      final boolean isShouldSendEmail) {
+      final boolean isProcessSummaryRequired) {
     // reset processed repository map from previous run if anything remaining
     resetProcessedRepositoriesAndSummary();
     if (updateType.equals(UpdateType.ALL)) {
       taskScheduler.schedule(
-          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
+          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isProcessSummaryRequired),
           Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
@@ -127,8 +127,12 @@ public class UpdateRepoService {
   private void updateReposAll(
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
-      final boolean isShouldSendEmail) {
-    log.info("Update Repos All [ {} ] | [ {} ]", isRecreateCaches, isRecreateScriptFiles);
+      final boolean isProcessSummaryRequired) {
+    log.info(
+        "Update Repos All [ {} ] | [ {} ] | [ {} ]",
+        isRecreateCaches,
+        isRecreateScriptFiles,
+        isProcessSummaryRequired);
     // clear and set caches as needed
     if (isRecreateCaches) {
       log.info("Update Repos All, Recreating Caches...");
@@ -166,19 +170,21 @@ public class UpdateRepoService {
     executeUpdateRepos(UpdateType.PYTHON_DEPENDENCIES);
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllContinue(isShouldSendEmail, UpdateType.ALL), Instant.now().plusSeconds(300));
+        () -> updateReposAllContinue(isProcessSummaryRequired, UpdateType.ALL),
+        Instant.now().plusSeconds(300));
   }
 
-  private void updateReposAllContinue(final boolean isShouldSendEmail, final UpdateType updateType) {
+  private void updateReposAllContinue(
+      final boolean isProcessSummaryRequired, final UpdateType updateType) {
     log.info("Update Repos All Continue...");
     // merge PRs
     executeUpdateRepos(UpdateType.GITHUB_MERGE);
     // pull changes
     executeUpdateRepos(UpdateType.GITHUB_PULL);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry(isShouldSendEmail, updateType);
+    updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
     // send process summary email if applicable
-    sendProcessSummaryEmail(isShouldSendEmail, updateType);
+    makeProcessSummary(isProcessSummaryRequired, updateType);
     // this is the final step, clear processed repositories
     resetProcessedRepositoriesAndSummary();
   }
@@ -189,7 +195,8 @@ public class UpdateRepoService {
    * given time There is no documentation about this limit, but some GitHub issues do mention this
    * So if the app encounters this limit, retry pr create after 1 hour
    */
-  private void updateReposContinueGithubPrCreateRetry(final boolean isShouldSendEmail, final UpdateType updateType) {
+  private void updateReposContinueGithubPrCreateRetry(
+      final boolean isProcessSummaryRequired, final UpdateType updateType) {
     log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
@@ -198,7 +205,7 @@ public class UpdateRepoService {
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
-          () -> updateReposAllContinue(isShouldSendEmail, updateType),
+          () -> updateReposAllContinue(isProcessSummaryRequired, updateType),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
@@ -302,14 +309,25 @@ public class UpdateRepoService {
     new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
   }
 
-  private void sendProcessSummaryEmail(final boolean isShouldSendEmail, final UpdateType updateType) {
+  private void makeProcessSummary(
+      final boolean isProcessSummaryRequired, final UpdateType updateType) {
     boolean isSendEmail =
         "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL));
-    if (isSendEmail && isShouldSendEmail) {
-      log.info("Update Repos All Continue, Sending Email...");
 
+    log.info(
+        "Make Process Summary: [ {} ] | [ {} ] | [ {} ]",
+        isSendEmail,
+        isProcessSummaryRequired,
+        updateType);
+
+    ProcessSummary processSummary = null;
+    if (isProcessSummaryRequired) {
+      processSummary = processSummary(updateType);
+    }
+
+    if (isSendEmail && processSummary != null) {
       String subject = "App Dependency Update Daily Logs";
-      String html = getProcessSummaryContent(updateType);
+      String html = getProcessSummaryContent(processSummary);
       log.debug(html);
       String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
       String attachment = getLogFileContent();
@@ -333,7 +351,7 @@ public class UpdateRepoService {
     return null;
   }
 
-  private String getProcessSummaryContent(final UpdateType updateType) {
+  private ProcessSummary processSummary(final UpdateType updateType) {
     Map<String, ProcessedRepository> processedRepositoryMap =
         ProcessUtils.getProcessedRepositoriesMap();
     List<ProcessedRepository> processedRepositories =
@@ -342,7 +360,8 @@ public class UpdateRepoService {
 
     for (Repository repository : allRepositories) {
       if (processedRepositoryMap.containsKey(repository.getRepoName())) {
-        updateProcessedRepositoriesRepoType(repository.getRepoName(), repository.getType().name().split("_")[0]);
+        updateProcessedRepositoriesRepoType(
+            repository.getRepoName(), repository.getType().name().split("_")[0]);
       } else {
         processedRepositories.add(
             ProcessedRepository.builder()
@@ -378,7 +397,8 @@ public class UpdateRepoService {
             .processedRepositories(processedRepositories)
             .build();
 
-    return getProcessSummaryContent(processSummary);
+    // TODO save to database
+    return processSummary;
   }
 
   private String getProcessSummaryContent(ProcessSummary processSummary) {
