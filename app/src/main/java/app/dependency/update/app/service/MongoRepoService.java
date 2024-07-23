@@ -284,23 +284,26 @@ public class MongoRepoService {
   }
 
   public MongoProcessSummaries getProcessSummaries(
-      final UpdateType updateType, final LocalDate updateDate, final int page, final int size) {
+      final String updateType,
+      final LocalDate updateDate,
+      final int pageNumber,
+      final int pageSize) {
     log.debug(
         "Get Process Summaries: [ {} ] | [ {} ] | [ {} ] | [ {} ]",
         updateType,
         updateDate,
-        page,
-        size);
+        pageNumber,
+        pageSize);
 
-    Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
     if (updateDate != null) {
       LocalDateTime startOfDay = updateDate.atStartOfDay();
       LocalDateTime endOfDay = updateDate.atTime(LocalTime.MAX);
-      if (updateType != null) {
+      if (!isEmpty(updateType)) {
         List<ProcessSummaries> processSummaries =
             processSummariesRepository.findByUpdateTypeAndUpdateDate(
-                updateType.name(), startOfDay, endOfDay);
+                updateType, startOfDay, endOfDay);
         return getMongoProcessSummaries(
             processSummaries, 0, 1, processSummaries.size(), processSummaries.size());
       }
@@ -309,9 +312,9 @@ public class MongoRepoService {
           processSummariesRepository.findByUpdateDate(startOfDay, endOfDay);
       return getMongoProcessSummaries(
           processSummaries, 0, 1, processSummaries.size(), processSummaries.size());
-    } else if (updateType != null) {
+    } else if (!isEmpty(updateType)) {
       Page<ProcessSummaries> processSummariesPage =
-          processSummariesRepository.findByUpdateType(updateType.name(), pageable);
+          processSummariesRepository.findByUpdateType(updateType, pageable);
       return getMongoProcessSummaries(
           processSummariesPage.getContent(),
           processSummariesPage.getNumber(),
