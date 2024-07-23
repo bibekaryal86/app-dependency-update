@@ -1,7 +1,6 @@
 package app.dependency.update.app.util;
 
 import app.dependency.update.app.model.ProcessedRepository;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
