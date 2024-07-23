@@ -68,7 +68,7 @@ public class UpdateRepoController {
           updateType,
           isForceCreatePr,
           isDeleteUpdateDependenciesOnly,
-          checkProcessSummaryRequired(updateType));
+          checkDependenciesUpdate(updateType));
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
@@ -90,12 +90,5 @@ public class UpdateRepoController {
     } else {
       return false;
     }
-  }
-
-  private boolean checkProcessSummaryRequired(final UpdateType updateType) {
-    return updateType == UpdateType.ALL
-        || updateType == UpdateType.NPM_DEPENDENCIES
-        || updateType == UpdateType.GRADLE_DEPENDENCIES
-        || updateType == UpdateType.PYTHON_DEPENDENCIES;
   }
 }
