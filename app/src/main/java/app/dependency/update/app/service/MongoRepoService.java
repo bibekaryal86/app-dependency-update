@@ -6,24 +6,35 @@ import app.dependency.update.app.connector.MavenConnector;
 import app.dependency.update.app.model.MavenDoc;
 import app.dependency.update.app.model.MavenResponse;
 import app.dependency.update.app.model.MavenSearchResponse;
+import app.dependency.update.app.model.MongoProcessSummaries;
+import app.dependency.update.app.model.ProcessSummary;
 import app.dependency.update.app.model.entities.Dependencies;
 import app.dependency.update.app.model.entities.NpmSkips;
 import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.model.entities.Plugins;
+import app.dependency.update.app.model.entities.ProcessSummaries;
 import app.dependency.update.app.repository.DependenciesRepository;
 import app.dependency.update.app.repository.NpmSkipsRepository;
 import app.dependency.update.app.repository.PackagesRepository;
 import app.dependency.update.app.repository.PluginsRepository;
+import app.dependency.update.app.repository.ProcessSummariesRepository;
 import app.dependency.update.app.util.CommonUtils;
 import app.dependency.update.app.util.ProcessUtils;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -34,6 +45,7 @@ public class MongoRepoService {
   private final DependenciesRepository dependenciesRepository;
   private final PackagesRepository packagesRepository;
   private final NpmSkipsRepository npmSkipsRepository;
+  private final ProcessSummariesRepository processSummariesRepository;
   private final MavenConnector mavenConnector;
   private final GradleRepoService gradleRepoService;
   private final PypiRepoService pypiRepoService;
@@ -43,6 +55,7 @@ public class MongoRepoService {
       final DependenciesRepository dependenciesRepository,
       final PackagesRepository packagesRepository,
       final NpmSkipsRepository npmSkipsRepository,
+      final ProcessSummariesRepository processSummariesRepository,
       final MavenConnector mavenConnector,
       final GradleRepoService gradleRepoService,
       final PypiRepoService pypiRepoService) {
@@ -50,6 +63,7 @@ public class MongoRepoService {
     this.dependenciesRepository = dependenciesRepository;
     this.packagesRepository = packagesRepository;
     this.npmSkipsRepository = npmSkipsRepository;
+    this.processSummariesRepository = processSummariesRepository;
     this.mavenConnector = mavenConnector;
     this.gradleRepoService = gradleRepoService;
     this.pypiRepoService = pypiRepoService;
@@ -267,6 +281,81 @@ public class MongoRepoService {
       log.info("Mongo Packages Updated...");
       ProcessUtils.setMongoPackagesToUpdate(packagesToUpdate.size());
     }
+  }
+
+  public MongoProcessSummaries getProcessSummaries(
+      final UpdateType updateType, final LocalDate updateDate, final int page, final int size) {
+    log.debug(
+        "Get Process Summaries: [ {} ] | [ {} ] | [ {} ] | [ {} ]",
+        updateType,
+        updateDate,
+        page,
+        size);
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    if (updateDate != null) {
+      LocalDateTime startOfDay = updateDate.atStartOfDay();
+      LocalDateTime endOfDay = updateDate.atTime(LocalTime.MAX);
+      if (updateType != null) {
+        List<ProcessSummaries> processSummaries =
+            processSummariesRepository.findByUpdateTypeAndUpdateDate(
+                updateType.name(), startOfDay, endOfDay);
+        return getMongoProcessSummaries(
+            processSummaries, 1, 1, processSummaries.size(), processSummaries.size());
+      }
+
+      List<ProcessSummaries> processSummaries =
+          processSummariesRepository.findByUpdateDate(startOfDay, endOfDay);
+      return getMongoProcessSummaries(
+          processSummaries, 1, 1, processSummaries.size(), processSummaries.size());
+    } else if (updateType != null) {
+      Page<ProcessSummaries> processSummariesPage =
+          processSummariesRepository.findByUpdateType(updateType.name(), pageable);
+      return getMongoProcessSummaries(
+          processSummariesPage.getContent(),
+          processSummariesPage.getNumber(),
+          processSummariesPage.getTotalPages(),
+          (int) processSummariesPage.getTotalElements(),
+          processSummariesPage.getSize());
+    } else {
+      Page<ProcessSummaries> processSummariesPage = processSummariesRepository.findAll(pageable);
+      return getMongoProcessSummaries(
+          processSummariesPage.getContent(),
+          processSummariesPage.getNumber(),
+          processSummariesPage.getTotalPages(),
+          (int) processSummariesPage.getTotalElements(),
+          processSummariesPage.getSize());
+    }
+  }
+
+  public void saveProcessSummaries(final ProcessSummaries processSummaries) {
+    log.debug("Save Process Summaries: [ {} ]", processSummaries);
+    processSummariesRepository.save(processSummaries);
+  }
+
+  private MongoProcessSummaries getMongoProcessSummaries(
+      final List<ProcessSummaries> processSummaries,
+      final int currentPage,
+      final int totalPages,
+      final int totalElements,
+      final int pageSize) {
+    List<ProcessSummary> processSummaryList =
+        processSummaries.stream()
+            .map(
+                processSummaryMongo -> {
+                  ProcessSummary processSummary = ProcessSummary.builder().build();
+                  BeanUtils.copyProperties(processSummaryMongo, processSummary);
+                  return processSummary;
+                })
+            .toList();
+    return MongoProcessSummaries.builder()
+        .processSummaries(processSummaryList)
+        .currentPage(currentPage)
+        .totalPages(totalPages)
+        .totalElements(totalElements)
+        .pageSize(pageSize)
+        .build();
   }
 
   private String getLatestDependencyVersion(
