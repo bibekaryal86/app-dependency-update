@@ -302,13 +302,13 @@ public class MongoRepoService {
             processSummariesRepository.findByUpdateTypeAndUpdateDate(
                 updateType.name(), startOfDay, endOfDay);
         return getMongoProcessSummaries(
-            processSummaries, 1, 1, processSummaries.size(), processSummaries.size());
+            processSummaries, 0, 1, processSummaries.size(), processSummaries.size());
       }
 
       List<ProcessSummaries> processSummaries =
           processSummariesRepository.findByUpdateDate(startOfDay, endOfDay);
       return getMongoProcessSummaries(
-          processSummaries, 1, 1, processSummaries.size(), processSummaries.size());
+          processSummaries, 0, 1, processSummaries.size(), processSummaries.size());
     } else if (updateType != null) {
       Page<ProcessSummaries> processSummariesPage =
           processSummariesRepository.findByUpdateType(updateType.name(), pageable);
