@@ -14,6 +14,7 @@ import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ProcessSummary;
 import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.model.entities.ProcessSummaries;
 import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.AppInitDataUtils;
 import app.dependency.update.app.util.ProcessUtils;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -32,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Service;
@@ -417,7 +420,7 @@ public class UpdateRepoService {
 
     ProcessSummary processSummary =
         ProcessSummary.builder()
-            .updateType(updateType)
+            .updateType(updateType.name())
             .mongoPluginsToUpdate(ProcessUtils.getMongoPluginsToUpdate())
             .mongoDependenciesToUpdate(ProcessUtils.getMongoDependenciesToUpdate())
             .mongoPackagesToUpdate(ProcessUtils.getMongoPackagesToUpdate())
@@ -436,7 +439,12 @@ public class UpdateRepoService {
             .processedRepositories(processedRepositories)
             .build();
 
-    // TODO save to database
+    // save to repository
+    ProcessSummaries processSummaries =
+        ProcessSummaries.builder().updateDateTime(LocalDateTime.now()).build();
+    BeanUtils.copyProperties(processSummary, processSummaries);
+    mongoRepoService.saveProcessSummaries(processSummaries);
+
     return processSummary;
   }
 
@@ -508,7 +516,7 @@ public class UpdateRepoService {
           </table>
         """
             .formatted(
-                processSummary.getUpdateType().name(),
+                processSummary.getUpdateType(),
                 processSummary.getMongoPluginsToUpdate(),
                 processSummary.getMongoDependenciesToUpdate(),
                 processSummary.getMongoPackagesToUpdate(),

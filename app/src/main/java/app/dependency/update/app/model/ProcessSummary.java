@@ -1,22 +1,21 @@
 package app.dependency.update.app.model;
 
-import app.dependency.update.app.util.CommonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessSummary {
-  private CommonUtils.UpdateType updateType;
+  private String updateType;
   private int mongoPluginsToUpdate;
   private int mongoDependenciesToUpdate;
   private int mongoPackagesToUpdate;
