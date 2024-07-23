@@ -76,6 +76,13 @@ public class CommonUtils {
     return getVersionToCompare(latestVersion).compareTo(getVersionToCompare(currentVersion)) > 0;
   }
 
+  public static boolean checkDependenciesUpdate(final UpdateType updateType) {
+    return updateType == UpdateType.ALL
+        || updateType == UpdateType.NPM_DEPENDENCIES
+        || updateType == UpdateType.GRADLE_DEPENDENCIES
+        || updateType == UpdateType.PYTHON_DEPENDENCIES;
+  }
+
   public enum UpdateType {
     ALL,
     GITHUB_BRANCH_DELETE,

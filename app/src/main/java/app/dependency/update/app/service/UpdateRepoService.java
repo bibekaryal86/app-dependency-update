@@ -85,9 +85,11 @@ public class UpdateRepoService {
       final boolean isProcessSummaryRequired) {
     // reset processed repository map from previous run if anything remaining
     resetProcessedRepositoriesAndSummary();
-    if (updateType.equals(UpdateType.ALL)) {
+    if (checkDependenciesUpdate(updateType)) {
       taskScheduler.schedule(
-          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isProcessSummaryRequired),
+          () ->
+              updateReposAllDependencies(
+                  updateType, isRecreateCaches, isRecreateScriptFiles, isProcessSummaryRequired),
           Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
@@ -124,63 +126,78 @@ public class UpdateRepoService {
     return !getRepositoriesWithPrError().isEmpty();
   }
 
-  private void updateReposAll(
+  private void updateReposAllDependencies(
+      final UpdateType updateType,
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
       final boolean isProcessSummaryRequired) {
     log.info(
-        "Update Repos All [ {} ] | [ {} ] | [ {} ]",
+        "Update Repos All Dependencies: [ {} ] [ {} ] | [ {} ] | [ {} ]",
+        updateType,
         isRecreateCaches,
         isRecreateScriptFiles,
         isProcessSummaryRequired);
     // clear and set caches as needed
     if (isRecreateCaches) {
-      log.info("Update Repos All, Recreating Caches...");
+      log.info("Update Repos All Dependencies, Recreating Caches...");
       resetAllCaches();
       setAllCaches();
     }
 
     // delete and create script files as needed
     if (isRecreateScriptFiles || scriptFilesService.isScriptFilesMissingInFileSystem()) {
-      log.info("Update Repos All, Recreating Script Files...");
+      log.info("Update Repos All Dependencies, Recreating Script Files...");
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
     }
 
+    AppInitData appInitData = AppInitDataUtils.appInitData();
+
     // pull changes
-    executeUpdateRepos(UpdateType.GITHUB_PULL);
+    executeUpdateGithubPull(appInitData);
 
     // clear and set caches after pull (gradle version in repo could have changed)
-    log.info("Update Repos All, Reset All Caches...");
+    log.info("Update Repos All Dependencies, Reset All Caches...");
     resetAllCaches();
-    log.info("Update Repos All, Update Plugins In Mongo...");
+    log.info("Update Repos All Dependencies, Update Plugins In Mongo...");
     mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap());
-    log.info("Update Repos All, Update Dependencies In Mongo...");
+    log.info("Update Repos All Dependencies, Update Dependencies In Mongo...");
     mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap());
-    log.info("Update Repos All, Update Packages In Mongo...");
+    log.info("Update Repos All Dependencies, Update Packages In Mongo...");
     mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap());
-    log.info("Update Repos All, Set All Caches...");
+    log.info("Update Repos All Dependencies, Set All Caches...");
     setAllCaches();
 
-    // npm dependencies
-    executeUpdateRepos(UpdateType.NPM_DEPENDENCIES);
-    // gradle dependencies
-    executeUpdateRepos(UpdateType.GRADLE_DEPENDENCIES);
-    // python dependencies
-    executeUpdateRepos(UpdateType.PYTHON_DEPENDENCIES);
+    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
+      executeUpdateNpmDependencies(appInitData);
+    }
+
+    if (updateType == UpdateType.ALL || updateType == UpdateType.GRADLE_DEPENDENCIES) {
+      executeUpdateGradleDependencies(appInitData);
+    }
+
+    if (updateType == UpdateType.ALL || updateType == UpdateType.PYTHON_DEPENDENCIES) {
+      executeUpdatePythonDependencies(appInitData);
+    }
+
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllContinue(isProcessSummaryRequired, UpdateType.ALL),
+        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
         Instant.now().plusSeconds(300));
   }
 
-  private void updateReposAllContinue(
-      final boolean isProcessSummaryRequired, final UpdateType updateType) {
-    log.info("Update Repos All Continue...");
+  private void updateReposAllDependenciesContinue(
+      final boolean isProcessSummaryRequired,
+      final UpdateType updateType,
+      final AppInitData appInitData) {
+    log.info(
+        "Update Repos All Dependencies Continue: [ {} ] | [ {} ]",
+        isProcessSummaryRequired,
+        updateType);
     // merge PRs
-    executeUpdateRepos(UpdateType.GITHUB_MERGE);
+    executeUpdateGithubMerge(appInitData);
     // pull changes
-    executeUpdateRepos(UpdateType.GITHUB_PULL);
+    executeUpdateGithubPull(appInitData);
     // check github pr create error and execute if needed
     updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
     // send process summary email if applicable
@@ -200,12 +217,14 @@ public class UpdateRepoService {
     log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
+      AppInitData appInitData = AppInitDataUtils.appInitData();
       taskScheduler.schedule(
-          () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
+          () -> executeUpdateReposGithubPrCreateRetry(branchName, false, appInitData),
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
-          () -> updateReposAllContinue(isProcessSummaryRequired, updateType),
+          () ->
+              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
@@ -240,13 +259,23 @@ public class UpdateRepoService {
       scriptFilesService.createTempScriptFiles();
     }
 
+    AppInitData appInitData = AppInitDataUtils.appInitData();
+
+    // ALL, NPM_DEPENDENCIES, GRADLE_DEPENDENCIES, PYTHON_DEPENDENCIES
+    // Above 4 types are handled separately and should not reach here
     switch (updateType) {
-      case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName);
-      case GITHUB_PR_CREATE -> executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
+      case GITHUB_PULL -> executeUpdateGithubPull(appInitData);
+      case GITHUB_RESET -> executeUpdateGithubReset(appInitData);
+      case GITHUB_MERGE -> executeUpdateGithubMerge(appInitData);
+      case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName, appInitData);
+      case GITHUB_PR_CREATE ->
+          executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr, appInitData);
       case GITHUB_BRANCH_DELETE ->
-          executeUpdateReposGithubBranchDelete(isDeleteUpdateDependenciesOnly);
-      case GRADLE_SPOTLESS -> executeUpdateReposGradleSpotless(branchName, repoName);
-      default -> executeUpdateRepos(updateType);
+          executeUpdateReposGithubBranchDelete(isDeleteUpdateDependenciesOnly, appInitData);
+      case GRADLE_SPOTLESS -> executeUpdateReposGradleSpotless(branchName, repoName, appInitData);
+      default ->
+          throw new AppDependencyUpdateRuntimeException(
+              String.format("Invalid Update Type: %s", updateType));
     }
 
     updateReposContinueGithubPrCreateRetry(false, updateType);
@@ -254,52 +283,62 @@ public class UpdateRepoService {
     resetProcessedRepositoriesAndSummary();
   }
 
-  private void executeUpdateRepos(final UpdateType updateType) {
-    log.info("Execute Update Repos: [ {} ]", updateType);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
-    switch (updateType) {
-      case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
-      case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
-      case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
-      case GRADLE_DEPENDENCIES ->
-          new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
-      case NPM_DEPENDENCIES ->
-          new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
-      case PYTHON_DEPENDENCIES ->
-          new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
-      default ->
-          throw new AppDependencyUpdateRuntimeException(
-              String.format("Invalid Update Type: %s", updateType));
-    }
+  private void executeUpdateNpmDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Npm Dependencies...");
+    new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
   }
 
-  private void executeUpdateReposNpmSnapshot(final String branchName) {
+  private void executeUpdateGradleDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Gradle Dependencies...");
+    new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
+  }
+
+  private void executeUpdatePythonDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Python Dependencies...");
+    new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
+  }
+
+  private void executeUpdateGithubPull(final AppInitData appInitData) {
+    log.info("Execute Update Github Pull...");
+    new UpdateGithubPull(appInitData).updateGithubPull();
+  }
+
+  private void executeUpdateGithubReset(final AppInitData appInitData) {
+    log.info("Execute Update Github Info...");
+    new UpdateGithubReset(appInitData).updateGithubReset();
+  }
+
+  private void executeUpdateGithubMerge(final AppInitData appInitData) {
+    log.info("Execute Update Github Merge...");
+    new UpdateGithubMerge(appInitData).updateGithubMerge();
+  }
+
+  private void executeUpdateReposNpmSnapshot(
+      final String branchName, final AppInitData appInitData) {
     log.info("Execute Update Repos NPM Snapshot: [ {} ]", branchName);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
   }
 
-  private void executeUpdateReposGradleSpotless(final String branchName, final String repoName) {
+  private void executeUpdateReposGradleSpotless(
+      final String branchName, final String repoName, final AppInitData appInitData) {
     log.info("Execute Update Repos Gradle Spotless: [ {} ] [ {} ]", branchName, repoName);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateGradleSpotless(appInitData, branchName, repoName).updateGradleSpotless();
   }
 
-  private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
+  private void executeUpdateReposGithubBranchDelete(
+      final boolean isDeleteUpdateDependenciesOnly, final AppInitData appInitData) {
     log.info("Execute Update Repos GitHub Branch Delete: [ {} ]", isDeleteUpdateDependenciesOnly);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateGithubBranchDelete(appInitData, isDeleteUpdateDependenciesOnly)
         .updateGithubBranchDelete();
   }
 
   private void executeUpdateReposGithubPrCreateRetry(
-      final String branchName, final boolean isForceCreatePr) {
+      final String branchName, final boolean isForceCreatePr, final AppInitData appInitData) {
     log.info(
         "Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]",
         branchName,
         isForceCreatePr);
     Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     List<Repository> repositories =
         isForceCreatePr
             ? appInitData.getRepositories()
