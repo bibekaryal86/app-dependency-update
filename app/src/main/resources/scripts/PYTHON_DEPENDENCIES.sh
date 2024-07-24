@@ -24,6 +24,9 @@ if [ "$PWD" != "$repo_loc" ]; then
     exit 1
 fi
 
+echo "Checkout main branch"
+git checkout main 2>&1
+
 # Create new branch for updates
 echo "Creating new branch"
 git checkout -b "$branch_name" 2>&1

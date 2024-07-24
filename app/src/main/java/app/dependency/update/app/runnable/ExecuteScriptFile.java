@@ -10,6 +10,7 @@ import app.dependency.update.app.model.ScriptFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -119,9 +120,11 @@ public class ExecuteScriptFile implements Runnable {
     boolean isPrMerged = checkPrMerged(output);
     if (isPrMerged) {
       // GITHUB_MERGE does not include repository name in threadName
-      String repoName = findRepoNameForPrMerge(output);
-      if (!isEmpty(repoName)) {
-        updateProcessedRepositoriesToPrMerged(repoName);
+      List<String> repoNames = findRepoNamesForPrMerge(output);
+      if (!isEmpty(repoNames)) {
+        for (String repoName : repoNames) {
+          updateProcessedRepositoriesToPrMerged(repoName);
+        }
       }
     }
   }
@@ -153,16 +156,18 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private boolean checkPrMerged(final String output) {
-    return output.contains("Merged PR") && !output.contains("already merged");
+    return output.contains("Merged PR");
   }
 
-  private String findRepoNameForPrMerge(final String output) {
-    String regex = "Merging PR: .*/([^/\\s]+)";
-    Pattern pattern = Pattern.compile(regex);
+  private List<String> findRepoNamesForPrMerge(final String output) {
+    List<String> repoNames = new ArrayList<>();
+    String regex = "^Merged PR: (?!.*already merged).*/([^/\\s]+)";
+    Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
     Matcher matcher = pattern.matcher(output);
-    if (matcher.find()) {
-      return matcher.group(1);
+    while (matcher.find()) {
+      String matcherGroup = matcher.group(1);
+      repoNames.add(matcherGroup);
     }
-    return null;
+    return repoNames;
   }
 }

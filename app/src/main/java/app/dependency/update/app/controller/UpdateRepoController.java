@@ -55,7 +55,7 @@ public class UpdateRepoController {
     if (updateRepoService.isTaskRunning()) {
       return ResponseEntity.unprocessableEntity().body("{\"process\": \"already running\"}");
     } else {
-      if (isInvalidBranchDate(branchDate, updateType)) {
+      if (checkInvalidBranchDate(branchDate, updateType)) {
         return ResponseEntity.badRequest().body("{\"branchDate\": \"empty or invalid format\"}");
       }
 
@@ -68,13 +68,13 @@ public class UpdateRepoController {
           updateType,
           isForceCreatePr,
           isDeleteUpdateDependenciesOnly,
-          false);
+          checkDependenciesUpdate(updateType));
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  private boolean isInvalidBranchDate(final String branchDate, final UpdateType updateType) {
+  private boolean checkInvalidBranchDate(final String branchDate, final UpdateType updateType) {
     if (updateType.equals(UpdateType.NPM_SNAPSHOT)
         || updateType.equals(UpdateType.GITHUB_PR_CREATE)
         || updateType.equals(UpdateType.GRADLE_SPOTLESS)) {

@@ -38,6 +38,7 @@ public class ConstantUtils {
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";
   public static final String MONGODB_COLLECTION_PACKAGES = "packages";
   public static final String MONGODB_COLLECTION_NPMSKIPS = "npm_skips";
+  public static final String MONGODB_COLLECTION_PROCESS_SUMMARIES = "process_summaries";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
 
   // endpoints

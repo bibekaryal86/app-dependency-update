@@ -88,6 +88,15 @@ public class ProcessUtils {
         });
   }
 
+  public static void updateProcessedRepositoriesRepoType(String repoName, String repoType) {
+    processedRepositories.computeIfPresent(
+        repoName,
+        (key, processedRepository) -> {
+          processedRepository.setRepoType(repoType);
+          return processedRepository;
+        });
+  }
+
   public static ConcurrentMap<String, ProcessedRepository> getProcessedRepositoriesMap() {
     return processedRepositories;
   }

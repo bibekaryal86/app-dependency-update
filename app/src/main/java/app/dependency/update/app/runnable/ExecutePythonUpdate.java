@@ -5,7 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.model.dto.Packages;
+import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.service.MongoRepoService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

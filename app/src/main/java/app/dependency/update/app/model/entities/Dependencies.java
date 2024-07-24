@@ -1,4 +1,4 @@
-package app.dependency.update.app.model.dto;
+package app.dependency.update.app.model.entities;
 
 import static app.dependency.update.app.util.ConstantUtils.*;
 
@@ -18,10 +18,10 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Document(collection = MONGODB_COLLECTION_PACKAGES)
-public class Packages {
+@Document(collection = MONGODB_COLLECTION_DEPENDENCIES)
+public class Dependencies {
   @MongoId private ObjectId id;
-  private String name;
-  private String version;
+  private String mavenId;
+  private String latestVersion;
   private boolean skipVersion;
 }

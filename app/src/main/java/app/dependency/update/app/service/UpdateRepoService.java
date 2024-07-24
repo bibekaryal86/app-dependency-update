@@ -7,28 +7,35 @@ import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
 import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
+import static app.dependency.update.app.util.ProcessUtils.updateProcessedRepositoriesRepoType;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ProcessSummary;
 import app.dependency.update.app.model.ProcessedRepository;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.model.entities.ProcessSummaries;
 import app.dependency.update.app.runnable.*;
 import app.dependency.update.app.util.AppInitDataUtils;
+import app.dependency.update.app.util.ProcessSummaryEmailUtils;
 import app.dependency.update.app.util.ProcessUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Service;
@@ -79,12 +86,14 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
-      final boolean isShouldSendEmail) {
+      final boolean isProcessSummaryRequired) {
     // reset processed repository map from previous run if anything remaining
     resetProcessedRepositoriesAndSummary();
-    if (updateType.equals(UpdateType.ALL)) {
+    if (checkDependenciesUpdate(updateType)) {
       taskScheduler.schedule(
-          () -> updateReposAll(isRecreateCaches, isRecreateScriptFiles, isShouldSendEmail),
+          () ->
+              updateReposAllDependencies(
+                  updateType, isRecreateCaches, isRecreateScriptFiles, isProcessSummaryRequired),
           Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
@@ -121,61 +130,84 @@ public class UpdateRepoService {
     return !getRepositoriesWithPrError().isEmpty();
   }
 
-  private void updateReposAll(
+  private void updateReposAllDependencies(
+      final UpdateType updateType,
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
-      final boolean isShouldSendEmail) {
-    log.info("Update Repos All [ {} ] | [ {} ]", isRecreateCaches, isRecreateScriptFiles);
+      final boolean isProcessSummaryRequired) {
+    log.info(
+        "Update Repos All Dependencies: [ {} ] [ {} ] | [ {} ] | [ {} ]",
+        updateType,
+        isRecreateCaches,
+        isRecreateScriptFiles,
+        isProcessSummaryRequired);
     // clear and set caches as needed
     if (isRecreateCaches) {
-      log.info("Update Repos All, Recreating Caches...");
+      log.info("Update Repos All Dependencies, Recreating Caches...");
       resetAllCaches();
       setAllCaches();
     }
 
     // delete and create script files as needed
     if (isRecreateScriptFiles || scriptFilesService.isScriptFilesMissingInFileSystem()) {
-      log.info("Update Repos All, Recreating Script Files...");
+      log.info("Update Repos All Dependencies, Recreating Script Files...");
       scriptFilesService.deleteTempScriptFiles();
       scriptFilesService.createTempScriptFiles();
     }
 
+    AppInitData appInitData = AppInitDataUtils.appInitData();
+
+    // checkout main branch
+    executeUpdateGithubReset(appInitData);
     // pull changes
-    executeUpdateRepos(UpdateType.GITHUB_PULL);
+    executeUpdateGithubPull(appInitData);
 
     // clear and set caches after pull (gradle version in repo could have changed)
-    log.info("Update Repos All, Reset All Caches...");
+    log.info("Update Repos All Dependencies, Reset All Caches...");
     resetAllCaches();
-    log.info("Update Repos All, Update Plugins In Mongo...");
+    log.info("Update Repos All Dependencies, Update Plugins In Mongo...");
     mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap());
-    log.info("Update Repos All, Update Dependencies In Mongo...");
+    log.info("Update Repos All Dependencies, Update Dependencies In Mongo...");
     mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap());
-    log.info("Update Repos All, Update Packages In Mongo...");
+    log.info("Update Repos All Dependencies, Update Packages In Mongo...");
     mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap());
-    log.info("Update Repos All, Set All Caches...");
+    log.info("Update Repos All Dependencies, Set All Caches...");
     setAllCaches();
 
-    // npm dependencies
-    executeUpdateRepos(UpdateType.NPM_DEPENDENCIES);
-    // gradle dependencies
-    executeUpdateRepos(UpdateType.GRADLE_DEPENDENCIES);
-    // python dependencies
-    executeUpdateRepos(UpdateType.PYTHON_DEPENDENCIES);
+    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
+      executeUpdateNpmDependencies(appInitData);
+    }
+
+    if (updateType == UpdateType.ALL || updateType == UpdateType.GRADLE_DEPENDENCIES) {
+      executeUpdateGradleDependencies(appInitData);
+    }
+
+    if (updateType == UpdateType.ALL || updateType == UpdateType.PYTHON_DEPENDENCIES) {
+      executeUpdatePythonDependencies(appInitData);
+    }
+
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllContinue(isShouldSendEmail), Instant.now().plusSeconds(300));
+        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
+        Instant.now().plusSeconds(300));
   }
 
-  private void updateReposAllContinue(final boolean isShouldSendEmail) {
-    log.info("Update Repos All Continue...");
+  private void updateReposAllDependenciesContinue(
+      final boolean isProcessSummaryRequired,
+      final UpdateType updateType,
+      final AppInitData appInitData) {
+    log.info(
+        "Update Repos All Dependencies Continue: [ {} ] | [ {} ]",
+        isProcessSummaryRequired,
+        updateType);
     // merge PRs
-    executeUpdateRepos(UpdateType.GITHUB_MERGE);
+    executeUpdateGithubMerge(appInitData);
     // pull changes
-    executeUpdateRepos(UpdateType.GITHUB_PULL);
+    executeUpdateGithubPull(appInitData);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry(isShouldSendEmail);
+    updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
     // send process summary email if applicable
-    sendProcessSummaryEmail(isShouldSendEmail);
+    makeProcessSummary(isProcessSummaryRequired, updateType);
     // this is the final step, clear processed repositories
     resetProcessedRepositoriesAndSummary();
   }
@@ -186,16 +218,19 @@ public class UpdateRepoService {
    * given time There is no documentation about this limit, but some GitHub issues do mention this
    * So if the app encounters this limit, retry pr create after 1 hour
    */
-  private void updateReposContinueGithubPrCreateRetry(final boolean isShouldSendEmail) {
+  private void updateReposContinueGithubPrCreateRetry(
+      final boolean isProcessSummaryRequired, final UpdateType updateType) {
     log.info("Update Repos Continue Github PR Create Retry: [ {} ]", isGithubPrCreateFailed());
     if (isGithubPrCreateFailed()) {
       String branchName = String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now());
+      AppInitData appInitData = AppInitDataUtils.appInitData();
       taskScheduler.schedule(
-          () -> executeUpdateReposGithubPrCreateRetry(branchName, false),
+          () -> executeUpdateReposGithubPrCreateRetry(branchName, false, appInitData),
           Instant.now().plus(60, ChronoUnit.MINUTES));
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
-          () -> updateReposAllContinue(isShouldSendEmail),
+          () ->
+              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
@@ -230,66 +265,86 @@ public class UpdateRepoService {
       scriptFilesService.createTempScriptFiles();
     }
 
-    switch (updateType) {
-      case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName);
-      case GITHUB_PR_CREATE -> executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr);
-      case GITHUB_BRANCH_DELETE ->
-          executeUpdateReposGithubBranchDelete(isDeleteUpdateDependenciesOnly);
-      case GRADLE_SPOTLESS -> executeUpdateReposGradleSpotless(branchName, repoName);
-      default -> executeUpdateRepos(updateType);
-    }
-
-    updateReposContinueGithubPrCreateRetry(false);
-    // reset processed repositories
-    resetProcessedRepositoriesAndSummary();
-  }
-
-  private void executeUpdateRepos(final UpdateType updateType) {
-    log.info("Execute Update Repos: [ {} ]", updateType);
     AppInitData appInitData = AppInitDataUtils.appInitData();
+
+    // ALL, NPM_DEPENDENCIES, GRADLE_DEPENDENCIES, PYTHON_DEPENDENCIES
+    // Above 4 types are handled separately and should not reach here
     switch (updateType) {
-      case GITHUB_PULL -> new UpdateGithubPull(appInitData).updateGithubPull();
-      case GITHUB_RESET -> new UpdateGithubReset(appInitData).updateGithubReset();
-      case GITHUB_MERGE -> new UpdateGithubMerge(appInitData).updateGithubMerge();
-      case GRADLE_DEPENDENCIES ->
-          new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
-      case NPM_DEPENDENCIES ->
-          new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
-      case PYTHON_DEPENDENCIES ->
-          new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
+      case GITHUB_PULL -> executeUpdateGithubPull(appInitData);
+      case GITHUB_RESET -> executeUpdateGithubReset(appInitData);
+      case GITHUB_MERGE -> executeUpdateGithubMerge(appInitData);
+      case NPM_SNAPSHOT -> executeUpdateReposNpmSnapshot(branchName, appInitData);
+      case GITHUB_PR_CREATE ->
+          executeUpdateReposGithubPrCreateRetry(branchName, isForceCreatePr, appInitData);
+      case GITHUB_BRANCH_DELETE ->
+          executeUpdateReposGithubBranchDelete(isDeleteUpdateDependenciesOnly, appInitData);
+      case GRADLE_SPOTLESS -> executeUpdateReposGradleSpotless(branchName, repoName, appInitData);
       default ->
           throw new AppDependencyUpdateRuntimeException(
               String.format("Invalid Update Type: %s", updateType));
     }
+
+    updateReposContinueGithubPrCreateRetry(false, updateType);
+    // reset processed repositories
+    resetProcessedRepositoriesAndSummary();
   }
 
-  private void executeUpdateReposNpmSnapshot(final String branchName) {
+  private void executeUpdateNpmDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Npm Dependencies...");
+    new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
+  }
+
+  private void executeUpdateGradleDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Gradle Dependencies...");
+    new UpdateGradleDependencies(appInitData, mongoRepoService).updateGradleDependencies();
+  }
+
+  private void executeUpdatePythonDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Python Dependencies...");
+    new UpdatePythonDependencies(appInitData, mongoRepoService).updatePythonDependencies();
+  }
+
+  private void executeUpdateGithubPull(final AppInitData appInitData) {
+    log.info("Execute Update Github Pull...");
+    new UpdateGithubPull(appInitData).updateGithubPull();
+  }
+
+  private void executeUpdateGithubReset(final AppInitData appInitData) {
+    log.info("Execute Update Github Info...");
+    new UpdateGithubReset(appInitData).updateGithubReset();
+  }
+
+  private void executeUpdateGithubMerge(final AppInitData appInitData) {
+    log.info("Execute Update Github Merge...");
+    new UpdateGithubMerge(appInitData).updateGithubMerge();
+  }
+
+  private void executeUpdateReposNpmSnapshot(
+      final String branchName, final AppInitData appInitData) {
     log.info("Execute Update Repos NPM Snapshot: [ {} ]", branchName);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateNpmSnapshots(appInitData, branchName).updateNpmSnapshots();
   }
 
-  private void executeUpdateReposGradleSpotless(final String branchName, final String repoName) {
+  private void executeUpdateReposGradleSpotless(
+      final String branchName, final String repoName, final AppInitData appInitData) {
     log.info("Execute Update Repos Gradle Spotless: [ {} ] [ {} ]", branchName, repoName);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateGradleSpotless(appInitData, branchName, repoName).updateGradleSpotless();
   }
 
-  private void executeUpdateReposGithubBranchDelete(final boolean isDeleteUpdateDependenciesOnly) {
+  private void executeUpdateReposGithubBranchDelete(
+      final boolean isDeleteUpdateDependenciesOnly, final AppInitData appInitData) {
     log.info("Execute Update Repos GitHub Branch Delete: [ {} ]", isDeleteUpdateDependenciesOnly);
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     new UpdateGithubBranchDelete(appInitData, isDeleteUpdateDependenciesOnly)
         .updateGithubBranchDelete();
   }
 
   private void executeUpdateReposGithubPrCreateRetry(
-      final String branchName, final boolean isForceCreatePr) {
+      final String branchName, final boolean isForceCreatePr, final AppInitData appInitData) {
     log.info(
         "Execute Update Repos Github PR Create Retry: [ {} ] | [ {} ]",
         branchName,
         isForceCreatePr);
     Set<String> beginSet = new HashSet<>(getRepositoriesWithPrError());
-    AppInitData appInitData = AppInitDataUtils.appInitData();
     List<Repository> repositories =
         isForceCreatePr
             ? appInitData.getRepositories()
@@ -299,14 +354,25 @@ public class UpdateRepoService {
     new UpdateGithubPrCreate(repositories, appInitData, branchName).updateGithubPrCreate();
   }
 
-  private void sendProcessSummaryEmail(final boolean isShouldSendEmail) {
+  private void makeProcessSummary(
+      final boolean isProcessSummaryRequired, final UpdateType updateType) {
     boolean isSendEmail =
         "true".equals(AppInitDataUtils.appInitData().getArgsMap().get(ENV_SEND_EMAIL));
-    if (isSendEmail && isShouldSendEmail) {
-      log.info("Update Repos All Continue, Sending Email...");
 
+    log.info(
+        "Make Process Summary: [ {} ] | [ {} ] | [ {} ]",
+        isSendEmail,
+        isProcessSummaryRequired,
+        updateType);
+
+    ProcessSummary processSummary = null;
+    if (isProcessSummaryRequired) {
+      processSummary = processSummary(updateType);
+    }
+
+    if (isSendEmail && processSummary != null) {
       String subject = "App Dependency Update Daily Logs";
-      String html = getProcessSummaryContent();
+      String html = ProcessSummaryEmailUtils.getProcessSummaryContent(processSummary);
       log.debug(html);
       String attachmentFileName = String.format("app_dep_update_logs_%s.log", LocalDate.now());
       String attachment = getLogFileContent();
@@ -330,14 +396,34 @@ public class UpdateRepoService {
     return null;
   }
 
-  private String getProcessSummaryContent() {
+  private ProcessSummary processSummary(final UpdateType updateType) {
+    Map<String, ProcessedRepository> processedRepositoryMap =
+        ProcessUtils.getProcessedRepositoriesMap();
     List<ProcessedRepository> processedRepositories =
-        ProcessUtils.getProcessedRepositoriesMap().values().stream()
-            .sorted(Comparator.comparing(ProcessedRepository::getRepoName))
-            .toList();
+        new ArrayList<>(ProcessUtils.getProcessedRepositoriesMap().values().stream().toList());
+    List<Repository> allRepositories = AppInitDataUtils.appInitData().getRepositories();
+
+    for (Repository repository : allRepositories) {
+      if (processedRepositoryMap.containsKey(repository.getRepoName())) {
+        updateProcessedRepositoriesRepoType(
+            repository.getRepoName(), repository.getType().name().split("_")[0]);
+      } else {
+        processedRepositories.add(
+            ProcessedRepository.builder()
+                .repoName(repository.getRepoName())
+                .repoType(repository.getType().name().split("_")[0])
+                .isPrCreated(false)
+                .isPrCreateError(false)
+                .isPrMerged(false)
+                .build());
+      }
+    }
+
+    processedRepositories.sort(Comparator.comparing(ProcessedRepository::getRepoName));
 
     ProcessSummary processSummary =
         ProcessSummary.builder()
+            .updateType(updateType.name())
             .mongoPluginsToUpdate(ProcessUtils.getMongoPluginsToUpdate())
             .mongoDependenciesToUpdate(ProcessUtils.getMongoDependenciesToUpdate())
             .mongoPackagesToUpdate(ProcessUtils.getMongoPackagesToUpdate())
@@ -356,107 +442,12 @@ public class UpdateRepoService {
             .processedRepositories(processedRepositories)
             .build();
 
-    return getProcessSummaryContent(processSummary);
-  }
+    // save to repository
+    ProcessSummaries processSummaries =
+        ProcessSummaries.builder().updateDateTime(LocalDateTime.now()).build();
+    BeanUtils.copyProperties(processSummary, processSummaries);
+    mongoRepoService.saveProcessSummaries(processSummaries);
 
-  private String getProcessSummaryContent(ProcessSummary processSummary) {
-    StringBuilder html = new StringBuilder();
-    html.append(
-        """
-            <html>
-              <head>
-                <style>
-                  th {
-                      border-bottom: 2px solid #9e9e9e;
-                      position: sticky;
-                      top: 0;
-                      background-color: lightgrey;
-                    }
-                  td {
-                    padding: 5px;
-                    text-align: left;
-                    border-bottom: 1px solid #9e9e9e;
-                  }
-                </style>
-              </head>
-              <body>
-            """);
-
-    html.append(
-        """
-          <p style='font-size: 14px; font-weight: bold;'>App Dependency Update Process Summary</p>
-          <table cellpadding='10' cellspacing='0' style='font-size: 12px; border-collapse: collapse;'>
-            <tr>
-              <th>Item</th>
-              <th>Value</th>
-            </tr>
-            <tr>
-              <td>Mongo Plugins To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo Dependencies To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo Packages To Update</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Mongo NPM Skips Active</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Created Count</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Create Errors Count</td>
-              <td>%d</td>
-            </tr>
-            <tr>
-              <td>Total PR Merged Count</td>
-              <td>%d</td>
-            </tr>
-          </table>
-        """
-            .formatted(
-                processSummary.getMongoPluginsToUpdate(),
-                processSummary.getMongoDependenciesToUpdate(),
-                processSummary.getMongoPackagesToUpdate(),
-                processSummary.getMongoNpmSkipsActive(),
-                processSummary.getTotalPrCreatedCount(),
-                processSummary.getTotalPrCreateErrorsCount(),
-                processSummary.getTotalPrMergedCount()));
-
-    html.append(
-        """
-          <br />
-          <p style='font-size: 14px; font-weight: bold;'>Processed Repositories</p>
-          <table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
-            <tr>
-              <th>Repository</th>
-              <th>PR Created</th>
-              <th>PR Create Error</th>
-              <th>PR Merged</th>
-            </tr>
-        """);
-
-    for (ProcessedRepository processedRepository : processSummary.getProcessedRepositories()) {
-      html.append("<tr>");
-      html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
-      html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
-      html.append("<td>").append(processedRepository.isPrCreateError() ? "Y" : "N").append("</td>");
-      html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
-      html.append("</tr>");
-    }
-
-    html.append("""
-          </table>
-          </body>
-        </html>
-        """);
-
-    return html.toString();
+    return processSummary;
   }
 }
