@@ -532,6 +532,7 @@ public class UpdateRepoService {
           <table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
             <tr>
               <th>Repository</th>
+              <th>Type</th>
               <th>PR Created</th>
               <th>PR Create Error</th>
               <th>PR Merged</th>
