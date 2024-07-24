@@ -157,6 +157,8 @@ public class UpdateRepoService {
 
     AppInitData appInitData = AppInitDataUtils.appInitData();
 
+    // checkout main branch
+    executeUpdateGithubReset(appInitData);
     // pull changes
     executeUpdateGithubPull(appInitData);
 
