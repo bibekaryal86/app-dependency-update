@@ -130,21 +130,7 @@ public class ProcessSummaryEmailUtils {
                   </tr>
               """);
 
-      for (ProcessedRepository processedRepository : prCreatedAndMerged) {
-        html.append("<tr>");
-        html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
-        html.append("<td>").append(processedRepository.getRepoType()).append("</td>");
-        html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
-        html.append("<td>")
-            .append(processedRepository.isPrCreateError() ? "Y" : "N")
-            .append("</td>");
-        html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
-        html.append("</tr>");
-      }
-
-      html.append("""
-          </table>
-        """);
+      processedRepositoryTable(prCreatedAndMerged, html);
     }
 
     if (prCreatedNotMerged.isEmpty()) {
@@ -169,21 +155,7 @@ public class ProcessSummaryEmailUtils {
                   </tr>
               """);
 
-      for (ProcessedRepository processedRepository : prCreatedNotMerged) {
-        html.append("<tr>");
-        html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
-        html.append("<td>").append(processedRepository.getRepoType()).append("</td>");
-        html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
-        html.append("<td>")
-            .append(processedRepository.isPrCreateError() ? "Y" : "N")
-            .append("</td>");
-        html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
-        html.append("</tr>");
-      }
-
-      html.append("""
-          </table>
-        """);
+      processedRepositoryTable(prCreatedNotMerged, html);
     }
 
     if (prCreateError.isEmpty()) {
@@ -208,21 +180,7 @@ public class ProcessSummaryEmailUtils {
                   </tr>
               """);
 
-      for (ProcessedRepository processedRepository : prCreateError) {
-        html.append("<tr>");
-        html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
-        html.append("<td>").append(processedRepository.getRepoType()).append("</td>");
-        html.append("<td>").append(processedRepository.isPrCreated() ? "Y" : "N").append("</td>");
-        html.append("<td>")
-            .append(processedRepository.isPrCreateError() ? "Y" : "N")
-            .append("</td>");
-        html.append("<td>").append(processedRepository.isPrMerged() ? "Y" : "N").append("</td>");
-        html.append("</tr>");
-      }
-
-      html.append("""
-          </table>
-        """);
+      processedRepositoryTable(prCreateError, html);
     }
 
     html.append(
@@ -239,7 +197,19 @@ public class ProcessSummaryEmailUtils {
                 </tr>
             """);
 
-    for (ProcessedRepository processedRepository : allProcessedRepositories) {
+    processedRepositoryTable(allProcessedRepositories, html);
+
+    html.append("""
+          </body>
+        </html>
+        """);
+
+    return html.toString();
+  }
+
+  private static void processedRepositoryTable(
+      List<ProcessedRepository> processedRepositories, StringBuilder html) {
+    for (ProcessedRepository processedRepository : processedRepositories) {
       html.append("<tr>");
       html.append("<td>").append(processedRepository.getRepoName()).append("</td>");
       html.append("<td>").append(processedRepository.getRepoType()).append("</td>");
@@ -250,11 +220,7 @@ public class ProcessSummaryEmailUtils {
     }
 
     html.append("""
-          </table>
-          </body>
-        </html>
-        """);
-
-    return html.toString();
+        </table>
+      """);
   }
 }
