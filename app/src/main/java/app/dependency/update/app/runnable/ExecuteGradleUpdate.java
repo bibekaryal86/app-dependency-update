@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
+  private final String latestGradleVersion;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -43,11 +44,13 @@ public class ExecuteGradleUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecuteGradleUpdate(
+      final String latestGradleVersion,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
+    this.latestGradleVersion = latestGradleVersion;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -572,8 +575,7 @@ public class ExecuteGradleUpdate implements Runnable {
   private void executeGradleWrapperUpdate() {
     // this check is done when repository object is created
     // adding here as backup
-    if (!isRequiresUpdate(
-        this.repository.getCurrentGradleVersion(), this.repository.getLatestGradleVersion())) {
+    if (!isRequiresUpdate(this.repository.getCurrentGradleVersion(), this.latestGradleVersion)) {
       return;
     }
 
@@ -602,7 +604,7 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.repository.getLatestGradleVersion());
+                  this.latestGradleVersion);
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);

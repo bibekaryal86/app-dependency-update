@@ -161,21 +161,16 @@ public class AppInitDataUtils {
     }
 
     // add gradle wrapper version data
-    String latestGradleVersion = getLatestGradleVersion();
     List<Repository> gradleWrapperRepositories =
         gradleRepositories.stream()
             .map(
                 repository -> {
                   String currentGradleVersion = getCurrentGradleVersionInRepo(repository);
-                  if (isRequiresUpdate(currentGradleVersion, latestGradleVersion)) {
-                    return new Repository(
-                        repository.getRepoPath(),
-                        repository.getType(),
-                        repository.getGradleModules(),
-                        latestGradleVersion,
-                        currentGradleVersion);
-                  }
-                  return repository;
+                  return new Repository(
+                      repository.getRepoPath(),
+                      repository.getType(),
+                      repository.getGradleModules(),
+                      currentGradleVersion);
                 })
             .toList();
 
