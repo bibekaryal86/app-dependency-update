@@ -6,3 +6,6 @@ build
 
 # Ignore IntelliJ config directory
 .idea
+
+# Ignore log files when running from IDE without repo home
+**/*.log

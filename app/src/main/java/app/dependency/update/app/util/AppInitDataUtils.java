@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersionBuildTools;
 import app.dependency.update.app.model.LatestVersionDocker;
 import app.dependency.update.app.model.LatestVersionGcp;
 import app.dependency.update.app.model.LatestVersionGithubActions;
@@ -289,11 +290,13 @@ public class AppInitDataUtils {
 
   private static LatestVersions getLatestVersions() {
     LatestVersionRuntimes latestVersionRuntimes = getLatestVersionRuntimes();
+    LatestVersionBuildTools latestVersionBuildTools = getLatestVersionBuildTools();
     LatestVersionGcp latestVersionGcp = getLatestVersionGcp();
     LatestVersionDocker latestVersionDocker = getLatestVersionDocker();
     LatestVersionGithubActions latestVersionGithubActions = getLatestVersionGithubActions();
     return LatestVersions.builder()
         .latestVersionRuntimes(latestVersionRuntimes)
+        .latestVersionBuildTools(latestVersionBuildTools)
         .latestVersionGcp(latestVersionGcp)
         .latestVersionDocker(latestVersionDocker)
         .latestVersionsGithubActions(latestVersionGithubActions)
@@ -305,13 +308,20 @@ public class AppInitDataUtils {
     final String node = ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
     final String python =
         ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
-    final String gradle =
-        ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
 
     final LatestVersionRuntimes latestVersionRuntimes =
-        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).gradle(gradle).build();
+        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).build();
     validateLatestVersion(latestVersionRuntimes);
     return latestVersionRuntimes;
+  }
+
+  private static LatestVersionBuildTools getLatestVersionBuildTools() {
+    final String gradle =
+        ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
+    final LatestVersionBuildTools latestVersionBuildTools =
+        LatestVersionBuildTools.builder().gradle(gradle).build();
+    validateLatestVersion(latestVersionBuildTools);
+    return latestVersionBuildTools;
   }
 
   private static LatestVersionGcp getLatestVersionGcp() {

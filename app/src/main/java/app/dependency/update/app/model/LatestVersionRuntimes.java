@@ -17,5 +17,4 @@ public class LatestVersionRuntimes {
   private String java;
   private String node;
   private String python;
-  private String gradle;
 }
