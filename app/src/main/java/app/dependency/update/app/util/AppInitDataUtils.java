@@ -5,10 +5,16 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersionDocker;
+import app.dependency.update.app.model.LatestVersionGcp;
+import app.dependency.update.app.model.LatestVersionGithubActions;
+import app.dependency.update.app.model.LatestVersionRuntimes;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.GradleRepoService;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -19,6 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -230,11 +237,6 @@ public class AppInitDataUtils {
     return scriptFiles;
   }
 
-  private static String getLatestGradleVersion() {
-    GradleRepoService gradleRepoService = ApplicationContextUtil.getBean(GradleRepoService.class);
-    return gradleRepoService.getLatestGradleVersion();
-  }
-
   private static String getCurrentGradleVersionInRepo(final Repository repository) {
     Path wrapperPath =
         Path.of(repository.getRepoPath().toString().concat(GRADLE_WRAPPER_PROPERTIES));
@@ -279,6 +281,68 @@ public class AppInitDataUtils {
     } catch (Exception ex) {
       throw new AppDependencyUpdateRuntimeException(
           "Requirements Texts Files not found in the repo path provided!", ex);
+    }
+  }
+
+  private static LatestVersions getLatestVersions() {
+    LatestVersionRuntimes latestVersionRuntimes = getLatestVersionRuntimes();
+    LatestVersionGcp latestVersionGcp = getLatestVersionGcp();
+    LatestVersionDocker latestVersionDocker = getLatestVersionDocker();
+    LatestVersionGithubActions latestVersionGithubActions = getLatestVersionGithubActions();
+    return LatestVersions.builder()
+        .latestVersionRuntimes(latestVersionRuntimes)
+        .latestVersionGcp(latestVersionGcp)
+        .latestVersionDocker(latestVersionDocker)
+        .latestVersionsGithubActions(latestVersionGithubActions)
+        .build();
+  }
+
+  private static LatestVersionRuntimes getLatestVersionRuntimes() {
+    String gradle = getLatestGradleVersion();
+    LatestVersionRuntimes latestVersion = LatestVersionRuntimes.builder().build();
+    validateLatestVersion(latestVersion);
+    return latestVersion;
+  }
+
+  private static LatestVersionGcp getLatestVersionGcp() {
+    LatestVersionGcp latestVersion = LatestVersionGcp.builder().build();
+    validateLatestVersion(latestVersion);
+    return latestVersion;
+  }
+
+  private static LatestVersionDocker getLatestVersionDocker() {
+    LatestVersionDocker latestVersion = LatestVersionDocker.builder().build();
+    validateLatestVersion(latestVersion);
+    return latestVersion;
+  }
+
+  private static LatestVersionGithubActions getLatestVersionGithubActions() {
+    LatestVersionGithubActions latestVersion = LatestVersionGithubActions.builder().build();
+    validateLatestVersion(latestVersion);
+    return latestVersion;
+  }
+
+  private static String getLatestGradleVersion() {
+    GradleRepoService gradleRepoService = ApplicationContextUtil.getBean(GradleRepoService.class);
+    return gradleRepoService.getLatestGradleVersion();
+  }
+
+  private static void validateLatestVersion(final Object latestVersion) {
+    Field[] fields = latestVersion.getClass().getDeclaredFields();
+    try {
+      for (Field field : fields) {
+        field.setAccessible(true);
+        if (field.getType().equals(String.class)) {
+          String value = (String) field.get(latestVersion);
+          if (!StringUtils.hasText(value)) {
+            throw new AppDependencyUpdateRuntimeException(
+                String.format("Field %s doesn't have value", field.getName()));
+          }
+        }
+      }
+    } catch (Exception ex) {
+      log.error("Validate Latest Version: [{}]", latestVersion, ex);
+      throw new AppDependencyUpdateRuntimeException("Latest Version Value Check Exception");
     }
   }
 }
