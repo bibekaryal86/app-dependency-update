@@ -309,7 +309,7 @@ public class AppInitDataUtils {
         ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
 
     final LatestVersionRuntimes latestVersionRuntimes =
-        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).build();
+        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).gradle(gradle).build();
     validateLatestVersion(latestVersionRuntimes);
     return latestVersionRuntimes;
   }
