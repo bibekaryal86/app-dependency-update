@@ -13,6 +13,9 @@ import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.GradleRepoService;
+import app.dependency.update.app.service.JavaService;
+import app.dependency.update.app.service.NodeService;
+import app.dependency.update.app.service.PythonService;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.*;
@@ -298,10 +301,14 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersionRuntimes getLatestVersionRuntimes() {
-    String gradle = getLatestGradleVersion();
-    LatestVersionRuntimes latestVersion = LatestVersionRuntimes.builder().build();
-    validateLatestVersion(latestVersion);
-    return latestVersion;
+    final String java = getLatestJavaVersion();
+    final String node = getLatestNodeVersion();
+    final String python = getLatestPythonVersion();
+    final String gradle = getLatestGradleVersion();
+    final LatestVersionRuntimes latestVersionRuntimes =
+        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).build();
+    validateLatestVersion(latestVersionRuntimes);
+    return latestVersionRuntimes;
   }
 
   private static LatestVersionGcp getLatestVersionGcp() {
@@ -320,6 +327,21 @@ public class AppInitDataUtils {
     LatestVersionGithubActions latestVersion = LatestVersionGithubActions.builder().build();
     validateLatestVersion(latestVersion);
     return latestVersion;
+  }
+
+  private static String getLatestJavaVersion() {
+    JavaService javaService = ApplicationContextUtil.getBean(JavaService.class);
+    return javaService.getLatestJavaVersion();
+  }
+
+  private static String getLatestNodeVersion() {
+    NodeService nodeService = ApplicationContextUtil.getBean(NodeService.class);
+    return nodeService.getLatestNodeVersion();
+  }
+
+  private static String getLatestPythonVersion() {
+    PythonService pythonService = ApplicationContextUtil.getBean(PythonService.class);
+    return pythonService.getLatestPythonVersion();
   }
 
   private static String getLatestGradleVersion() {
