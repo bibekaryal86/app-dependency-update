@@ -301,10 +301,13 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersionRuntimes getLatestVersionRuntimes() {
-    final String java = getLatestJavaVersion();
-    final String node = getLatestNodeVersion();
-    final String python = getLatestPythonVersion();
-    final String gradle = getLatestGradleVersion();
+    final String java = ApplicationContextUtil.getBean(JavaService.class).getLatestJavaVersion();
+    final String node = ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
+    final String python =
+        ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
+    final String gradle =
+        ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
+
     final LatestVersionRuntimes latestVersionRuntimes =
         LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).build();
     validateLatestVersion(latestVersionRuntimes);
@@ -327,26 +330,6 @@ public class AppInitDataUtils {
     LatestVersionGithubActions latestVersion = LatestVersionGithubActions.builder().build();
     validateLatestVersion(latestVersion);
     return latestVersion;
-  }
-
-  private static String getLatestJavaVersion() {
-    JavaService javaService = ApplicationContextUtil.getBean(JavaService.class);
-    return javaService.getLatestJavaVersion();
-  }
-
-  private static String getLatestNodeVersion() {
-    NodeService nodeService = ApplicationContextUtil.getBean(NodeService.class);
-    return nodeService.getLatestNodeVersion();
-  }
-
-  private static String getLatestPythonVersion() {
-    PythonService pythonService = ApplicationContextUtil.getBean(PythonService.class);
-    return pythonService.getLatestPythonVersion();
-  }
-
-  private static String getLatestGradleVersion() {
-    GradleRepoService gradleRepoService = ApplicationContextUtil.getBean(GradleRepoService.class);
-    return gradleRepoService.getLatestGradleVersion();
   }
 
   private static void validateLatestVersion(final Object latestVersion) {
