@@ -34,7 +34,7 @@ public class GradleRepoService {
             .max(Comparator.comparing(GradleReleaseResponse::getName));
 
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
+    log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
       log.error("Latest Gradle Release Null Error...");

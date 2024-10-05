@@ -44,6 +44,11 @@ public class ConstantUtils {
   // endpoints
   public static final String MONGODB_CONNECTION_STRING =
       "mongodb+srv://%s:%s@cluster0.anwaeio.mongodb.net/?retryWrites=true&w=majority";
+  public static final String JAVA_RELEASES_ENDPOINT =
+      "https://api.adoptium.net/v3/info/release_versions?heap_size=normal&image_type=jdk&lts=true&page=0&page_size=50&project=jdk&release_type=ga&semver=false&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
+  public static final String PYTHON_RELEASES_ENDPOINT =
+      "https://api.github.com/repos/python/cpython/tags";
+  public static final String NODE_RELEASES_ENDPOINT = "https://nodejs.org/dist/index.json";
   public static final String GRADLE_RELEASES_ENDPOINT =
       "https://api.github.com/repos/gradle/gradle/releases";
   public static final String GRADLE_PLUGINS_ENDPOINT = "https://plugins.gradle.org/plugin/%s";
