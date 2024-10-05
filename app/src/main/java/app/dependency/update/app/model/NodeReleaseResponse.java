@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NodeReleaseResponse {
   private String version;
-  private boolean lts;
+  private String lts;
 }

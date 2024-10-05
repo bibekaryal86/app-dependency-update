@@ -2,7 +2,6 @@ package app.dependency.update.app.service;
 
 import app.dependency.update.app.connector.JavaConnector;
 import app.dependency.update.app.model.JavaReleaseResponse;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ public class JavaService {
     Optional<JavaReleaseResponse.JavaVersion> optionalJavaReleaseVersion =
         javaReleaseVersions.stream()
             .filter(javaVersion -> "LTS".equals(javaVersion.getOptional()))
-            .max(Comparator.comparing(JavaReleaseResponse.JavaVersion::getSemver));
+            .findFirst();
 
     JavaReleaseResponse.JavaVersion latestJavaRelease = optionalJavaReleaseVersion.orElse(null);
     log.info("Latest Java Release: [ {} ]", latestJavaRelease);

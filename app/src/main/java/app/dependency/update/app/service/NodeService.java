@@ -2,7 +2,6 @@ package app.dependency.update.app.service;
 
 import app.dependency.update.app.connector.NodeConnector;
 import app.dependency.update.app.model.NodeReleaseResponse;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +25,8 @@ public class NodeService {
     // get rid of non lts and sort by version descending
     Optional<NodeReleaseResponse> optionalNodeReleaseResponse =
         nodeReleaseResponses.stream()
-            .filter(NodeReleaseResponse::isLts)
-            .max(Comparator.comparing(NodeReleaseResponse::getVersion));
+            .filter(nodeReleaseResponse -> !"false".equals(nodeReleaseResponse.getLts()))
+            .findFirst();
 
     NodeReleaseResponse latestNodeRelease = optionalNodeReleaseResponse.orElse(null);
     log.info("Latest Node Release: [ {} ]", latestNodeRelease);

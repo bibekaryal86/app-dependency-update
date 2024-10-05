@@ -4,7 +4,6 @@ import static app.dependency.update.app.util.CommonUtils.isCheckPreReleaseVersio
 
 import app.dependency.update.app.connector.PythonConnector;
 import app.dependency.update.app.model.PythonReleaseResponse;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,7 @@ public class PythonService {
         pythonReleaseResponses.stream()
             .filter(
                 pythonReleaseResponse -> !isCheckPreReleaseVersion(pythonReleaseResponse.getName()))
-            .max(Comparator.comparing(PythonReleaseResponse::getName));
+            .findFirst();
 
     PythonReleaseResponse latestPythonResponse = optionalPythonReleaseResponse.orElse(null);
     log.info("Latest Python Release: [ {} ]", latestPythonResponse);
