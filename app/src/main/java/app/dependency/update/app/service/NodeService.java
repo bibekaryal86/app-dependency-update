@@ -1,6 +1,9 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
+
 import app.dependency.update.app.connector.NodeConnector;
+import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NodeReleaseResponse;
 import java.util.List;
 import java.util.Optional;
@@ -17,10 +20,7 @@ public class NodeService {
     this.nodeConnector = nodeConnector;
   }
 
-  /**
-   * @return node version in format v22.5.1
-   */
-  public String getLatestNodeVersion() {
+  public LatestVersion getLatestNodeVersion() {
     List<NodeReleaseResponse> nodeReleaseResponses = nodeConnector.getNodeReleases();
     // get rid of non lts and sort by version descending
     Optional<NodeReleaseResponse> optionalNodeReleaseResponse =
@@ -36,6 +36,50 @@ public class NodeService {
       return null;
     }
 
-    return latestNodeRelease.getVersion();
+    final String versionActual = latestNodeRelease.getVersion();
+    final String versionFull = getVersionFull(versionActual);
+    final String versionMajor = getVersionMajor(versionFull);
+    final String versionDocker = getVersionDocker(versionMajor);
+    final String versionGcp = getVersionGcp(versionMajor);
+
+    return LatestVersion.builder()
+        .versionActual(versionActual)
+        .versionFull(versionFull)
+        .versionMajor(versionMajor)
+        .versionDocker(versionDocker)
+        .versionGcp(versionGcp)
+        .build();
+  }
+
+  /**
+   * @param versionActual eg: v20.18.0
+   * @return eg: 20.18.0
+   */
+  private String getVersionFull(final String versionActual) {
+    return versionActual.replaceAll("[^0-9.]", "");
+  }
+
+  /**
+   * @param versionFull eg: 20.18.0
+   * @return eg: 20
+   */
+  private String getVersionMajor(final String versionFull) {
+    return versionFull.trim().split("\\.")[0];
+  }
+
+  /**
+   * @param versionMajor eg: 20
+   * @return eg: node:20-alpine
+   */
+  private String getVersionDocker(final String versionMajor) {
+    return "node:" + versionMajor + "-" + DOCKER_ALPINE;
+  }
+
+  /**
+   * @param versionMajor eg: 20
+   * @return eg: node20
+   */
+  private String getVersionGcp(final String versionMajor) {
+    return "node" + versionMajor;
   }
 }

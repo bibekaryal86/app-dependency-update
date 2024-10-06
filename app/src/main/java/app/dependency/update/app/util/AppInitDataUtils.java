@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.LatestVersionAppServers;
 import app.dependency.update.app.model.LatestVersionBuildTools;
 import app.dependency.update.app.model.LatestVersionGithubActions;
@@ -14,6 +15,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.GradleRepoService;
 import app.dependency.update.app.service.JavaService;
+import app.dependency.update.app.service.NginxService;
 import app.dependency.update.app.service.NodeService;
 import app.dependency.update.app.service.PythonService;
 import java.io.IOException;
@@ -28,7 +30,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -297,22 +298,19 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersionAppServers getLatestVersionAppServers() {
-    final String java = ApplicationContextUtil.getBean(JavaService.class).getLatestJavaVersion();
-    final String node = ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
-    final String python =
-        ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
-
+    final LatestVersion nginx =
+        ApplicationContextUtil.getBean(NginxService.class).getLatestNginxVersion();
     final LatestVersionAppServers latestVersionAppServers =
-        LatestVersionAppServers.builder().build();
+        LatestVersionAppServers.builder().nginx(nginx).build();
     validateLatestVersion(latestVersionAppServers);
     return latestVersionAppServers;
   }
 
   private static LatestVersionBuildTools getLatestVersionBuildTools() {
-    final String gradle =
+    final LatestVersion gradle =
         ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
     final LatestVersionBuildTools latestVersionBuildTools =
-        LatestVersionBuildTools.builder().build();
+        LatestVersionBuildTools.builder().gradle(gradle).build();
     validateLatestVersion(latestVersionBuildTools);
     return latestVersionBuildTools;
   }
@@ -324,7 +322,14 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersionLanguages getLatestVersionLanguages() {
-    LatestVersionLanguages latestVersion = LatestVersionLanguages.builder().build();
+    final LatestVersion java =
+        ApplicationContextUtil.getBean(JavaService.class).getLatestJavaVersion();
+    final LatestVersion node =
+        ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
+    final LatestVersion python =
+        ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
+    LatestVersionLanguages latestVersion =
+        LatestVersionLanguages.builder().java(java).node(node).python(python).build();
     validateLatestVersion(latestVersion);
     return latestVersion;
   }
@@ -334,9 +339,9 @@ public class AppInitDataUtils {
     try {
       for (Field field : fields) {
         field.setAccessible(true);
-        if (field.getType().equals(String.class)) {
-          String value = (String) field.get(latestVersion);
-          if (!StringUtils.hasText(value)) {
+        if (field.getType().equals(LatestVersion.class)) {
+          LatestVersion value = (LatestVersion) field.get(latestVersion);
+          if (value == null) {
             throw new AppDependencyUpdateRuntimeException(
                 String.format("Field %s doesn't have value", field.getName()));
           }
