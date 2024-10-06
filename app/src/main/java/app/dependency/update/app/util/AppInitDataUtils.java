@@ -53,10 +53,14 @@ public class AppInitDataUtils {
     List<Repository> repositories = getRepositoryLocations(argsMap);
     // get the scripts included in resources folder
     List<ScriptFile> scriptFiles = getScriptsInResources();
+    // get the latest versions of tools and runtimes
+    LatestVersions latestVersions = getLatestVersions();
+    // return
     return AppInitData.builder()
         .argsMap(argsMap)
         .repositories(repositories)
         .scriptFiles(scriptFiles)
+        .latestVersions(latestVersions)
         .build();
   }
 

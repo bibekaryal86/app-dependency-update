@@ -6,7 +6,6 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ public class GradleRepoService {
             .filter(
                 gradleReleaseResponse ->
                     !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
-            .max(Comparator.comparing(GradleReleaseResponse::getName));
+            .findFirst();
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
 
     if (latestGradleRelease == null) {
