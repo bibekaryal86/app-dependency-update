@@ -2,10 +2,9 @@ package app.dependency.update.app.connector;
 
 import static app.dependency.update.app.util.ConstantUtils.*;
 
+import app.dependency.update.app.model.NginxReleaseResponse;
 import java.util.Collections;
 import java.util.List;
-
-import app.dependency.update.app.model.NginxReleaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;

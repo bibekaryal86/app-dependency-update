@@ -14,9 +14,8 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LatestVersions {
-  private LatestVersionRuntimes latestVersionRuntimes;
+  private LatestVersionAppServers latestVersionAppServers;
   private LatestVersionBuildTools latestVersionBuildTools;
-  private LatestVersionGcp latestVersionGcp;
-  private LatestVersionDocker latestVersionDocker;
-  private LatestVersionGithubActions latestVersionsGithubActions;
+  private LatestVersionGithubActions latestVersionGithubActions;
+  private LatestVersionLanguages latestVersionLanguages;
 }

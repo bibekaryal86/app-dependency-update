@@ -5,11 +5,10 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersionAppServers;
 import app.dependency.update.app.model.LatestVersionBuildTools;
-import app.dependency.update.app.model.LatestVersionDocker;
-import app.dependency.update.app.model.LatestVersionGcp;
 import app.dependency.update.app.model.LatestVersionGithubActions;
-import app.dependency.update.app.model.LatestVersionRuntimes;
+import app.dependency.update.app.model.LatestVersionLanguages;
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
@@ -289,55 +288,43 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersions getLatestVersions() {
-    LatestVersionRuntimes latestVersionRuntimes = getLatestVersionRuntimes();
-    LatestVersionBuildTools latestVersionBuildTools = getLatestVersionBuildTools();
-    LatestVersionGcp latestVersionGcp = getLatestVersionGcp();
-    LatestVersionDocker latestVersionDocker = getLatestVersionDocker();
-    LatestVersionGithubActions latestVersionGithubActions = getLatestVersionGithubActions();
     return LatestVersions.builder()
-        .latestVersionRuntimes(latestVersionRuntimes)
-        .latestVersionBuildTools(latestVersionBuildTools)
-        .latestVersionGcp(latestVersionGcp)
-        .latestVersionDocker(latestVersionDocker)
-        .latestVersionsGithubActions(latestVersionGithubActions)
+        .latestVersionAppServers(getLatestVersionAppServers())
+        .latestVersionBuildTools(getLatestVersionBuildTools())
+        .latestVersionGithubActions(getLatestVersionGithubActions())
+        .latestVersionLanguages(getLatestVersionLanguages())
         .build();
   }
 
-  private static LatestVersionRuntimes getLatestVersionRuntimes() {
+  private static LatestVersionAppServers getLatestVersionAppServers() {
     final String java = ApplicationContextUtil.getBean(JavaService.class).getLatestJavaVersion();
     final String node = ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
     final String python =
         ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
 
-    final LatestVersionRuntimes latestVersionRuntimes =
-        LatestVersionRuntimes.builder().java(java).node(node).python(python).java(java).build();
-    validateLatestVersion(latestVersionRuntimes);
-    return latestVersionRuntimes;
+    final LatestVersionAppServers latestVersionAppServers =
+        LatestVersionAppServers.builder().build();
+    validateLatestVersion(latestVersionAppServers);
+    return latestVersionAppServers;
   }
 
   private static LatestVersionBuildTools getLatestVersionBuildTools() {
     final String gradle =
         ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
     final LatestVersionBuildTools latestVersionBuildTools =
-        LatestVersionBuildTools.builder().gradle(gradle).build();
+        LatestVersionBuildTools.builder().build();
     validateLatestVersion(latestVersionBuildTools);
     return latestVersionBuildTools;
   }
 
-  private static LatestVersionGcp getLatestVersionGcp() {
-    LatestVersionGcp latestVersion = LatestVersionGcp.builder().build();
-    validateLatestVersion(latestVersion);
-    return latestVersion;
-  }
-
-  private static LatestVersionDocker getLatestVersionDocker() {
-    LatestVersionDocker latestVersion = LatestVersionDocker.builder().build();
-    validateLatestVersion(latestVersion);
-    return latestVersion;
-  }
-
   private static LatestVersionGithubActions getLatestVersionGithubActions() {
     LatestVersionGithubActions latestVersion = LatestVersionGithubActions.builder().build();
+    validateLatestVersion(latestVersion);
+    return latestVersion;
+  }
+
+  private static LatestVersionLanguages getLatestVersionLanguages() {
+    LatestVersionLanguages latestVersion = LatestVersionLanguages.builder().build();
     validateLatestVersion(latestVersion);
     return latestVersion;
   }

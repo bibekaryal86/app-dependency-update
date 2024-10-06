@@ -14,5 +14,5 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LatestVersionBuildTools {
-  private String gradle;
+  private LatestVersion gradle;
 }

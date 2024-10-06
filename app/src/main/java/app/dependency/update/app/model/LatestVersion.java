@@ -13,8 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LatestVersionRuntimes {
-  private String java;
-  private String node;
-  private String python;
+public class LatestVersion {
+  private String versionActual;
+  private String versionFull;
+  private String versionMajor;
+  private String versionDocker;
+  private String versionGcp;
 }

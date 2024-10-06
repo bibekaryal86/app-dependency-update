@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LatestVersionGithubActions {
-  private String checkout;
-  private String setupJava;
-  private String setupGradle;
-  private String setupNode;
-  private String setupPython;
-  private String codeqlInit;
-  private String codeqlAutobuild;
-  private String codeqlAnalyze;
+  private LatestVersion checkout;
+  private LatestVersion setupJava;
+  private LatestVersion setupGradle;
+  private LatestVersion setupNode;
+  private LatestVersion setupPython;
+  private LatestVersion codeqlInit;
+  private LatestVersion codeqlAutobuild;
+  private LatestVersion codeqlAnalyze;
 }

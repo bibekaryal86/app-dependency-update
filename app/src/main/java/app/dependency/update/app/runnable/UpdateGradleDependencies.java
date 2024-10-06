@@ -55,7 +55,7 @@ public class UpdateGradleDependencies {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
     return new ExecuteGradleUpdate(
-            this.latestVersions.getLatestVersionBuildTools().getGradle(),
+            this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull(),
             repository,
             this.scriptFile,
             arguments,

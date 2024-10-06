@@ -1,9 +1,7 @@
 package app.dependency.update.app.service;
 
 import app.dependency.update.app.connector.NginxConnector;
-import app.dependency.update.app.connector.NodeConnector;
 import app.dependency.update.app.model.NginxReleaseResponse;
-import app.dependency.update.app.model.NodeReleaseResponse;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +23,7 @@ public class NginxService {
   public String getLatestNginxVersion() {
     List<NginxReleaseResponse> nginxReleaseResponses = nginxConnector.getNginxReleases();
     Optional<NginxReleaseResponse> optionalNginxReleaseResponse =
-            nginxReleaseResponses.stream()
-            .findFirst();
+        nginxReleaseResponses.stream().findFirst();
 
     NginxReleaseResponse latestNginxRelease = optionalNginxReleaseResponse.orElse(null);
     log.info("Latest Nginx Release: [ {} ]", latestNginxRelease);
