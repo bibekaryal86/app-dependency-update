@@ -32,6 +32,7 @@ public class GradleRepoService {
                     !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
             .findFirst();
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
+    log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
       log.error("Latest Gradle Release Null Error...");

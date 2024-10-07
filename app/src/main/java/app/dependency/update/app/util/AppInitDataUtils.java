@@ -13,6 +13,7 @@ import app.dependency.update.app.model.LatestVersionLanguages;
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.service.GithubActionsService;
 import app.dependency.update.app.service.GradleRepoService;
 import app.dependency.update.app.service.JavaService;
 import app.dependency.update.app.service.NginxService;
@@ -320,7 +321,24 @@ public class AppInitDataUtils {
   }
 
   private static LatestVersionGithubActions getLatestVersionGithubActions() {
-    LatestVersionGithubActions latestVersion = LatestVersionGithubActions.builder().build();
+    final GithubActionsService githubActionsService =
+        ApplicationContextUtil.getBean(GithubActionsService.class);
+    final LatestVersion checkout = githubActionsService.getLatestCheckout();
+    final LatestVersion setupJava = githubActionsService.getLatestSetupJava();
+    final LatestVersion setupGradle = githubActionsService.getLatestSetupGradle();
+    final LatestVersion setupNode = githubActionsService.getLatestSetupNode();
+    final LatestVersion setupPython = githubActionsService.getLatestSetupPython();
+    final LatestVersion codeql = githubActionsService.getLatestCodeql();
+
+    LatestVersionGithubActions latestVersion =
+        LatestVersionGithubActions.builder()
+            .checkout(checkout)
+            .setupJava(setupJava)
+            .setupGradle(setupGradle)
+            .setupNode(setupNode)
+            .setupPython(setupPython)
+            .codeql(codeql)
+            .build();
     validateLatestVersion(latestVersion);
     return latestVersion;
   }
