@@ -159,12 +159,26 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       List<String> allLines = Files.readAllLines(buildGradlePath);
       GradleConfigBlock plugins = getPluginsBlock(allLines);
-      GradleConfigBlock dependencies = getDependenciesBlock(allLines);
+      GradleConfigBlock dependencies = getDependenciesBlock(allLines, -1);
+
+      // there might be dependencies block inside buildscript block
+      GradleConfigBlock dependenciesBuildScript;
+      int dependenciesInBuildscriptBlock = getDependenciesBlockBuildscriptBeginPosition(allLines);
+      if (dependenciesInBuildscriptBlock > 0) {
+        dependenciesBuildScript = getDependenciesBlock(allLines, dependenciesInBuildscriptBlock);
+      } else {
+        dependenciesBuildScript =
+            GradleConfigBlock.builder()
+                .dependencies(new ArrayList<>())
+                .dependencies(new ArrayList<>())
+                .build();
+      }
+
       return BuildGradleConfigs.builder()
           .buildGradlePath(buildGradlePath)
           .originals(allLines)
           .plugins(plugins)
-          .dependencies(dependencies)
+          .dependencies(List.of(dependencies, dependenciesBuildScript))
           .build();
     } catch (IOException e) {
       log.error(
@@ -218,13 +232,39 @@ public class ExecuteGradleUpdate implements Runnable {
     return GradleConfigBlock.builder().plugins(plugins).build();
   }
 
+  private int getDependenciesBlockBuildscriptBeginPosition(final List<String> allLines) {
+    int buildscriptBeginPosition = allLines.indexOf("buildscript {");
+    int dependenciesBeginPosition = -1;
+
+    if (buildscriptBeginPosition >= 0) {
+      for (int i = buildscriptBeginPosition + 1; i < allLines.size(); i++) {
+        String buildscript = allLines.get(i);
+        // check if this is the end of the block
+        if (buildscript.equals("}") && isEndOfABlock(allLines, i + 1)) {
+          break;
+        }
+        if (buildscript.contains("dependencies {")) {
+          dependenciesBeginPosition = i;
+          break;
+        }
+      }
+    }
+    return dependenciesBeginPosition;
+  }
+
   // suppressing sonarlint rule for cognitive complexity of method too high
   @SuppressWarnings("java:S3776")
-  private GradleConfigBlock getDependenciesBlock(final List<String> allLines) {
+  private GradleConfigBlock getDependenciesBlock(
+      final List<String> allLines, final int buildscriptDependenciesBeginPosition) {
     List<GradleDefinition> gradleDefinitions = new ArrayList<>();
     List<GradleDependency> gradleDependencies = new ArrayList<>();
 
-    int dependenciesBeginPosition = allLines.indexOf("dependencies {");
+    int dependenciesBeginPosition;
+    if (buildscriptDependenciesBeginPosition > 0) {
+      dependenciesBeginPosition = buildscriptDependenciesBeginPosition;
+    } else {
+      dependenciesBeginPosition = allLines.indexOf("dependencies {");
+    }
 
     if (dependenciesBeginPosition >= 0) {
       for (int i = dependenciesBeginPosition + 1; i < allLines.size(); i++) {
@@ -241,6 +281,7 @@ public class ExecuteGradleUpdate implements Runnable {
         // 3: implementation ('com.google.code.gson:gson:2.10.1')
         // 4: testImplementation('org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE')
         // 5: implementation('org.slf4j:slf4j-api') version set as strict or require or other
+        // 6: classpath 'org.postgresql:postgresql:42.1.3' (this is in buildscript block)
         if (isDependencyDeclaration(leftTrim(dependency))) {
           if (dependency.contains("(") && dependency.contains(")")) {
             dependency = dependency.replace("(", " ").replace(")", " ");
@@ -258,7 +299,9 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } else {
-      log.debug("No dependencies in the project...");
+      log.debug(
+          "No [buildscriptDependenciesBeginPosition={}] dependencies in the project...",
+          buildscriptDependenciesBeginPosition);
     }
 
     return GradleConfigBlock.builder()
@@ -277,7 +320,8 @@ public class ExecuteGradleUpdate implements Runnable {
             "compileOnly",
             "testCompileOnly",
             "runtimeOnly",
-            "testRuntimeOnly");
+            "testRuntimeOnly",
+            "classpath");
     return dependencyConfigurations.stream().anyMatch(dependency::startsWith);
   }
 
@@ -376,14 +420,18 @@ public class ExecuteGradleUpdate implements Runnable {
       return true;
     }
     // check 2: if this is the end of file and only next line is empty line
-    if (allLines.get(positionPlusOne).trim().equals("")
+    if (allLines.get(positionPlusOne).trim().isEmpty()
         && isDoesNotExist(allLines, positionPlusOne + 1)) {
       return true;
     }
-    // check 3: check against beginning of another block (Eg: repositories {)
+    // check 3: check against end of super block (Eg: buildscript { dependencies {} })
+    if (allLines.get(positionPlusOne).trim().equals("}")) {
+      return true;
+    }
+    // check 4: check against beginning of another block (Eg: repositories {)
     Pattern pattern = Pattern.compile(GRADLE_BUILD_BLOCK_END_REGEX);
     Matcher matcher;
-    if (allLines.get(positionPlusOne).trim().equals("")) {
+    if (allLines.get(positionPlusOne).trim().isEmpty()) {
       matcher = pattern.matcher(allLines.get(positionPlusOne + 1));
     } else {
       // though assumed, still check if there is no empty lines between blocks
@@ -408,8 +456,10 @@ public class ExecuteGradleUpdate implements Runnable {
     final GradleConfigBlock pluginsBlock = buildGradleConfigs.getPlugins();
     modifyPluginsBlock(pluginsBlock, originals);
 
-    final GradleConfigBlock dependenciesBlock = buildGradleConfigs.getDependencies();
-    modifyDependenciesBlock(dependenciesBlock, originals);
+    final List<GradleConfigBlock> dependenciesBlock = buildGradleConfigs.getDependencies();
+    for (GradleConfigBlock dependencyBlock : dependenciesBlock) {
+      modifyDependenciesBlock(dependencyBlock, originals);
+    }
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
       return Collections.emptyList();
