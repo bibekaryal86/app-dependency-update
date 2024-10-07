@@ -84,6 +84,14 @@ public class CommonUtils {
         || updateType == UpdateType.PYTHON_DEPENDENCIES;
   }
 
+  public static int parseIntSafe(final String input) {
+    try {
+      return Integer.parseInt(input);
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
+
   public enum UpdateType {
     ALL,
     GITHUB_BRANCH_DELETE,

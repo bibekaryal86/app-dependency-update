@@ -22,6 +22,8 @@ public class ConstantUtils {
   public static final String GRADLE_BUILD_BLOCK_END_REGEX = "([a-z]+\\s\\{)";
   public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
   public static final String GRADLE_BUILD_DEFINITION_REGEX = "\\w+\\s+\\w+";
+  public static final String GRADLE_JAVA_VERSION_REGEX_1 = "JavaVersion.VERSION_(\\d+)";
+  public static final String GRADLE_JAVA_VERSION_REGEX_2 = "JavaLanguageVersion.of\\((\\d+)\\)";
   public static final String PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX = "'(.*?)'";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String COMMAND_WINDOWS = "cmd.exe";

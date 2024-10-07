@@ -56,6 +56,7 @@ public class UpdateGradleDependencies {
 
     return new ExecuteGradleUpdate(
             this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull(),
+            this.latestVersions.getLatestVersionLanguages().getJava().getVersionMajor(),
             repository,
             this.scriptFile,
             arguments,

@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
   private final String latestGradleVersion;
+  private final String latestJavaVersionMajor;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -45,12 +46,14 @@ public class ExecuteGradleUpdate implements Runnable {
 
   public ExecuteGradleUpdate(
       final String latestGradleVersion,
+      final String latestJavaVersionMajor,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
     this.latestGradleVersion = latestGradleVersion;
+    this.latestJavaVersionMajor = latestJavaVersionMajor;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -412,6 +415,23 @@ public class ExecuteGradleUpdate implements Runnable {
     return null;
   }
 
+  private List<String> getJavaBlock(final List<String> allLines) {
+    List<String> javaLines = new ArrayList<>();
+    int javaBeginPosition = allLines.indexOf("java {");
+
+    if (javaBeginPosition >= 0) {
+      for (int i = javaBeginPosition + 1; i < allLines.size(); i++) {
+        String javaLine = allLines.get(i);
+        // check if this is the end of the block
+        if (javaLine.equals("}") && isEndOfABlock(allLines, i + 1)) {
+          break;
+        }
+        javaLines.add(javaLine);
+      }
+    }
+    return javaLines;
+  }
+
   private boolean isEndOfABlock(final List<String> allLines, final int positionPlusOne) {
     // assumption: only one empty line between blocks and at the end of file
 
@@ -460,6 +480,8 @@ public class ExecuteGradleUpdate implements Runnable {
     for (GradleConfigBlock dependencyBlock : dependenciesBlock) {
       modifyDependenciesBlock(dependencyBlock, originals);
     }
+
+    modifyJavaBlock(originals);
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
       return Collections.emptyList();
@@ -616,6 +638,50 @@ public class ExecuteGradleUpdate implements Runnable {
     }
 
     return null;
+  }
+
+  private void modifyJavaBlock(final List<String> originals) {
+    final String currentJavaVersionMajor = extractOldVersion(originals);
+
+    if (currentJavaVersionMajor.equals(this.latestJavaVersionMajor)) {
+      return;
+    } else if (parseIntSafe(currentJavaVersionMajor) >= parseIntSafe(this.latestJavaVersionMajor)) {
+      return;
+    }
+
+    String oldVersionString = "JavaVersion.VERSION_" + currentJavaVersionMajor;
+    String newVersionString = "JavaVersion.VERSION_" + this.latestJavaVersionMajor;
+    String oldOfString = "JavaLanguageVersion.of(" + currentJavaVersionMajor + ")";
+    String newOfString = "JavaLanguageVersion.of(" + this.latestJavaVersionMajor + ")";
+
+    for (int i = 0; i < originals.size(); i++) {
+      String line = originals.get(i);
+      if (line.contains(oldVersionString)) {
+        line = line.replace(oldVersionString, newVersionString);
+        originals.set(i, line);
+      } else if (line.contains(oldOfString)) {
+        line = line.replace(oldOfString, newOfString);
+        originals.set(i, line);
+      }
+    }
+  }
+
+  private String extractOldVersion(final List<String> javaLines) {
+    for (String line : javaLines) {
+      // Match "VERSION_X"
+      Matcher versionMatcher = Pattern.compile(GRADLE_JAVA_VERSION_REGEX_1).matcher(line);
+      if (versionMatcher.find()) {
+        return versionMatcher.group(1);
+      }
+
+      // Match "of(X)"
+      Matcher ofMatcher = Pattern.compile(GRADLE_JAVA_VERSION_REGEX_2).matcher(line);
+      if (ofMatcher.find()) {
+        return ofMatcher.group(1);
+      }
+    }
+
+    return this.latestJavaVersionMajor;
   }
 
   /*
