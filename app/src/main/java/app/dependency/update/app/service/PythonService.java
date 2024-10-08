@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
 import static app.dependency.update.app.util.CommonUtils.isCheckPreReleaseVersion;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
@@ -61,7 +62,7 @@ public class PythonService {
 
   /**
    * @param versionFull eg: 3.12 or 3.12.7
-   * @return eg: node:3.12-alpine or 3.12.7-alpine
+   * @return eg: python:3.12-alpine or 3.12.7-alpine
    */
   private String getVersionDocker(final String versionFull) {
     return "python:" + versionFull + "-" + DOCKER_ALPINE;
@@ -72,20 +73,6 @@ public class PythonService {
    * @return eg: python312
    */
   private String getVersionGcp(final String versionFull) {
-    return "python" + getVersionMajorMinor(versionFull);
-  }
-
-  /**
-   * @param versionFull eg: 3.12 or 3.12.7
-   * @return eg: 312
-   */
-  private String getVersionMajorMinor(final String versionFull) {
-    String[] parts = versionFull.split("\\.");
-
-    if (parts.length >= 2) {
-      return parts[0] + parts[1];
-    } else {
-      return versionFull;
-    }
+    return "python" + getVersionMajorMinor(versionFull, false);
   }
 }
