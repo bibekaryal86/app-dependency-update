@@ -132,19 +132,19 @@ public class AppInitDataUtils {
           "Repositories not found in the repo path provided!");
     }
 
-    List<Repository> npmRepositories = new ArrayList<>();
+    List<Repository> nodeRepositories = new ArrayList<>();
     List<Repository> gradleRepositories = new ArrayList<>();
     List<Repository> pythonRepositories = new ArrayList<>();
     for (Path path : repoPaths) {
       try (Stream<Path> pathStream = Files.list(path)) {
-        npmRepositories.addAll(
+        nodeRepositories.addAll(
             pathStream
                 .filter(stream -> "package.json".equals(stream.getFileName().toString()))
-                .map(mapper -> new Repository(path, UpdateType.NPM_DEPENDENCIES))
+                .map(mapper -> new Repository(path, UpdateType.NODE_DEPENDENCIES))
                 .toList());
       } catch (Exception ex) {
         throw new AppDependencyUpdateRuntimeException(
-            "NPM Files not found in the repo path provided!", ex);
+            "Node Files not found in the repo path provided!", ex);
       }
       try (Stream<Path> pathStream = Files.list(path)) {
         gradleRepositories.addAll(
@@ -191,7 +191,7 @@ public class AppInitDataUtils {
             .toList();
 
     List<Repository> repositories = new ArrayList<>();
-    repositories.addAll(npmRepositories);
+    repositories.addAll(nodeRepositories);
     repositories.addAll(gradleWrapperRepositories);
     repositories.addAll(pythonRepositories);
 

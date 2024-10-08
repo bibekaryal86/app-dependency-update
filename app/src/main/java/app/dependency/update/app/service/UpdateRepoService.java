@@ -174,8 +174,8 @@ public class UpdateRepoService {
     log.info("Update Repos All Dependencies, Set All Caches...");
     setAllCaches();
 
-    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
-      executeUpdateNpmDependencies(appInitData);
+    if (updateType == UpdateType.ALL || updateType == UpdateType.NODE_DEPENDENCIES) {
+      executeUpdateNodeDependencies(appInitData);
     }
 
     if (updateType == UpdateType.ALL || updateType == UpdateType.GRADLE_DEPENDENCIES) {
@@ -289,9 +289,9 @@ public class UpdateRepoService {
     resetProcessedRepositoriesAndSummary();
   }
 
-  private void executeUpdateNpmDependencies(final AppInitData appInitData) {
-    log.info("Execute Update Npm Dependencies...");
-    new UpdateNpmDependencies(appInitData, mongoRepoService).updateNpmDependencies();
+  private void executeUpdateNodeDependencies(final AppInitData appInitData) {
+    log.info("Execute Update Node Dependencies...");
+    new UpdateNodeDependencies(appInitData, mongoRepoService).updateNodeDependencies();
   }
 
   private void executeUpdateGradleDependencies(final AppInitData appInitData) {

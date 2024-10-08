@@ -252,7 +252,7 @@ public class MongoRepoController {
           String.format(
               "Allowed Values for Update Type: %s, %s, %s, %s",
               UpdateType.ALL,
-              UpdateType.NPM_DEPENDENCIES,
+              UpdateType.NODE_DEPENDENCIES,
               UpdateType.GRADLE_DEPENDENCIES,
               UpdateType.PYTHON_DEPENDENCIES));
     }
@@ -267,7 +267,7 @@ public class MongoRepoController {
     }
     return List.of(
             UpdateType.ALL.name(),
-            UpdateType.NPM_DEPENDENCIES.name(),
+            UpdateType.NODE_DEPENDENCIES.name(),
             UpdateType.GRADLE_DEPENDENCIES.name(),
             UpdateType.PYTHON_DEPENDENCIES.name())
         .contains(updateType);

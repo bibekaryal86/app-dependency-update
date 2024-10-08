@@ -130,7 +130,7 @@ public class ExecuteScriptFile implements Runnable {
   }
 
   private boolean checkPrCreateRequired() {
-    return this.scriptPath.contains(UpdateType.NPM_DEPENDENCIES.toString())
+    return this.scriptPath.contains(UpdateType.NODE_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.GRADLE_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.PYTHON_DEPENDENCIES.toString())
         || this.scriptPath.contains(UpdateType.GITHUB_PR_CREATE.toString());

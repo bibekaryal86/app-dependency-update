@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.NpmSkips;
@@ -18,29 +19,31 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class UpdateNpmDependencies {
+public class UpdateNodeDependencies {
+  private final LatestVersion latestVersionNode;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
-  public UpdateNpmDependencies(
+  public UpdateNodeDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
+    this.latestVersionNode = appInitData.getLatestVersions().getLatestVersionLanguages().getNode();
     this.repositories =
         appInitData.getRepositories().stream()
-            .filter(repository -> repository.getType().equals(UpdateType.NPM_DEPENDENCIES))
+            .filter(repository -> repository.getType().equals(UpdateType.NODE_DEPENDENCIES))
             .toList();
     this.scriptFile =
         appInitData.getScriptFiles().stream()
-            .filter(sf -> sf.getType().equals(UpdateType.NPM_DEPENDENCIES))
+            .filter(sf -> sf.getType().equals(UpdateType.NODE_DEPENDENCIES))
             .findFirst()
             .orElseThrow(
                 () ->
                     new AppDependencyUpdateRuntimeException(
-                        "NPM Dependencies Script Not Found..."));
+                        "Node Dependencies Script Not Found..."));
     this.mongoRepoService = mongoRepoService;
   }
 
-  public void updateNpmDependencies() {
+  public void updateNodeDependencies() {
     List<Thread> threads = new ArrayList<>();
     for (Repository repository : this.repositories) {
       threads.add(executeUpdate(repository));
@@ -49,13 +52,12 @@ public class UpdateNpmDependencies {
   }
 
   private Thread executeUpdate(final Repository repository) {
-    log.debug("Execute NPM Dependencies Update on: [ {} ]", repository);
+    log.debug("Execute Node Dependencies Update on: [ {} ]", repository);
     List<String> arguments = new LinkedList<>();
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     arguments.add(getNpmSkips());
-    return new ExecuteScriptFile(
-            threadName(repository, this.getClass().getSimpleName()), this.scriptFile, arguments)
+    return new ExecuteNodeUpdate(this.latestVersionNode, repository, this.scriptFile, arguments)
         .start();
   }
 

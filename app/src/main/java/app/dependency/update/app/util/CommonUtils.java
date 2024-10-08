@@ -79,7 +79,7 @@ public class CommonUtils {
 
   public static boolean checkDependenciesUpdate(final UpdateType updateType) {
     return updateType == UpdateType.ALL
-        || updateType == UpdateType.NPM_DEPENDENCIES
+        || updateType == UpdateType.NODE_DEPENDENCIES
         || updateType == UpdateType.GRADLE_DEPENDENCIES
         || updateType == UpdateType.PYTHON_DEPENDENCIES;
   }
@@ -119,7 +119,7 @@ public class CommonUtils {
     GITHUB_RESET,
     GRADLE_DEPENDENCIES,
     GRADLE_SPOTLESS,
-    NPM_DEPENDENCIES,
+    NODE_DEPENDENCIES,
     NPM_SNAPSHOT,
     PYTHON_DEPENDENCIES
   }
