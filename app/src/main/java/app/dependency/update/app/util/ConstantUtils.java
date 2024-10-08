@@ -36,6 +36,7 @@ public class ConstantUtils {
   public static final String BUILD_GRADLE = "build.gradle";
   public static final String PYPROJECT_TOML = "pyproject.toml";
   public static final String PACKAGE_JSON = "package.json";
+  public static final String DOCKER_JRE = "eclipse-temurin";
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String MONGODB_COLLECTION_DEPENDENCIES = "dependencies";
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";

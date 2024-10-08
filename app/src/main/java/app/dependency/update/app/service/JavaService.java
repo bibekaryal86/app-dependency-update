@@ -1,6 +1,7 @@
 package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
+import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 
 import app.dependency.update.app.connector.JavaConnector;
 import app.dependency.update.app.model.JavaReleaseResponse;
@@ -72,7 +73,7 @@ public class JavaService {
    * @return eg: eclipse-temurin:21-jre-alpine
    */
   private String getVersionDocker(final String versionMajor) {
-    return "eclipse-temurin:" + versionMajor + "-jre-" + DOCKER_ALPINE;
+    return DOCKER_JRE + ":" + versionMajor + "-jre-" + DOCKER_ALPINE;
   }
 
   /**

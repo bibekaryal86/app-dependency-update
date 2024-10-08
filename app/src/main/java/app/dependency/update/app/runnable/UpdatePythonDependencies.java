@@ -5,7 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.MongoRepoService;
@@ -17,15 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdatePythonDependencies {
-  private final LatestVersion latestVersionPython;
+  private final LatestVersions latestVersions;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
   public UpdatePythonDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
-    this.latestVersionPython =
-        appInitData.getLatestVersions().getLatestVersionLanguages().getPython();
+    this.latestVersions = appInitData.getLatestVersions();
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.PYTHON_DEPENDENCIES))
@@ -56,7 +55,7 @@ public class UpdatePythonDependencies {
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
     return new ExecutePythonUpdate(
-            this.latestVersionPython, repository, this.scriptFile, arguments, mongoRepoService)
+            this.latestVersions, repository, this.scriptFile, arguments, mongoRepoService)
         .start();
   }
 

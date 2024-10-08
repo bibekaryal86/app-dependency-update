@@ -1,10 +1,14 @@
 package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
+import static app.dependency.update.app.util.CommonUtils.isCheckPreReleaseVersion;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
 import app.dependency.update.app.connector.PythonConnector;
 import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.model.PythonReleaseResponse;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -41,39 +45,11 @@ public class PythonService {
     final String versionGcp = getVersionGcp(versionFull);
 
     return LatestVersion.builder()
-        .versionActual("v3.12.7")
-        .versionFull("3.12.7")
-        .versionDocker("python-3.12.7")
-        .versionGcp("python312")
+        .versionActual(versionActual)
+        .versionFull(versionFull)
+        .versionDocker(versionDocker)
+        .versionGcp(versionGcp)
         .build();
-    //    List<PythonReleaseResponse> pythonReleaseResponses = pythonConnector.getPythonReleases();
-    //    // get rid of alpha, beta and release candidates by version descending
-    //    Optional<PythonReleaseResponse> optionalPythonReleaseResponse =
-    //        pythonReleaseResponses.stream()
-    //            .filter(
-    //                pythonReleaseResponse ->
-    // !isCheckPreReleaseVersion(pythonReleaseResponse.getName()))
-    //            .findFirst();
-    //
-    //    PythonReleaseResponse latestPythonResponse = optionalPythonReleaseResponse.orElse(null);
-    //    log.info("Latest Python Release: [ {} ]", latestPythonResponse);
-    //
-    //    if (latestPythonResponse == null) {
-    //      log.error("Latest Python Release Null Error...");
-    //      return null;
-    //    }
-    //
-    //    final String versionActual = latestPythonResponse.getName();
-    //    final String versionFull = getVersionFull(versionActual);
-    //    final String versionDocker = getVersionDocker(versionFull);
-    //    final String versionGcp = getVersionGcp(versionFull);
-    //
-    //    return LatestVersion.builder()
-    //        .versionActual(versionActual)
-    //        .versionFull(versionFull)
-    //        .versionDocker(versionDocker)
-    //        .versionGcp(versionGcp)
-    //        .build();
   }
 
   /**
@@ -86,7 +62,7 @@ public class PythonService {
 
   /**
    * @param versionFull eg: 3.12 or 3.12.7
-   * @return eg: python:3.12-alpine or 3.12.7-alpine
+   * @return eg: python:3.12-alpine or python:3.12.7-alpine
    */
   private String getVersionDocker(final String versionFull) {
     return "python:" + versionFull + "-" + DOCKER_ALPINE;

@@ -5,7 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.NpmSkips;
@@ -20,14 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdateNodeDependencies {
-  private final LatestVersion latestVersionNode;
+  private final LatestVersions latestVersions;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
   public UpdateNodeDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
-    this.latestVersionNode = appInitData.getLatestVersions().getLatestVersionLanguages().getNode();
+    this.latestVersions = appInitData.getLatestVersions();
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.NODE_DEPENDENCIES))
@@ -57,7 +57,7 @@ public class UpdateNodeDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     arguments.add(getNpmSkips());
-    return new ExecuteNodeUpdate(this.latestVersionNode, repository, this.scriptFile, arguments)
+    return new ExecuteNodeUpdate(this.latestVersions, repository, this.scriptFile, arguments)
         .start();
   }
 

@@ -8,7 +8,7 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.model.GradlePlugin;
-import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Dependencies;
@@ -34,8 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
-  private final LatestVersion latestVersionGradle;
-  private final LatestVersion latestVersionJava;
+  private final LatestVersions latestVersions;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -46,15 +45,13 @@ public class ExecuteGradleUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecuteGradleUpdate(
-      final LatestVersion latestVersionGradle,
-      final LatestVersion latestVersionJava,
+      final LatestVersions latestVersions,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestVersionGradle = latestVersionGradle;
-    this.latestVersionJava = latestVersionJava;
+    this.latestVersions = latestVersions;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -81,10 +78,13 @@ public class ExecuteGradleUpdate implements Runnable {
     executeGradleWrapperUpdate();
 
     final boolean isGcpConfigUpdated =
-        new ExecuteGcpConfigsUpdate(this.repository, this.latestVersionJava)
+        new ExecuteGcpConfigsUpdate(
+                this.repository, this.latestVersions.getLatestVersionLanguages().getJava())
             .executeGcpConfigsUpdate();
+    final boolean isDockerfileUpdated =
+        new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
 
-    if (this.isExecuteScriptRequired || isGcpConfigUpdated) {
+    if (this.isExecuteScriptRequired || isGcpConfigUpdated || isDockerfileUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),
@@ -646,7 +646,8 @@ public class ExecuteGradleUpdate implements Runnable {
   }
 
   private void modifyJavaBlock(final List<String> originals) {
-    final String latestJavaVersionMajor = this.latestVersionJava.getVersionMajor();
+    final String latestJavaVersionMajor =
+        this.latestVersions.getLatestVersionLanguages().getJava().getVersionMajor();
     final String currentJavaVersionMajor = extractOldVersion(originals, latestJavaVersionMajor);
 
     if (currentJavaVersionMajor.equals(latestJavaVersionMajor)) {
@@ -699,7 +700,8 @@ public class ExecuteGradleUpdate implements Runnable {
     // this check is done when repository object is created
     // adding here as backup
     if (!isRequiresUpdate(
-        this.repository.getCurrentGradleVersion(), this.latestVersionGradle.getVersionFull())) {
+        this.repository.getCurrentGradleVersion(),
+        this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull())) {
       return;
     }
 
@@ -728,7 +730,7 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.latestVersionGradle.getVersionFull());
+                  this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull());
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);

@@ -3,7 +3,7 @@ package app.dependency.update.app.runnable;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import java.io.IOException;
@@ -18,19 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteNodeUpdate implements Runnable {
   private final String threadName;
-  private final LatestVersion latestVersionNode;
+  private final LatestVersions latestVersions;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
   private Thread thread;
 
   public ExecuteNodeUpdate(
-      final LatestVersion latestVersionNode,
+      final LatestVersions latestVersions,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestVersionNode = latestVersionNode;
+    this.latestVersions = latestVersions;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -52,7 +52,10 @@ public class ExecuteNodeUpdate implements Runnable {
   private void executeNodeUpdate() {
     executePackageJsonUpdate();
 
-    new ExecuteGcpConfigsUpdate(this.repository, this.latestVersionNode).executeGcpConfigsUpdate();
+    new ExecuteGcpConfigsUpdate(
+            this.repository, this.latestVersions.getLatestVersionLanguages().getNode())
+        .executeGcpConfigsUpdate();
+    new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
 
     Thread executeThread =
         new ExecuteScriptFile(
@@ -132,7 +135,8 @@ public class ExecuteNodeUpdate implements Runnable {
 
     if (currentArray.length == 2) {
       final String currentVersion = currentArray[1].replace("\"", "").trim();
-      final String latestVersion = this.latestVersionNode.getVersionMajor();
+      final String latestVersion =
+          this.latestVersions.getLatestVersionLanguages().getNode().getVersionMajor();
 
       if (currentVersion.equals(latestVersion)) {
         return currentLine;
