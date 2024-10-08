@@ -3,6 +3,7 @@ package app.dependency.update.app.runnable;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
+import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Packages;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecutePythonUpdate implements Runnable {
   private final String threadName;
+  private final LatestVersion latestVersionPython;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -31,11 +33,13 @@ public class ExecutePythonUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecutePythonUpdate(
+      final LatestVersion latestVersionPython,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
+    this.latestVersionPython = latestVersionPython;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -60,7 +64,11 @@ public class ExecutePythonUpdate implements Runnable {
     executePyProjectTomlUpdate();
     executeRequirementsTxtUpdate();
 
-    if (this.isExecuteScriptRequired) {
+    final boolean isGcpConfigUpdated =
+        new ExecuteGcpConfigsUpdate(this.repository, this.latestVersionPython)
+            .executeGcpConfigsUpdate();
+
+    if (this.isExecuteScriptRequired || isGcpConfigUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),

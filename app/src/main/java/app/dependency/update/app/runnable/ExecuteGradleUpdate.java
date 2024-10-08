@@ -8,6 +8,7 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.model.GradlePlugin;
+import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Dependencies;
@@ -33,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
-  private final String latestGradleVersion;
-  private final String latestJavaVersionMajor;
+  private final LatestVersion latestVersionGradle;
+  private final LatestVersion latestVersionJava;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -45,15 +46,15 @@ public class ExecuteGradleUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecuteGradleUpdate(
-      final String latestGradleVersion,
-      final String latestJavaVersionMajor,
+      final LatestVersion latestVersionGradle,
+      final LatestVersion latestVersionJava,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestGradleVersion = latestGradleVersion;
-    this.latestJavaVersionMajor = latestJavaVersionMajor;
+    this.latestVersionGradle = latestVersionGradle;
+    this.latestVersionJava = latestVersionJava;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -79,7 +80,11 @@ public class ExecuteGradleUpdate implements Runnable {
     executeBuildGradleUpdate();
     executeGradleWrapperUpdate();
 
-    if (this.isExecuteScriptRequired) {
+    final boolean isGcpConfigUpdated =
+        new ExecuteGcpConfigsUpdate(this.repository, this.latestVersionJava)
+            .executeGcpConfigsUpdate();
+
+    if (this.isExecuteScriptRequired || isGcpConfigUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),
@@ -641,18 +646,19 @@ public class ExecuteGradleUpdate implements Runnable {
   }
 
   private void modifyJavaBlock(final List<String> originals) {
-    final String currentJavaVersionMajor = extractOldVersion(originals);
+    final String latestJavaVersionMajor = this.latestVersionJava.getVersionMajor();
+    final String currentJavaVersionMajor = extractOldVersion(originals, latestJavaVersionMajor);
 
-    if (currentJavaVersionMajor.equals(this.latestJavaVersionMajor)) {
+    if (currentJavaVersionMajor.equals(latestJavaVersionMajor)) {
       return;
-    } else if (parseIntSafe(currentJavaVersionMajor) >= parseIntSafe(this.latestJavaVersionMajor)) {
+    } else if (parseIntSafe(currentJavaVersionMajor) >= parseIntSafe(latestJavaVersionMajor)) {
       return;
     }
 
     String oldVersionString = "JavaVersion.VERSION_" + currentJavaVersionMajor;
-    String newVersionString = "JavaVersion.VERSION_" + this.latestJavaVersionMajor;
+    String newVersionString = "JavaVersion.VERSION_" + latestJavaVersionMajor;
     String oldOfString = "JavaLanguageVersion.of(" + currentJavaVersionMajor + ")";
-    String newOfString = "JavaLanguageVersion.of(" + this.latestJavaVersionMajor + ")";
+    String newOfString = "JavaLanguageVersion.of(" + latestJavaVersionMajor + ")";
 
     for (int i = 0; i < originals.size(); i++) {
       String line = originals.get(i);
@@ -666,7 +672,8 @@ public class ExecuteGradleUpdate implements Runnable {
     }
   }
 
-  private String extractOldVersion(final List<String> javaLines) {
+  private String extractOldVersion(
+      final List<String> javaLines, final String latestJavaVersionMajor) {
     for (String line : javaLines) {
       // Match "VERSION_X"
       Matcher versionMatcher = Pattern.compile(GRADLE_JAVA_VERSION_REGEX_1).matcher(line);
@@ -681,7 +688,7 @@ public class ExecuteGradleUpdate implements Runnable {
       }
     }
 
-    return this.latestJavaVersionMajor;
+    return latestJavaVersionMajor;
   }
 
   /*
@@ -691,7 +698,8 @@ public class ExecuteGradleUpdate implements Runnable {
   private void executeGradleWrapperUpdate() {
     // this check is done when repository object is created
     // adding here as backup
-    if (!isRequiresUpdate(this.repository.getCurrentGradleVersion(), this.latestGradleVersion)) {
+    if (!isRequiresUpdate(
+        this.repository.getCurrentGradleVersion(), this.latestVersionGradle.getVersionFull())) {
       return;
     }
 
@@ -720,7 +728,7 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.latestGradleVersion);
+                  this.latestVersionGradle.getVersionFull());
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);
