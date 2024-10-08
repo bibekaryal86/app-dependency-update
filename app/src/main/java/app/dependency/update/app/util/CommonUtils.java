@@ -84,6 +84,24 @@ public class CommonUtils {
         || updateType == UpdateType.PYTHON_DEPENDENCIES;
   }
 
+  /**
+   * @param versionFull eg: 3.12 or 3.12.7
+   * @return eg: 312 or 3.12
+   */
+  public static String getVersionMajorMinor(final String versionFull, final boolean includePeriod) {
+    String[] parts = versionFull.split("\\.");
+
+    if (parts.length >= 2) {
+      if (includePeriod) {
+        return parts[0] + "." + parts[1];
+      } else {
+        return parts[0] + parts[1];
+      }
+    } else {
+      return versionFull;
+    }
+  }
+
   public static int parseIntSafe(final String input) {
     try {
       return Integer.parseInt(input);

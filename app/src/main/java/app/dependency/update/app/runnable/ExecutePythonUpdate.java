@@ -207,6 +207,18 @@ public class ExecutePythonUpdate implements Runnable {
           isUpdated = true;
         }
         updatedPyProjectContent.add(updatedS);
+      } else if (isRequiresPython(s)) {
+        String updatedS = updateRequiresPython(s);
+        if (!updatedS.equals(s)) {
+          isUpdated = true;
+        }
+        updatedPyProjectContent.add(updatedS);
+      } else if (isBlackTargetVersion(s)) {
+        String updatedS = updateBlackTargetVersion(s);
+        if (!updatedS.equals(s)) {
+          isUpdated = true;
+        }
+        updatedPyProjectContent.add(updatedS);
       } else {
         updatedPyProjectContent.add(s);
       }
@@ -221,6 +233,14 @@ public class ExecutePythonUpdate implements Runnable {
     return line.contains("requires") && line.contains("setuptools") && line.contains("wheel");
   }
 
+  private boolean isRequiresPython(final String line) {
+    return line.contains("requires-python");
+  }
+
+  private boolean isBlackTargetVersion(final String line) {
+    return line.contains("target-version");
+  }
+
   private String updateBuildTools(final String line) {
     List<String> buildTools = new ArrayList<>();
     Pattern pattern = Pattern.compile(PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX);
@@ -231,6 +251,37 @@ public class ExecutePythonUpdate implements Runnable {
     }
 
     return updateBuildTools(line, buildTools);
+  }
+
+  private String updateRequiresPython(final String line) {
+    final String currentVersion = line.replaceAll("[^\\d.]", "").trim();
+    final String latestVersion =
+        getVersionMajorMinor(this.latestVersionPython.getVersionFull(), true);
+
+    if (currentVersion.equals(latestVersion)) {
+      return line;
+    }
+
+    return line.replace(currentVersion, latestVersion);
+  }
+
+  private String updateBlackTargetVersion(final String line) {
+    final String currentVersion = getCurrentBlackTargetVersion(line);
+    final String latestVersion =
+        "py" + getVersionMajorMinor(this.latestVersionPython.getVersionFull(), false);
+
+    if (currentVersion.equals(latestVersion)) {
+      return line;
+    }
+
+    return line.replace(currentVersion, latestVersion);
+  }
+
+  public String getCurrentBlackTargetVersion(final String line) {
+    String[] parts = line.split("=");
+    String versionPart = parts[1].trim();
+    versionPart = versionPart.replaceAll("[\\[\\]' ]", "");
+    return versionPart;
   }
 
   // suppressing sonarlint rule for cognitive complexity of method too high
