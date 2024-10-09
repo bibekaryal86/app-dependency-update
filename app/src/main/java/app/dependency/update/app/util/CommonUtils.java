@@ -102,6 +102,25 @@ public class CommonUtils {
     }
   }
 
+  public static int compareVersions(String version1, String version2) {
+    String[] v1Parts = version1.split("\\.");
+    String[] v2Parts = version2.split("\\.");
+
+    int length =
+        Math.max(v1Parts.length, v2Parts.length); // Compare based on the longest version string
+    for (int i = 0; i < length; i++) {
+      int v1Part = i < v1Parts.length ? Integer.parseInt(v1Parts[i]) : 0;
+      int v2Part = i < v2Parts.length ? Integer.parseInt(v2Parts[i]) : 0;
+
+      if (v1Part < v2Part) {
+        return -1; // version1 is smaller
+      } else if (v1Part > v2Part) {
+        return 1; // version1 is greater
+      }
+    }
+    return 0; // Both versions are equal
+  }
+
   public static int parseIntSafe(final String input) {
     try {
       return Integer.parseInt(input);

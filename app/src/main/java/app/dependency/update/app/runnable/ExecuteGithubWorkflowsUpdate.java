@@ -4,8 +4,8 @@ import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
 
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.util.CommonUtils;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -209,14 +209,15 @@ public class ExecuteGithubWorkflowsUpdate {
 
     if (matcher.find()) {
       final String versions = matcher.group(1);
-      BigDecimal smallest =
-          Arrays.stream(versions.split(","))
-              .map(String::trim)
-              .map(BigDecimal::new)
-              .min(BigDecimal::compareTo)
-              .orElse(null);
-      if (smallest != null) {
-        return smallest.toString();
+      if (StringUtils.hasText(versions)) {
+        String lowestVersion =
+            Arrays.stream(versions.split(","))
+                .map(String::trim)
+                .min(CommonUtils::compareVersions)
+                .orElse(null);
+        if (StringUtils.hasText(lowestVersion)) {
+          return lowestVersion;
+        }
       }
     }
 
