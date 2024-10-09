@@ -19,31 +19,31 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class UpdateNodeDependencies {
+public class UpdateNpmDependencies {
   private final LatestVersions latestVersions;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
-  public UpdateNodeDependencies(
+  public UpdateNpmDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
     this.latestVersions = appInitData.getLatestVersions();
     this.repositories =
         appInitData.getRepositories().stream()
-            .filter(repository -> repository.getType().equals(UpdateType.NODE_DEPENDENCIES))
+            .filter(repository -> repository.getType().equals(UpdateType.NPM_DEPENDENCIES))
             .toList();
     this.scriptFile =
         appInitData.getScriptFiles().stream()
-            .filter(sf -> sf.getType().equals(UpdateType.NODE_DEPENDENCIES))
+            .filter(sf -> sf.getType().equals(UpdateType.NPM_DEPENDENCIES))
             .findFirst()
             .orElseThrow(
                 () ->
                     new AppDependencyUpdateRuntimeException(
-                        "Node Dependencies Script Not Found..."));
+                        "NPM Dependencies Script Not Found..."));
     this.mongoRepoService = mongoRepoService;
   }
 
-  public void updateNodeDependencies() {
+  public void updateNpmDependencies() {
     List<Thread> threads = new ArrayList<>();
     for (Repository repository : this.repositories) {
       threads.add(executeUpdate(repository));
@@ -57,7 +57,7 @@ public class UpdateNodeDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     arguments.add(getNpmSkips());
-    return new ExecuteNodeUpdate(this.latestVersions, repository, this.scriptFile, arguments)
+    return new ExecuteNodeNpmUpdate(this.latestVersions, repository, this.scriptFile, arguments)
         .start();
   }
 

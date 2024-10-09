@@ -16,7 +16,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ExecuteNodeUpdate implements Runnable {
+public class ExecuteNodeNpmUpdate implements Runnable {
   private final String threadName;
   private final LatestVersions latestVersions;
   private final Repository repository;
@@ -24,7 +24,7 @@ public class ExecuteNodeUpdate implements Runnable {
   private final List<String> arguments;
   private Thread thread;
 
-  public ExecuteNodeUpdate(
+  public ExecuteNodeNpmUpdate(
       final LatestVersions latestVersions,
       final Repository repository,
       final ScriptFile scriptFile,
