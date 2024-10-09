@@ -6,6 +6,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -73,6 +74,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       return Files.readAllLines(path);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error reading file: [ {} ]", path);
     }
     return Collections.emptyList();
@@ -82,6 +84,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       Files.write(path, content, StandardCharsets.UTF_8);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
     }
   }
@@ -156,6 +159,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

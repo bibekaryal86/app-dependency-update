@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessUtils {
 
+  private static final AtomicBoolean exceptionCaught = new AtomicBoolean(false);
   private static final AtomicInteger mongoPluginsToUpdate = new AtomicInteger(0);
   private static final AtomicInteger mongoDependenciesToUpdate = new AtomicInteger(0);
   private static final AtomicInteger mongoPackagesToUpdate = new AtomicInteger(0);
@@ -19,6 +21,10 @@ public class ProcessUtils {
   private static Set<String> repositoriesWithPrError = new HashSet<>();
   private static ConcurrentMap<String, ProcessedRepository> processedRepositories =
       new ConcurrentHashMap<>();
+
+  public static void setExceptionCaught(boolean value) {
+    exceptionCaught.set(value);
+  }
 
   public static void setMongoPluginsToUpdate(int count) {
     mongoPluginsToUpdate.set(count);
@@ -34,6 +40,10 @@ public class ProcessUtils {
 
   public static void setMongoNpmSkipsActive(int count) {
     mongoNpmSkipsActive.set(count);
+  }
+
+  public static boolean getExceptionCaught() {
+    return exceptionCaught.get();
   }
 
   public static int getMongoPluginsToUpdate() {
@@ -107,5 +117,6 @@ public class ProcessUtils {
     setMongoDependenciesToUpdate(0);
     setMongoPackagesToUpdate(0);
     setMongoNpmSkipsActive(0);
+    setExceptionCaught(false);
   }
 }

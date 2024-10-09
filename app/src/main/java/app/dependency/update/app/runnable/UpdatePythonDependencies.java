@@ -9,6 +9,7 @@ import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -65,6 +66,7 @@ public class UpdatePythonDependencies {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

@@ -8,6 +8,7 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -93,6 +94,7 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       return Files.readAllLines(path);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error reading file: [ {} ]", path);
     }
     return Collections.emptyList();
@@ -103,6 +105,7 @@ public class ExecutePythonUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       this.isExecuteScriptRequired = true;
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
     }
   }
@@ -342,6 +345,7 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

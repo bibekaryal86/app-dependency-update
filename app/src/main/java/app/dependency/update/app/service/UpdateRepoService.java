@@ -391,6 +391,7 @@ public class UpdateRepoService {
       byte[] fileContent = Files.readAllBytes(path);
       return Base64.getEncoder().encodeToString(fileContent);
     } catch (Exception ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Get Log File Content Error...", ex);
     }
     return null;
@@ -440,6 +441,7 @@ public class UpdateRepoService {
                 (int)
                     processedRepositories.stream().filter(ProcessedRepository::isPrMerged).count())
             .processedRepositories(processedRepositories)
+            .isExceptionCaught(ProcessUtils.getExceptionCaught())
             .build();
 
     // save to repository

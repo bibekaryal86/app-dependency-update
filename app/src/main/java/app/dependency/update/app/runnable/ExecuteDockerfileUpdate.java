@@ -4,6 +4,7 @@ import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -39,6 +40,7 @@ public class ExecuteDockerfileUpdate {
     try {
       return Files.readAllLines(this.dockerfilePath);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error Reading Dockerfile of Repository [{}]", this.repository.getRepoName());
       return Collections.emptyList();
     }
@@ -118,6 +120,7 @@ public class ExecuteDockerfileUpdate {
       Files.write(this.dockerfilePath, dockerfileData, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error(
           "Error Writing Updated Dockerfile of repository: [{}]", this.repository.getRepoName());
       return false;

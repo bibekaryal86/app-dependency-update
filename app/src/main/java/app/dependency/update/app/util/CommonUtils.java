@@ -125,6 +125,7 @@ public class CommonUtils {
     try {
       return Integer.parseInt(input);
     } catch (NumberFormatException ex) {
+      ProcessUtils.setExceptionCaught(true);
       return 0;
     }
   }

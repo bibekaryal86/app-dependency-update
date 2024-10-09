@@ -5,6 +5,7 @@ import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
 import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.CommonUtils;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,6 +60,7 @@ public class ExecuteGithubWorkflowsUpdate {
           .filter(path -> path.toString().endsWith(".yml"))
           .collect(Collectors.toList());
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Find Github Actions Files: [{}]", this.githubWorkflowsFolderPath, ex);
       return Collections.emptyList();
     }
@@ -68,6 +70,7 @@ public class ExecuteGithubWorkflowsUpdate {
     try {
       return Files.readAllLines(githubWorkflowPath);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error(
           "Error Reading Github Workflow [{}] of Repository [{}]",
           githubWorkflowPath,
@@ -234,6 +237,7 @@ public class ExecuteGithubWorkflowsUpdate {
       Files.write(githubWorkflowPath, githubWorkflowContent, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error(
           "Error Writing Updated Github Workflow [{}] of repository: [{}]",
           githubWorkflowPath,
