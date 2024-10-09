@@ -83,8 +83,14 @@ public class ExecuteGradleUpdate implements Runnable {
             .executeGcpConfigsUpdate();
     final boolean isDockerfileUpdated =
         new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+    final boolean isGithubWorkflowsUpdated =
+        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+            .executeGithubWorkflowsUpdate();
 
-    if (this.isExecuteScriptRequired || isGcpConfigUpdated || isDockerfileUpdated) {
+    if (this.isExecuteScriptRequired
+        || isGcpConfigUpdated
+        || isDockerfileUpdated
+        || isGithubWorkflowsUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),

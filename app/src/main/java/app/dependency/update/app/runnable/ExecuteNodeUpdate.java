@@ -56,6 +56,8 @@ public class ExecuteNodeUpdate implements Runnable {
             this.repository, this.latestVersions.getLatestVersionLanguages().getNode())
         .executeGcpConfigsUpdate();
     new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+    new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+        .executeGithubWorkflowsUpdate();
 
     Thread executeThread =
         new ExecuteScriptFile(
