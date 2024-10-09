@@ -1,12 +1,8 @@
 # app-dependency-update
 
-* Enhancements Branch Updates
-  * Update github actions
-  * Update node/python/java to latest versions
-  * Update GCP app.yaml runtime
-
 * Things to add:
   * Tests
+    * Need extensive refactoring
   * Documentation
 
 * System Requirements:
