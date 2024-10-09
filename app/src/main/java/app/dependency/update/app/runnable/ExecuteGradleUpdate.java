@@ -8,11 +8,13 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.model.GradlePlugin;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Dependencies;
 import app.dependency.update.app.model.entities.Plugins;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
+  private final LatestVersions latestVersions;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -43,11 +46,13 @@ public class ExecuteGradleUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecuteGradleUpdate(
+      final LatestVersions latestVersions,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
+    this.latestVersions = latestVersions;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -73,7 +78,20 @@ public class ExecuteGradleUpdate implements Runnable {
     executeBuildGradleUpdate();
     executeGradleWrapperUpdate();
 
-    if (this.isExecuteScriptRequired) {
+    final boolean isGcpConfigUpdated =
+        new ExecuteGcpConfigsUpdate(
+                this.repository, this.latestVersions.getLatestVersionLanguages().getJava())
+            .executeGcpConfigsUpdate();
+    final boolean isDockerfileUpdated =
+        new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+    final boolean isGithubWorkflowsUpdated =
+        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+            .executeGithubWorkflowsUpdate();
+
+    if (this.isExecuteScriptRequired
+        || isGcpConfigUpdated
+        || isDockerfileUpdated
+        || isGithubWorkflowsUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),
@@ -90,6 +108,7 @@ public class ExecuteGradleUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
       return false;
     }
@@ -132,6 +151,7 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } catch (Exception ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error in Execute Build Gradle Update: ", ex);
     }
   }
@@ -156,14 +176,29 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       List<String> allLines = Files.readAllLines(buildGradlePath);
       GradleConfigBlock plugins = getPluginsBlock(allLines);
-      GradleConfigBlock dependencies = getDependenciesBlock(allLines);
+      GradleConfigBlock dependencies = getDependenciesBlock(allLines, -1);
+
+      // there might be dependencies block inside buildscript block
+      GradleConfigBlock dependenciesBuildScript;
+      int dependenciesInBuildscriptBlock = getDependenciesBlockBuildscriptBeginPosition(allLines);
+      if (dependenciesInBuildscriptBlock > 0) {
+        dependenciesBuildScript = getDependenciesBlock(allLines, dependenciesInBuildscriptBlock);
+      } else {
+        dependenciesBuildScript =
+            GradleConfigBlock.builder()
+                .dependencies(new ArrayList<>())
+                .dependencies(new ArrayList<>())
+                .build();
+      }
+
       return BuildGradleConfigs.builder()
           .buildGradlePath(buildGradlePath)
           .originals(allLines)
           .plugins(plugins)
-          .dependencies(dependencies)
+          .dependencies(List.of(dependencies, dependenciesBuildScript))
           .build();
     } catch (IOException e) {
+      ProcessUtils.setExceptionCaught(true);
       log.error(
           "Error reading build.gradle: [ {} ] [ {} ]", this.repository.getRepoName(), gradleModule);
     }
@@ -215,13 +250,39 @@ public class ExecuteGradleUpdate implements Runnable {
     return GradleConfigBlock.builder().plugins(plugins).build();
   }
 
+  private int getDependenciesBlockBuildscriptBeginPosition(final List<String> allLines) {
+    int buildscriptBeginPosition = allLines.indexOf("buildscript {");
+    int dependenciesBeginPosition = -1;
+
+    if (buildscriptBeginPosition >= 0) {
+      for (int i = buildscriptBeginPosition + 1; i < allLines.size(); i++) {
+        String buildscript = allLines.get(i);
+        // check if this is the end of the block
+        if (buildscript.equals("}") && isEndOfABlock(allLines, i + 1)) {
+          break;
+        }
+        if (buildscript.contains("dependencies {")) {
+          dependenciesBeginPosition = i;
+          break;
+        }
+      }
+    }
+    return dependenciesBeginPosition;
+  }
+
   // suppressing sonarlint rule for cognitive complexity of method too high
   @SuppressWarnings("java:S3776")
-  private GradleConfigBlock getDependenciesBlock(final List<String> allLines) {
+  private GradleConfigBlock getDependenciesBlock(
+      final List<String> allLines, final int buildscriptDependenciesBeginPosition) {
     List<GradleDefinition> gradleDefinitions = new ArrayList<>();
     List<GradleDependency> gradleDependencies = new ArrayList<>();
 
-    int dependenciesBeginPosition = allLines.indexOf("dependencies {");
+    int dependenciesBeginPosition;
+    if (buildscriptDependenciesBeginPosition > 0) {
+      dependenciesBeginPosition = buildscriptDependenciesBeginPosition;
+    } else {
+      dependenciesBeginPosition = allLines.indexOf("dependencies {");
+    }
 
     if (dependenciesBeginPosition >= 0) {
       for (int i = dependenciesBeginPosition + 1; i < allLines.size(); i++) {
@@ -238,6 +299,7 @@ public class ExecuteGradleUpdate implements Runnable {
         // 3: implementation ('com.google.code.gson:gson:2.10.1')
         // 4: testImplementation('org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE')
         // 5: implementation('org.slf4j:slf4j-api') version set as strict or require or other
+        // 6: classpath 'org.postgresql:postgresql:42.1.3' (this is in buildscript block)
         if (isDependencyDeclaration(leftTrim(dependency))) {
           if (dependency.contains("(") && dependency.contains(")")) {
             dependency = dependency.replace("(", " ").replace(")", " ");
@@ -255,7 +317,9 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } else {
-      log.debug("No dependencies in the project...");
+      log.debug(
+          "No [buildscriptDependenciesBeginPosition={}] dependencies in the project...",
+          buildscriptDependenciesBeginPosition);
     }
 
     return GradleConfigBlock.builder()
@@ -274,7 +338,8 @@ public class ExecuteGradleUpdate implements Runnable {
             "compileOnly",
             "testCompileOnly",
             "runtimeOnly",
-            "testRuntimeOnly");
+            "testRuntimeOnly",
+            "classpath");
     return dependencyConfigurations.stream().anyMatch(dependency::startsWith);
   }
 
@@ -365,6 +430,23 @@ public class ExecuteGradleUpdate implements Runnable {
     return null;
   }
 
+  private List<String> getJavaBlock(final List<String> allLines) {
+    List<String> javaLines = new ArrayList<>();
+    int javaBeginPosition = allLines.indexOf("java {");
+
+    if (javaBeginPosition >= 0) {
+      for (int i = javaBeginPosition + 1; i < allLines.size(); i++) {
+        String javaLine = allLines.get(i);
+        // check if this is the end of the block
+        if (javaLine.equals("}") && isEndOfABlock(allLines, i + 1)) {
+          break;
+        }
+        javaLines.add(javaLine);
+      }
+    }
+    return javaLines;
+  }
+
   private boolean isEndOfABlock(final List<String> allLines, final int positionPlusOne) {
     // assumption: only one empty line between blocks and at the end of file
 
@@ -373,14 +455,18 @@ public class ExecuteGradleUpdate implements Runnable {
       return true;
     }
     // check 2: if this is the end of file and only next line is empty line
-    if (allLines.get(positionPlusOne).trim().equals("")
+    if (allLines.get(positionPlusOne).trim().isEmpty()
         && isDoesNotExist(allLines, positionPlusOne + 1)) {
       return true;
     }
-    // check 3: check against beginning of another block (Eg: repositories {)
+    // check 3: check against end of super block (Eg: buildscript { dependencies {} })
+    if (allLines.get(positionPlusOne).trim().equals("}")) {
+      return true;
+    }
+    // check 4: check against beginning of another block (Eg: repositories {)
     Pattern pattern = Pattern.compile(GRADLE_BUILD_BLOCK_END_REGEX);
     Matcher matcher;
-    if (allLines.get(positionPlusOne).trim().equals("")) {
+    if (allLines.get(positionPlusOne).trim().isEmpty()) {
       matcher = pattern.matcher(allLines.get(positionPlusOne + 1));
     } else {
       // though assumed, still check if there is no empty lines between blocks
@@ -405,8 +491,12 @@ public class ExecuteGradleUpdate implements Runnable {
     final GradleConfigBlock pluginsBlock = buildGradleConfigs.getPlugins();
     modifyPluginsBlock(pluginsBlock, originals);
 
-    final GradleConfigBlock dependenciesBlock = buildGradleConfigs.getDependencies();
-    modifyDependenciesBlock(dependenciesBlock, originals);
+    final List<GradleConfigBlock> dependenciesBlock = buildGradleConfigs.getDependencies();
+    for (GradleConfigBlock dependencyBlock : dependenciesBlock) {
+      modifyDependenciesBlock(dependencyBlock, originals);
+    }
+
+    modifyJavaBlock(originals);
 
     if (originals.equals(buildGradleConfigs.getOriginals())) {
       return Collections.emptyList();
@@ -565,6 +655,53 @@ public class ExecuteGradleUpdate implements Runnable {
     return null;
   }
 
+  private void modifyJavaBlock(final List<String> originals) {
+    final String latestJavaVersionMajor =
+        this.latestVersions.getLatestVersionLanguages().getJava().getVersionMajor();
+    final String currentJavaVersionMajor = extractOldVersion(originals, latestJavaVersionMajor);
+
+    if (currentJavaVersionMajor.equals(latestJavaVersionMajor)) {
+      return;
+    } else if (parseIntSafe(currentJavaVersionMajor) >= parseIntSafe(latestJavaVersionMajor)) {
+      return;
+    }
+
+    String oldVersionString = "JavaVersion.VERSION_" + currentJavaVersionMajor;
+    String newVersionString = "JavaVersion.VERSION_" + latestJavaVersionMajor;
+    String oldOfString = "JavaLanguageVersion.of(" + currentJavaVersionMajor + ")";
+    String newOfString = "JavaLanguageVersion.of(" + latestJavaVersionMajor + ")";
+
+    for (int i = 0; i < originals.size(); i++) {
+      String line = originals.get(i);
+      if (line.contains(oldVersionString)) {
+        line = line.replace(oldVersionString, newVersionString);
+        originals.set(i, line);
+      } else if (line.contains(oldOfString)) {
+        line = line.replace(oldOfString, newOfString);
+        originals.set(i, line);
+      }
+    }
+  }
+
+  private String extractOldVersion(
+      final List<String> javaLines, final String latestJavaVersionMajor) {
+    for (String line : javaLines) {
+      // Match "VERSION_X"
+      Matcher versionMatcher = Pattern.compile(GRADLE_JAVA_VERSION_REGEX_1).matcher(line);
+      if (versionMatcher.find()) {
+        return versionMatcher.group(1);
+      }
+
+      // Match "of(X)"
+      Matcher ofMatcher = Pattern.compile(GRADLE_JAVA_VERSION_REGEX_2).matcher(line);
+      if (ofMatcher.find()) {
+        return ofMatcher.group(1);
+      }
+    }
+
+    return latestJavaVersionMajor;
+  }
+
   /*
    * GRADLE WRAPPER UPDATE
    */
@@ -573,7 +710,8 @@ public class ExecuteGradleUpdate implements Runnable {
     // this check is done when repository object is created
     // adding here as backup
     if (!isRequiresUpdate(
-        this.repository.getCurrentGradleVersion(), this.repository.getLatestGradleVersion())) {
+        this.repository.getCurrentGradleVersion(),
+        this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull())) {
       return;
     }
 
@@ -602,7 +740,7 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.repository.getLatestGradleVersion());
+                  this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull());
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);
@@ -611,6 +749,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
       return updatedWrapperProperties;
     } catch (IOException e) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return Collections.emptyList();
@@ -635,6 +774,7 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

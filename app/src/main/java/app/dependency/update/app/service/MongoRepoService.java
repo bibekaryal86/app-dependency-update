@@ -95,6 +95,7 @@ public class MongoRepoService {
       pluginsRepository.save(
           Plugins.builder().group(group).version(version).skipVersion(false).build());
     } catch (Exception ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("ERROR Save Plugin: [ {} ] | [ {} ]", group, version, ex);
     }
   }
@@ -130,6 +131,7 @@ public class MongoRepoService {
               .skipVersion(false)
               .build());
     } catch (Exception ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("ERROR Save Dependency: [ {} ] | [ {} ]", mavenId, latestVersion, ex);
     }
   }
@@ -160,6 +162,7 @@ public class MongoRepoService {
       packagesRepository.save(
           Packages.builder().name(name).version(version).skipVersion(false).build());
     } catch (Exception ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("ERROR Save Package: [ {} ] | [ {} ]", name, version, ex);
     }
   }

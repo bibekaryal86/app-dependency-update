@@ -16,5 +16,5 @@ public class BuildGradleConfigs {
   private final Path buildGradlePath;
   private final List<String> originals;
   private final GradleConfigBlock plugins;
-  private final GradleConfigBlock dependencies;
+  private final List<GradleConfigBlock> dependencies;
 }

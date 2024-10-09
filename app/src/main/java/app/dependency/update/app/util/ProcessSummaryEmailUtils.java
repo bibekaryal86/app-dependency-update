@@ -108,6 +108,16 @@ public class ProcessSummaryEmailUtils {
                 processSummary.getTotalPrCreateErrorsCount(),
                 processSummary.getTotalPrMergedCount()));
 
+    html.append(
+        """
+                <br />
+                <p style='font-size: 14px; font-weight: bold;%s'>Exception Caught in the Update Process: %s</p>
+                <br />
+              """
+            .formatted(
+                processSummary.isExceptionCaught() ? " color: red;" : "",
+                processSummary.isExceptionCaught()));
+
     if (prCreatedAndMerged.isEmpty()) {
       html.append(
           """

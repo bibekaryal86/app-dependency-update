@@ -3,6 +3,7 @@ package app.dependency.update.app.connector;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.PypiSearchResponse;
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -23,6 +24,7 @@ public class PypiConnector {
       return restTemplate.getForObject(
           String.format(PYPI_SEARCH_ENDPOINT, name), PypiSearchResponse.class);
     } catch (RestClientException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("ERROR in Get Pypi Search Response: [ {} ]", name, ex);
     }
 

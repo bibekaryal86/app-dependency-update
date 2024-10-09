@@ -6,6 +6,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
+import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +45,7 @@ public class UpdateGithubMerge {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

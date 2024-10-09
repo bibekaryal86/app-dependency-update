@@ -5,9 +5,11 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,12 +18,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdatePythonDependencies {
+  private final LatestVersions latestVersions;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
   public UpdatePythonDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
+    this.latestVersions = appInitData.getLatestVersions();
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.PYTHON_DEPENDENCIES))
@@ -51,7 +55,8 @@ public class UpdatePythonDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
 
-    return new ExecutePythonUpdate(repository, this.scriptFile, arguments, mongoRepoService)
+    return new ExecutePythonUpdate(
+            this.latestVersions, repository, this.scriptFile, arguments, mongoRepoService)
         .start();
   }
 
@@ -61,6 +66,7 @@ public class UpdatePythonDependencies {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

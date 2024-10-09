@@ -2,6 +2,7 @@
 
 * Things to add:
   * Tests
+    * Need extensive refactoring
   * Documentation
 
 * System Requirements:

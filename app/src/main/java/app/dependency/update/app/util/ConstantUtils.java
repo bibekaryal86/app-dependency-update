@@ -22,6 +22,8 @@ public class ConstantUtils {
   public static final String GRADLE_BUILD_BLOCK_END_REGEX = "([a-z]+\\s\\{)";
   public static final String GRADLE_BUILD_DEPENDENCIES_REGEX = "(?<=\\%s)(.*?)(?=\\%s)";
   public static final String GRADLE_BUILD_DEFINITION_REGEX = "\\w+\\s+\\w+";
+  public static final String GRADLE_JAVA_VERSION_REGEX_1 = "JavaVersion.VERSION_(\\d+)";
+  public static final String GRADLE_JAVA_VERSION_REGEX_2 = "JavaLanguageVersion.of\\((\\d+)\\)";
   public static final String PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX = "'(.*?)'";
   public static final String COMMAND_PATH = PATH_DELIMITER + "bin" + PATH_DELIMITER + "bash";
   public static final String COMMAND_WINDOWS = "cmd.exe";
@@ -33,6 +35,8 @@ public class ConstantUtils {
       "/gradle/wrapper/gradle-wrapper.properties";
   public static final String BUILD_GRADLE = "build.gradle";
   public static final String PYPROJECT_TOML = "pyproject.toml";
+  public static final String PACKAGE_JSON = "package.json";
+  public static final String DOCKER_JRE = "eclipse-temurin";
   public static final String MONGODB_DATABASE_NAME = "repository";
   public static final String MONGODB_COLLECTION_DEPENDENCIES = "dependencies";
   public static final String MONGODB_COLLECTION_PLUGINS = "plugins";
@@ -41,11 +45,21 @@ public class ConstantUtils {
   public static final String MONGODB_COLLECTION_PROCESS_SUMMARIES = "process_summaries";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
 
+  public static final String DOCKER_ALPINE = "alpine";
+
   // endpoints
   public static final String MONGODB_CONNECTION_STRING =
       "mongodb+srv://%s:%s@cluster0.anwaeio.mongodb.net/?retryWrites=true&w=majority";
+  public static final String JAVA_RELEASES_ENDPOINT =
+      "https://api.adoptium.net/v3/info/release_versions?heap_size=normal&image_type=jdk&lts=true&page=0&page_size=50&project=jdk&release_type=ga&semver=false&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
+  public static final String PYTHON_RELEASES_ENDPOINT =
+      "https://api.github.com/repos/python/cpython/tags";
+  public static final String NODE_RELEASES_ENDPOINT = "https://nodejs.org/dist/index.json";
   public static final String GRADLE_RELEASES_ENDPOINT =
       "https://api.github.com/repos/gradle/gradle/releases";
+  public static final String NGINX_TAGS_ENDPOINT = "https://api.github.com/repos/nginx/nginx/tags";
+  public static final String GITHUB_ACTIONS_RELEASES_ENDPOINT =
+      "https://api.github.com/repos/%s/%s/releases";
   public static final String GRADLE_PLUGINS_ENDPOINT = "https://plugins.gradle.org/plugin/%s";
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";

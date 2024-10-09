@@ -5,7 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.model.GradleReleaseResponse;
-import java.util.Comparator;
+import app.dependency.update.app.model.LatestVersion;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -23,25 +23,27 @@ public class GradleRepoService {
     this.gradleConnector = gradleConnector;
   }
 
-  public String getLatestGradleVersion() {
+  public LatestVersion getLatestGradleVersion() {
     List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
-    // get rid of draft and prerelease and sort by name descending
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         gradleReleaseResponses.stream()
             .filter(
                 gradleReleaseResponse ->
                     !(gradleReleaseResponse.isPrerelease() || gradleReleaseResponse.isDraft()))
-            .max(Comparator.comparing(GradleReleaseResponse::getName));
-
+            .findFirst();
     GradleReleaseResponse latestGradleRelease = optionalLatestGradleRelease.orElse(null);
-    log.info("Latest Gradle Release: [ {} ]", optionalLatestGradleRelease);
+    log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
       log.error("Latest Gradle Release Null Error...");
       return null;
     }
 
-    return latestGradleRelease.getName();
+    final String versionFull = latestGradleRelease.getName();
+    final String versionMajor = getVersionMajor(versionFull);
+    final String versionDocker = getVersionDocker(versionMajor);
+
+    return LatestVersion.builder().versionFull(versionFull).versionDocker(versionDocker).build();
   }
 
   public String getLatestGradlePlugin(final String group) {
@@ -78,5 +80,21 @@ public class GradleRepoService {
       log.error("ERROR Get Latest Gradle Plugin Version Wrong Length: [ {} ]", latestVersionText);
     }
     return null;
+  }
+
+  /**
+   * @param versionFull eg: 8.10 or 8.10.2
+   * @return eg: 8
+   */
+  private String getVersionMajor(final String versionFull) {
+    return versionFull.trim().split("\\.")[0];
+  }
+
+  /**
+   * @param versionMajor eg: 8
+   * @return eg: 8-jdk-alpine
+   */
+  private String getVersionDocker(final String versionMajor) {
+    return "gradle:" + versionMajor + "-jdk-" + DOCKER_ALPINE;
   }
 }

@@ -16,7 +16,7 @@ public class SwaggerConfig {
         .info(
             new Info()
                 .title("App Dependency Update")
-                .description("Updates Gradle Wrapper, and NPM and Gradle Dependencies Locally")
+                .description("Updates Gradle Wrapper, and Npm and Gradle Dependencies Locally")
                 .contact(new Contact().name("Bibek Aryal"))
                 .license(new License().name("Personal Use Only"))
                 .version("1.0.1"));

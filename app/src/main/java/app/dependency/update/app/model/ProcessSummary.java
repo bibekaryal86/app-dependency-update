@@ -24,4 +24,5 @@ public class ProcessSummary {
   private int totalPrCreateErrorsCount;
   private int totalPrMergedCount;
   private List<ProcessedRepository> processedRepositories;
+  private boolean isExceptionCaught;
 }

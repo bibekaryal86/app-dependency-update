@@ -3,10 +3,12 @@ package app.dependency.update.app.runnable;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
+import app.dependency.update.app.model.LatestVersions;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.service.MongoRepoService;
+import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecutePythonUpdate implements Runnable {
   private final String threadName;
+  private final LatestVersions latestVersions;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -31,11 +34,13 @@ public class ExecutePythonUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecutePythonUpdate(
+      final LatestVersions latestVersions,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
+    this.latestVersions = latestVersions;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -60,7 +65,20 @@ public class ExecutePythonUpdate implements Runnable {
     executePyProjectTomlUpdate();
     executeRequirementsTxtUpdate();
 
-    if (this.isExecuteScriptRequired) {
+    final boolean isGcpConfigUpdated =
+        new ExecuteGcpConfigsUpdate(
+                this.repository, this.latestVersions.getLatestVersionLanguages().getPython())
+            .executeGcpConfigsUpdate();
+    final boolean isDockerfileUpdated =
+        new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+    final boolean isGithubWorkflowsUpdated =
+        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+            .executeGithubWorkflowsUpdate();
+
+    if (this.isExecuteScriptRequired
+        || isGcpConfigUpdated
+        || isDockerfileUpdated
+        || isGithubWorkflowsUpdated) {
       Thread executeThread =
           new ExecuteScriptFile(
                   threadName(repository, "-" + this.getClass().getSimpleName()),
@@ -76,6 +94,7 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       return Files.readAllLines(path);
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error reading file: [ {} ]", path);
     }
     return Collections.emptyList();
@@ -86,6 +105,7 @@ public class ExecutePythonUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       this.isExecuteScriptRequired = true;
     } catch (IOException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
     }
   }
@@ -199,6 +219,18 @@ public class ExecutePythonUpdate implements Runnable {
           isUpdated = true;
         }
         updatedPyProjectContent.add(updatedS);
+      } else if (isRequiresPython(s)) {
+        String updatedS = updateRequiresPython(s);
+        if (!updatedS.equals(s)) {
+          isUpdated = true;
+        }
+        updatedPyProjectContent.add(updatedS);
+      } else if (isBlackTargetVersion(s)) {
+        String updatedS = updateBlackTargetVersion(s);
+        if (!updatedS.equals(s)) {
+          isUpdated = true;
+        }
+        updatedPyProjectContent.add(updatedS);
       } else {
         updatedPyProjectContent.add(s);
       }
@@ -213,6 +245,14 @@ public class ExecutePythonUpdate implements Runnable {
     return line.contains("requires") && line.contains("setuptools") && line.contains("wheel");
   }
 
+  private boolean isRequiresPython(final String line) {
+    return line.contains("requires-python");
+  }
+
+  private boolean isBlackTargetVersion(final String line) {
+    return line.contains("target-version");
+  }
+
   private String updateBuildTools(final String line) {
     List<String> buildTools = new ArrayList<>();
     Pattern pattern = Pattern.compile(PYTHON_PYPROJECT_TOML_BUILDTOOLS_REGEX);
@@ -223,6 +263,41 @@ public class ExecutePythonUpdate implements Runnable {
     }
 
     return updateBuildTools(line, buildTools);
+  }
+
+  private String updateRequiresPython(final String line) {
+    final String currentVersion = line.replaceAll("[^\\d.]", "").trim();
+    final String latestVersion =
+        getVersionMajorMinor(
+            this.latestVersions.getLatestVersionLanguages().getPython().getVersionFull(), true);
+
+    if (currentVersion.equals(latestVersion)) {
+      return line;
+    }
+
+    return line.replace(currentVersion, latestVersion);
+  }
+
+  private String updateBlackTargetVersion(final String line) {
+    final String currentVersion = getCurrentBlackTargetVersion(line);
+    final String latestVersion =
+        "py"
+            + getVersionMajorMinor(
+                this.latestVersions.getLatestVersionLanguages().getPython().getVersionFull(),
+                false);
+
+    if (currentVersion.equals(latestVersion)) {
+      return line;
+    }
+
+    return line.replace(currentVersion, latestVersion);
+  }
+
+  public String getCurrentBlackTargetVersion(final String line) {
+    String[] parts = line.split("=");
+    String versionPart = parts[1].trim();
+    versionPart = versionPart.replaceAll("[\\[\\]' ]", "");
+    return versionPart;
   }
 
   // suppressing sonarlint rule for cognitive complexity of method too high
@@ -270,6 +345,7 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Exception Join Thread", ex);
     }
   }

@@ -12,22 +12,18 @@ import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 public class AppTestController {
 
   private final UpdateRepoService updateRepoService;
   private final MongoRepoService mongoRepoService;
-
-  public AppTestController(
-      final UpdateRepoService updateRepoService, final MongoRepoService mongoRepoService) {
-    this.updateRepoService = updateRepoService;
-    this.mongoRepoService = mongoRepoService;
-  }
 
   @Operation(
       summary = "Ping",

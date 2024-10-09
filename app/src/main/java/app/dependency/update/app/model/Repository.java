@@ -14,7 +14,6 @@ public class Repository {
   private final Path repoPath;
   private final UpdateType type;
   private final String repoName;
-  private final String latestGradleVersion;
   private final String currentGradleVersion;
   private final List<String> gradleModules;
   private final List<String> requirementsTxts;
@@ -23,7 +22,6 @@ public class Repository {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.latestGradleVersion = "";
     this.currentGradleVersion = "";
     this.gradleModules = Collections.emptyList();
     this.requirementsTxts = Collections.emptyList();
@@ -33,7 +31,6 @@ public class Repository {
     this.repoPath = repoPath;
     this.type = type;
     this.repoName = repoPath.getFileName().toString();
-    this.latestGradleVersion = "";
     this.currentGradleVersion = "";
     if (type.equals(UpdateType.GRADLE_DEPENDENCIES)) {
       this.gradleModules = stringList;
@@ -48,16 +45,11 @@ public class Repository {
   }
 
   public Repository(
-      Path repoPath,
-      UpdateType type,
-      List<String> gradleModules,
-      String latestGradleVersion,
-      String currentGradleVersion) {
+      Path repoPath, UpdateType type, List<String> gradleModules, String currentGradleVersion) {
     this.repoPath = repoPath;
     this.type = type;
     this.gradleModules = gradleModules;
     this.repoName = repoPath.getFileName().toString();
-    this.latestGradleVersion = latestGradleVersion;
     this.currentGradleVersion = currentGradleVersion;
     this.requirementsTxts = Collections.emptyList();
   }
