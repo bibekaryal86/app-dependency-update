@@ -8,6 +8,8 @@ import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -35,6 +37,7 @@ public class GradleRepoService {
     log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Gradle Release Null Error...");
       return null;
     }
@@ -64,9 +67,11 @@ public class GradleRepoService {
           String latestVersionText = latestVersionElement.text();
           return getLatestVersion(latestVersionText);
         } else {
+          ProcessUtils.setExceptionCaught(true);
           log.error("ERROR Latest Version Element is NULL: [ {} ]", group);
         }
       } else {
+        ProcessUtils.setExceptionCaught(true);
         log.error("ERROR Version Element is NULL: [ {} ]", group);
       }
     }
@@ -81,6 +86,7 @@ public class GradleRepoService {
         return version;
       }
     } else {
+      ProcessUtils.setExceptionCaught(true);
       log.error("ERROR Get Latest Gradle Plugin Version Wrong Length: [ {} ]", latestVersionText);
     }
     return null;

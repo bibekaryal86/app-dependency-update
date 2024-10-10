@@ -128,6 +128,7 @@ public class ExecutePythonUpdate implements Runnable {
     List<String> requirementsTxtContent = readFromFile(requirementsTxtPath);
 
     if (requirementsTxtContent.isEmpty()) {
+      ProcessUtils.setExceptionCaught(true);
       log.error(
           "[ {} ] content is empty: in [ {} ]", requirementsTxt, this.repository.getRepoName());
     } else {
@@ -187,6 +188,7 @@ public class ExecutePythonUpdate implements Runnable {
         updatedLine = updatedLine.replace(version, latestVersion);
       }
     } else {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Python Requirement Array Size Incorrect: [ {} ]", requirement);
     }
     return updatedLine;
@@ -203,6 +205,7 @@ public class ExecutePythonUpdate implements Runnable {
     List<String> pyProjectContent = readFromFile(pyProjectTomlPath);
 
     if (pyProjectContent.isEmpty()) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("PyProject Toml Content is empty: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(pyProjectTomlPath, pyProjectContent);
@@ -335,6 +338,7 @@ public class ExecutePythonUpdate implements Runnable {
           updatedLine = updatedLine.replace(version, latestVersion);
         }
       } else {
+        ProcessUtils.setExceptionCaught(true);
         log.error("Build Tool Array Size Incorrect: [ {} ]", buildTool);
       }
     }

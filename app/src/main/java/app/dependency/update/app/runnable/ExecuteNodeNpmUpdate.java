@@ -97,6 +97,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     List<String> packageJsonContent = readFromFile(packageJsonPath);
 
     if (packageJsonContent.isEmpty()) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Package Json Content is empty: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(packageJsonPath, packageJsonContent);

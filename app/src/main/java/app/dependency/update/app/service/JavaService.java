@@ -8,6 +8,8 @@ import app.dependency.update.app.model.JavaReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,7 @@ public class JavaService {
     log.info("Latest Java Release: [ {} ]", latestJavaRelease);
 
     if (latestJavaRelease == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Java Release Null Error...");
       return null;
     }

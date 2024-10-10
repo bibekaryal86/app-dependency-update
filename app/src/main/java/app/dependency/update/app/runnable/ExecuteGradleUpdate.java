@@ -131,6 +131,7 @@ public class ExecuteGradleUpdate implements Runnable {
             gradleModule);
         BuildGradleConfigs buildGradleConfigs = readBuildGradle(gradleModule);
         if (buildGradleConfigs == null) {
+          ProcessUtils.setExceptionCaught(true);
           log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
         } else {
           List<String> buildGradleContent = modifyBuildGradle(buildGradleConfigs);

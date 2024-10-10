@@ -7,6 +7,8 @@ import app.dependency.update.app.model.GithubActionsReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +64,7 @@ public class GithubActionsService {
     log.info("Latest Github Action [{}/{}] Release: [{}]", owner, repo, latestGithubActionResponse);
 
     if (latestGithubActionResponse == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Github Action Release Null Error for [{}] / [{}]...", owner, repo);
       return null;
     }

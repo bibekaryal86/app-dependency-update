@@ -9,6 +9,8 @@ import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.PythonReleaseResponse;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,7 @@ public class PythonService {
     log.info("Latest Python Release: [ {} ]", latestPythonResponse);
 
     if (latestPythonResponse == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Python Release Null Error...");
       return null;
     }

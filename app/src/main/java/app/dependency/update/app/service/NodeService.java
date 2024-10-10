@@ -7,6 +7,8 @@ import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NodeReleaseResponse;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,7 @@ public class NodeService {
     log.info("Latest Node Release: [ {} ]", latestNodeRelease);
 
     if (latestNodeRelease == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Node Release Null Error...");
       return null;
     }

@@ -34,7 +34,7 @@ public class GithubActionsConnector {
           .getBody();
     } catch (RestClientException ex) {
       ProcessUtils.setExceptionCaught(true);
-      log.error("ERROR Get Gradle Releases", ex);
+      log.error("ERROR Get Github Actions Releases", ex);
     }
 
     return Collections.emptyList();

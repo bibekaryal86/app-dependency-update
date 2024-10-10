@@ -65,6 +65,7 @@ public class ExecuteGcpConfigsUpdate {
     final String[] runtimeArray = runtimeLine.split(":");
 
     if (runtimeArray.length != 2) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Malformed GCP App Yaml Runtime: [{}]", runtimeLine);
       return null;
     }
@@ -72,6 +73,7 @@ public class ExecuteGcpConfigsUpdate {
     final String runtimeValue = runtimeArray[1].trim();
 
     if (!isSupportedRuntime(runtimeValue)) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Incorrect GCP App Yaml Runtime: [{}]", runtimeLine);
       return null;
     }

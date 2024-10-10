@@ -7,6 +7,8 @@ import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NginxReleaseResponse;
 import java.util.List;
 import java.util.Optional;
+
+import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ public class NginxService {
     log.info("Latest Nginx Release: [ {} ]", latestNginxRelease);
 
     if (latestNginxRelease == null) {
+      ProcessUtils.setExceptionCaught(true);
       log.error("Latest Nginx Release Null Error...");
       return null;
     }
