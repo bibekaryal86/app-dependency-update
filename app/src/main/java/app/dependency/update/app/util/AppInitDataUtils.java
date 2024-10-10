@@ -6,19 +6,10 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.LatestVersion;
-import app.dependency.update.app.model.LatestVersionAppServers;
-import app.dependency.update.app.model.LatestVersionBuildTools;
-import app.dependency.update.app.model.LatestVersionGithubActions;
-import app.dependency.update.app.model.LatestVersionLanguages;
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.service.GithubActionsService;
-import app.dependency.update.app.service.GradleRepoService;
-import app.dependency.update.app.service.JavaService;
-import app.dependency.update.app.service.NginxService;
-import app.dependency.update.app.service.NodeService;
-import app.dependency.update.app.service.PythonService;
+import app.dependency.update.app.service.LatestVersionsService;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.*;
@@ -55,13 +46,13 @@ public class AppInitDataUtils {
     // get the scripts included in resources folder
     List<ScriptFile> scriptFiles = getScriptsInResources();
     // get the latest versions of tools and runtimes
-    LatestVersions latestVersions = getLatestVersions();
+    LatestVersionsModel latestVersionsModel = getLatestVersions();
     // return
     return AppInitData.builder()
         .argsMap(argsMap)
         .repositories(repositories)
         .scriptFiles(scriptFiles)
-        .latestVersions(latestVersions)
+        .latestVersionsModel(latestVersionsModel)
         .build();
   }
 
@@ -301,67 +292,14 @@ public class AppInitDataUtils {
     }
   }
 
-  private static LatestVersions getLatestVersions() {
-    return LatestVersions.builder()
-        .latestVersionAppServers(getLatestVersionAppServers())
-        .latestVersionBuildTools(getLatestVersionBuildTools())
-        .latestVersionGithubActions(getLatestVersionGithubActions())
-        .latestVersionLanguages(getLatestVersionLanguages())
-        .build();
-  }
-
-  private static LatestVersionAppServers getLatestVersionAppServers() {
-    final LatestVersion nginx =
-        ApplicationContextUtil.getBean(NginxService.class).getLatestNginxVersion();
-    final LatestVersionAppServers latestVersionAppServers =
-        LatestVersionAppServers.builder().nginx(nginx).build();
-    validateLatestVersion(latestVersionAppServers);
-    return latestVersionAppServers;
-  }
-
-  private static LatestVersionBuildTools getLatestVersionBuildTools() {
-    final LatestVersion gradle =
-        ApplicationContextUtil.getBean(GradleRepoService.class).getLatestGradleVersion();
-    final LatestVersionBuildTools latestVersionBuildTools =
-        LatestVersionBuildTools.builder().gradle(gradle).build();
-    validateLatestVersion(latestVersionBuildTools);
-    return latestVersionBuildTools;
-  }
-
-  private static LatestVersionGithubActions getLatestVersionGithubActions() {
-    final GithubActionsService githubActionsService =
-        ApplicationContextUtil.getBean(GithubActionsService.class);
-    final LatestVersion checkout = githubActionsService.getLatestCheckout();
-    final LatestVersion setupJava = githubActionsService.getLatestSetupJava();
-    final LatestVersion setupGradle = githubActionsService.getLatestSetupGradle();
-    final LatestVersion setupNode = githubActionsService.getLatestSetupNode();
-    final LatestVersion setupPython = githubActionsService.getLatestSetupPython();
-    final LatestVersion codeql = githubActionsService.getLatestCodeql();
-
-    LatestVersionGithubActions latestVersion =
-        LatestVersionGithubActions.builder()
-            .checkout(checkout)
-            .setupJava(setupJava)
-            .setupGradle(setupGradle)
-            .setupNode(setupNode)
-            .setupPython(setupPython)
-            .codeql(codeql)
-            .build();
-    validateLatestVersion(latestVersion);
-    return latestVersion;
-  }
-
-  private static LatestVersionLanguages getLatestVersionLanguages() {
-    final LatestVersion java =
-        ApplicationContextUtil.getBean(JavaService.class).getLatestJavaVersion();
-    final LatestVersion node =
-        ApplicationContextUtil.getBean(NodeService.class).getLatestNodeVersion();
-    final LatestVersion python =
-        ApplicationContextUtil.getBean(PythonService.class).getLatestPythonVersion();
-    LatestVersionLanguages latestVersion =
-        LatestVersionLanguages.builder().java(java).node(node).python(python).build();
-    validateLatestVersion(latestVersion);
-    return latestVersion;
+  private static LatestVersionsModel getLatestVersions() {
+    LatestVersionsModel latestVersionsModel =
+        ApplicationContextUtil.getBean(LatestVersionsService.class).getLatestVersions();
+    validateLatestVersion(latestVersionsModel.getLatestVersionAppServers());
+    validateLatestVersion(latestVersionsModel.getLatestVersionBuildTools());
+    validateLatestVersion(latestVersionsModel.getLatestVersionGithubActions());
+    validateLatestVersion(latestVersionsModel.getLatestVersionLanguages());
+    return latestVersionsModel;
   }
 
   private static void validateLatestVersion(final Object latestVersion) {

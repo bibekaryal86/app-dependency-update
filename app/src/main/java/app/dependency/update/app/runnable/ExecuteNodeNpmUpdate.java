@@ -3,7 +3,7 @@ package app.dependency.update.app.runnable;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.ProcessUtils;
@@ -19,19 +19,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteNodeNpmUpdate implements Runnable {
   private final String threadName;
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
   private Thread thread;
 
   public ExecuteNodeNpmUpdate(
-      final LatestVersions latestVersions,
+      final LatestVersionsModel latestVersionsModel,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestVersions = latestVersions;
+    this.latestVersionsModel = latestVersionsModel;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -54,10 +54,11 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     executePackageJsonUpdate();
 
     new ExecuteGcpConfigsUpdate(
-            this.repository, this.latestVersions.getLatestVersionLanguages().getNode())
+            this.repository, this.latestVersionsModel.getLatestVersionLanguages().getNode())
         .executeGcpConfigsUpdate();
-    new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
-    new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+    new ExecuteDockerfileUpdate(this.repository, this.latestVersionsModel)
+        .executeDockerfileUpdate();
+    new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersionsModel)
         .executeGithubWorkflowsUpdate();
 
     Thread executeThread =
@@ -141,7 +142,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     if (currentArray.length == 2) {
       final String currentVersion = currentArray[1].replace("\"", "").trim();
       final String latestVersion =
-          this.latestVersions.getLatestVersionLanguages().getNode().getVersionMajor();
+          this.latestVersionsModel.getLatestVersionLanguages().getNode().getVersionMajor();
 
       if (currentVersion.equals(latestVersion)) {
         return currentLine;

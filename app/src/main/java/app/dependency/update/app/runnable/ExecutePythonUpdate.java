@@ -3,7 +3,7 @@ package app.dependency.update.app.runnable;
 import static app.dependency.update.app.util.CommonUtils.*;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Packages;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecutePythonUpdate implements Runnable {
   private final String threadName;
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -34,13 +34,13 @@ public class ExecutePythonUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecutePythonUpdate(
-      final LatestVersions latestVersions,
+      final LatestVersionsModel latestVersionsModel,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestVersions = latestVersions;
+    this.latestVersionsModel = latestVersionsModel;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -67,12 +67,13 @@ public class ExecutePythonUpdate implements Runnable {
 
     final boolean isGcpConfigUpdated =
         new ExecuteGcpConfigsUpdate(
-                this.repository, this.latestVersions.getLatestVersionLanguages().getPython())
+                this.repository, this.latestVersionsModel.getLatestVersionLanguages().getPython())
             .executeGcpConfigsUpdate();
     final boolean isDockerfileUpdated =
-        new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+        new ExecuteDockerfileUpdate(this.repository, this.latestVersionsModel)
+            .executeDockerfileUpdate();
     final boolean isGithubWorkflowsUpdated =
-        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersionsModel)
             .executeGithubWorkflowsUpdate();
 
     if (this.isExecuteScriptRequired
@@ -269,7 +270,8 @@ public class ExecutePythonUpdate implements Runnable {
     final String currentVersion = line.replaceAll("[^\\d.]", "").trim();
     final String latestVersion =
         getVersionMajorMinor(
-            this.latestVersions.getLatestVersionLanguages().getPython().getVersionFull(), true);
+            this.latestVersionsModel.getLatestVersionLanguages().getPython().getVersionFull(),
+            true);
 
     if (currentVersion.equals(latestVersion)) {
       return line;
@@ -283,7 +285,7 @@ public class ExecutePythonUpdate implements Runnable {
     final String latestVersion =
         "py"
             + getVersionMajorMinor(
-                this.latestVersions.getLatestVersionLanguages().getPython().getVersionFull(),
+                this.latestVersionsModel.getLatestVersionLanguages().getPython().getVersionFull(),
                 false);
 
     if (currentVersion.equals(latestVersion)) {

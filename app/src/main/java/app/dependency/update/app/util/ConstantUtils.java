@@ -43,6 +43,7 @@ public class ConstantUtils {
   public static final String MONGODB_COLLECTION_PACKAGES = "packages";
   public static final String MONGODB_COLLECTION_NPMSKIPS = "npm_skips";
   public static final String MONGODB_COLLECTION_PROCESS_SUMMARIES = "process_summaries";
+  public static final String MONGODB_COLLECTION_LATEST_VERSIONS = "latest_versions";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
 
   public static final String DOCKER_ALPINE = "alpine";

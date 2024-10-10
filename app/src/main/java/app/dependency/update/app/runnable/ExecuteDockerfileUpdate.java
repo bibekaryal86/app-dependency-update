@@ -2,7 +2,7 @@ package app.dependency.update.app.runnable;
 
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
@@ -18,12 +18,13 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class ExecuteDockerfileUpdate {
   private final Repository repository;
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final Path dockerfilePath;
 
-  public ExecuteDockerfileUpdate(final Repository repository, final LatestVersions latestVersions) {
+  public ExecuteDockerfileUpdate(
+      final Repository repository, final LatestVersionsModel latestVersionsModel) {
     this.repository = repository;
-    this.latestVersions = latestVersions;
+    this.latestVersionsModel = latestVersionsModel;
     dockerfilePath = this.repository.getRepoPath().resolve("Dockerfile");
   }
 
@@ -86,19 +87,19 @@ public class ExecuteDockerfileUpdate {
 
   private String getLatestVersionDocker(final String fromLine) {
     if (fromLine.contains("gradle")) {
-      return this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionBuildTools().getGradle().getVersionDocker();
     }
     if (fromLine.contains(DOCKER_JRE)) {
-      return this.latestVersions.getLatestVersionLanguages().getJava().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionLanguages().getJava().getVersionDocker();
     }
     if (fromLine.contains("node")) {
-      return this.latestVersions.getLatestVersionLanguages().getNode().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionLanguages().getNode().getVersionDocker();
     }
     if (fromLine.contains("nginx")) {
-      return this.latestVersions.getLatestVersionAppServers().getNginx().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionAppServers().getNginx().getVersionDocker();
     }
     if (fromLine.contains("python")) {
-      return this.latestVersions.getLatestVersionLanguages().getPython().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionLanguages().getPython().getVersionDocker();
     }
     return fromLine;
   }
