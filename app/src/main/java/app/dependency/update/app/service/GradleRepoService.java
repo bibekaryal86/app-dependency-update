@@ -42,8 +42,7 @@ public class GradleRepoService {
     }
 
     final String versionFull = latestGradleRelease.getName();
-    final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor, latestJavaVersionMajor);
+    final String versionDocker = getVersionDocker(versionFull, latestJavaVersionMajor);
 
     return LatestVersion.builder()
         .versionActual(versionFull)
