@@ -8,9 +8,7 @@ import app.dependency.update.app.model.LatestVersionGithubActions;
 import app.dependency.update.app.model.LatestVersionLanguages;
 import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.entities.LatestVersionsEntity;
-import app.dependency.update.app.repository.LatestVersionsRepository;
 import app.dependency.update.app.util.ProcessUtils;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LatestVersionsService {
 
-  private final LatestVersionsRepository latestVersionsRepository;
+  private final MongoRepoService mongoRepoService;
   private final GithubActionsService githubActionsService;
   private final GradleRepoService gradleRepoService;
   private final JavaService javaService;
@@ -35,7 +33,7 @@ public class LatestVersionsService {
     log.debug("Get Latest Versions...");
 
     Optional<LatestVersionsEntity> mostRecentLatestVersionsOptional =
-        getMostRecentLatestVersionsEntity();
+        mongoRepoService.getMostRecentLatestVersionsEntity();
 
     if (mostRecentLatestVersionsOptional.isEmpty()) {
       return null;
@@ -84,34 +82,10 @@ public class LatestVersionsService {
             .build();
 
     if (checkAndSaveLatestVersionEntity(latestVersionsEntity, latestVersionsModel)) {
-      saveLatestVersions(latestVersionsModel);
+      mongoRepoService.saveLatestVersions(latestVersionsModel);
     }
+
     return latestVersionsModel;
-  }
-
-  private void saveLatestVersions(final LatestVersionsModel latestVersionsModel) {
-    log.info("Save Latest Version: [{}]", latestVersionsModel);
-    LatestVersionsEntity latestVersionsEntity =
-        LatestVersionsEntity.builder()
-            .nginx(latestVersionsModel.getLatestVersionAppServers().getNginx())
-            .gradle(latestVersionsModel.getLatestVersionBuildTools().getGradle())
-            .checkout(latestVersionsModel.getLatestVersionGithubActions().getCheckout())
-            .setupJava(latestVersionsModel.getLatestVersionGithubActions().getSetupJava())
-            .setupGradle(latestVersionsModel.getLatestVersionGithubActions().getSetupGradle())
-            .setupNode(latestVersionsModel.getLatestVersionGithubActions().getSetupNode())
-            .setupPython(latestVersionsModel.getLatestVersionGithubActions().getSetupPython())
-            .codeql(latestVersionsModel.getLatestVersionGithubActions().getCodeql())
-            .java(latestVersionsModel.getLatestVersionLanguages().getJava())
-            .node(latestVersionsModel.getLatestVersionLanguages().getNode())
-            .python(latestVersionsModel.getLatestVersionLanguages().getPython())
-            .updateDateTime(LocalDateTime.now())
-            .build();
-    latestVersionsRepository.save(latestVersionsEntity);
-  }
-
-  private Optional<LatestVersionsEntity> getMostRecentLatestVersionsEntity() {
-    log.debug("Get Most Recent Latest Versions Entity...");
-    return latestVersionsRepository.findFirstByOrderByUpdateDateTimeDesc();
   }
 
   private LatestVersion getLatestVersionNginx(final LatestVersion latestVersionInMongo) {

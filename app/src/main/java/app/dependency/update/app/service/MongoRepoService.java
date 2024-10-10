@@ -3,17 +3,20 @@ package app.dependency.update.app.service;
 import static app.dependency.update.app.util.CommonUtils.*;
 
 import app.dependency.update.app.connector.MavenConnector;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.MavenDoc;
 import app.dependency.update.app.model.MavenResponse;
 import app.dependency.update.app.model.MavenSearchResponse;
 import app.dependency.update.app.model.MongoProcessSummaries;
 import app.dependency.update.app.model.ProcessSummary;
 import app.dependency.update.app.model.entities.Dependencies;
+import app.dependency.update.app.model.entities.LatestVersionsEntity;
 import app.dependency.update.app.model.entities.NpmSkips;
 import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.model.entities.Plugins;
 import app.dependency.update.app.model.entities.ProcessSummaries;
 import app.dependency.update.app.repository.DependenciesRepository;
+import app.dependency.update.app.repository.LatestVersionsRepository;
 import app.dependency.update.app.repository.NpmSkipsRepository;
 import app.dependency.update.app.repository.PackagesRepository;
 import app.dependency.update.app.repository.PluginsRepository;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -46,6 +50,7 @@ public class MongoRepoService {
   private final PackagesRepository packagesRepository;
   private final NpmSkipsRepository npmSkipsRepository;
   private final ProcessSummariesRepository processSummariesRepository;
+  private final LatestVersionsRepository latestVersionsRepository;
   private final MavenConnector mavenConnector;
   private final GradleRepoService gradleRepoService;
   private final PypiRepoService pypiRepoService;
@@ -56,6 +61,7 @@ public class MongoRepoService {
       final PackagesRepository packagesRepository,
       final NpmSkipsRepository npmSkipsRepository,
       final ProcessSummariesRepository processSummariesRepository,
+      final LatestVersionsRepository latestVersionsRepository,
       final MavenConnector mavenConnector,
       final GradleRepoService gradleRepoService,
       final PypiRepoService pypiRepoService) {
@@ -64,6 +70,7 @@ public class MongoRepoService {
     this.packagesRepository = packagesRepository;
     this.npmSkipsRepository = npmSkipsRepository;
     this.processSummariesRepository = processSummariesRepository;
+    this.latestVersionsRepository = latestVersionsRepository;
     this.mavenConnector = mavenConnector;
     this.gradleRepoService = gradleRepoService;
     this.pypiRepoService = pypiRepoService;
@@ -338,6 +345,31 @@ public class MongoRepoService {
   public void saveProcessSummaries(final ProcessSummaries processSummaries) {
     log.debug("Save Process Summaries: [ {} ]", processSummaries);
     processSummariesRepository.save(processSummaries);
+  }
+
+  public void saveLatestVersions(final LatestVersionsModel latestVersionsModel) {
+    log.info("Save Latest Version: [{}]", latestVersionsModel);
+    LatestVersionsEntity latestVersionsEntity =
+        LatestVersionsEntity.builder()
+            .nginx(latestVersionsModel.getLatestVersionAppServers().getNginx())
+            .gradle(latestVersionsModel.getLatestVersionBuildTools().getGradle())
+            .checkout(latestVersionsModel.getLatestVersionGithubActions().getCheckout())
+            .setupJava(latestVersionsModel.getLatestVersionGithubActions().getSetupJava())
+            .setupGradle(latestVersionsModel.getLatestVersionGithubActions().getSetupGradle())
+            .setupNode(latestVersionsModel.getLatestVersionGithubActions().getSetupNode())
+            .setupPython(latestVersionsModel.getLatestVersionGithubActions().getSetupPython())
+            .codeql(latestVersionsModel.getLatestVersionGithubActions().getCodeql())
+            .java(latestVersionsModel.getLatestVersionLanguages().getJava())
+            .node(latestVersionsModel.getLatestVersionLanguages().getNode())
+            .python(latestVersionsModel.getLatestVersionLanguages().getPython())
+            .updateDateTime(LocalDateTime.now())
+            .build();
+    latestVersionsRepository.save(latestVersionsEntity);
+  }
+
+  public Optional<LatestVersionsEntity> getMostRecentLatestVersionsEntity() {
+    log.debug("Get Most Recent Latest Versions Entity...");
+    return latestVersionsRepository.findFirstByOrderByUpdateDateTimeDesc();
   }
 
   private MongoProcessSummaries getMongoProcessSummaries(
