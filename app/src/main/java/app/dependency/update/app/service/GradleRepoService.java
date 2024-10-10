@@ -24,7 +24,7 @@ public class GradleRepoService {
     this.gradleConnector = gradleConnector;
   }
 
-  public LatestVersion getLatestGradleVersion() {
+  public LatestVersion getLatestGradleVersion(final String latestJavaVersionMajor) {
     List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         gradleReleaseResponses.stream()
@@ -43,7 +43,7 @@ public class GradleRepoService {
 
     final String versionFull = latestGradleRelease.getName();
     final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
+    final String versionDocker = getVersionDocker(versionMajor, latestJavaVersionMajor);
 
     return LatestVersion.builder()
         .versionActual(versionFull)
@@ -100,10 +100,10 @@ public class GradleRepoService {
   }
 
   /**
-   * @param versionMajor eg: 8
-   * @return eg: 8-jdk-alpine
+   * @param versionFull eg: 8.10 or 8.10.2
+   * @return eg: 8.10-jdk21-alpine or 8.10.2-jdk21-alpine
    */
-  private String getVersionDocker(final String versionMajor) {
-    return "gradle:" + versionMajor + "-jdk-" + DOCKER_ALPINE;
+  private String getVersionDocker(final String versionFull, final String latestJavaVersionMajor) {
+    return "gradle:" + versionFull + "-jdk" + latestJavaVersionMajor + "-" + DOCKER_ALPINE;
   }
 }

@@ -43,39 +43,44 @@ public class LatestVersionsService {
 
     Map<String, String> latestGcpRuntimes = gcpConnector.getLatestGcpRuntimes();
     LatestVersionsEntity latestVersionsEntity = mostRecentLatestVersionsOptional.get();
+
+    // languages
+    LatestVersion python =
+        getLatestVersionPython(latestVersionsEntity.getPython(), latestGcpRuntimes.get("python"));
+    LatestVersion node =
+        getLatestVersionNode(latestVersionsEntity.getNode(), latestGcpRuntimes.get("nodejs"));
+    LatestVersion java =
+        getLatestVersionJava(latestVersionsEntity.getJava(), latestGcpRuntimes.get("java"));
+    // github actions
+    LatestVersion codeql = getLatestVersionGithubCodeql(latestVersionsEntity.getCodeql());
+    LatestVersion setupPython =
+        getLatestVersionGithubSetupPython(latestVersionsEntity.getSetupPython());
+    LatestVersion setupNode = getLatestVersionGithubSetupNode(latestVersionsEntity.getSetupNode());
+    LatestVersion setupGradle =
+        getLatestVersionGithubSetupGradle(latestVersionsEntity.getSetupGradle());
+    LatestVersion setupJava = getLatestVersionGithubSetupJava(latestVersionsEntity.getSetupJava());
+    LatestVersion checkout = getLatestVersionGithubCheckout(latestVersionsEntity.getCheckout());
+    // build tools
+    LatestVersion gradle =
+        getLatestVersionGradle(latestVersionsEntity.getGradle(), java.getVersionMajor());
+    // app servers
+    LatestVersion nginx = getLatestVersionNginx(latestVersionsEntity.getNginx());
+
     LatestVersionsModel latestVersionsModel =
         LatestVersionsModel.builder()
-            .latestVersionAppServers(
-                LatestVersionAppServers.builder()
-                    .nginx(getLatestVersionNginx(latestVersionsEntity.getNginx()))
-                    .build())
-            .latestVersionBuildTools(
-                LatestVersionBuildTools.builder()
-                    .gradle(getLatestVersionGradle(latestVersionsEntity.getGradle()))
-                    .build())
+            .latestVersionAppServers(LatestVersionAppServers.builder().nginx(nginx).build())
+            .latestVersionBuildTools(LatestVersionBuildTools.builder().gradle(gradle).build())
             .latestVersionGithubActions(
                 LatestVersionGithubActions.builder()
-                    .checkout(getLatestVersionGithubCheckout(latestVersionsEntity.getCheckout()))
-                    .setupJava(getLatestVersionGithubSetupJava(latestVersionsEntity.getSetupJava()))
-                    .setupGradle(
-                        getLatestVersionGithubSetupGradle(latestVersionsEntity.getSetupGradle()))
-                    .setupNode(getLatestVersionGithubSetupNode(latestVersionsEntity.getSetupNode()))
-                    .setupPython(
-                        getLatestVersionGithubSetupPython(latestVersionsEntity.getPython()))
-                    .codeql(getLatestVersionGithubCodeql(latestVersionsEntity.getCodeql()))
+                    .checkout(checkout)
+                    .setupJava(setupJava)
+                    .setupGradle(setupGradle)
+                    .setupNode(setupNode)
+                    .setupPython(setupPython)
+                    .codeql(codeql)
                     .build())
             .latestVersionLanguages(
-                LatestVersionLanguages.builder()
-                    .java(
-                        getLatestVersionJava(
-                            latestVersionsEntity.getJava(), latestGcpRuntimes.get("java")))
-                    .node(
-                        getLatestVersionNode(
-                            latestVersionsEntity.getNode(), latestGcpRuntimes.get("nodejs")))
-                    .python(
-                        getLatestVersionPython(
-                            latestVersionsEntity.getPython(), latestGcpRuntimes.get("python")))
-                    .build())
+                LatestVersionLanguages.builder().java(java).node(node).python(python).build())
             .build();
 
     if (checkAndSaveLatestVersionEntity(latestVersionsEntity, latestVersionsModel)) {
@@ -119,9 +124,10 @@ public class LatestVersionsService {
     return latestVersionInMongo;
   }
 
-  private LatestVersion getLatestVersionGradle(final LatestVersion latestVersionInMongo) {
+  private LatestVersion getLatestVersionGradle(
+      final LatestVersion latestVersionInMongo, final String latestJavaVersionMajor) {
     try {
-      return gradleRepoService.getLatestGradleVersion();
+      return gradleRepoService.getLatestGradleVersion(latestJavaVersionMajor);
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Gradle...", ex);
