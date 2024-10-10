@@ -92,14 +92,6 @@ public class GradleRepoService {
 
   /**
    * @param versionFull eg: 8.10 or 8.10.2
-   * @return eg: 8
-   */
-  private String getVersionMajor(final String versionFull) {
-    return versionFull.trim().split("\\.")[0];
-  }
-
-  /**
-   * @param versionFull eg: 8.10 or 8.10.2
    * @return eg: 8.10-jdk21-alpine or 8.10.2-jdk21-alpine
    */
   private String getVersionDocker(final String versionFull, final String latestJavaVersionMajor) {
