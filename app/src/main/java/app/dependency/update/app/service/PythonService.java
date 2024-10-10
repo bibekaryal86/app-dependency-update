@@ -2,6 +2,7 @@ package app.dependency.update.app.service;
 
 import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
 import static app.dependency.update.app.util.CommonUtils.isCheckPreReleaseVersion;
+import static app.dependency.update.app.util.CommonUtils.parseIntSafe;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
 import app.dependency.update.app.connector.PythonConnector;
@@ -23,7 +24,7 @@ public class PythonService {
     this.pythonConnector = pythonConnector;
   }
 
-  public LatestVersion getLatestPythonVersion() {
+  public LatestVersion getLatestPythonVersion(final String latestGcpRuntimeVersion) {
     List<PythonReleaseResponse> pythonReleaseResponses = pythonConnector.getPythonReleases();
     // get rid of alpha, beta and release candidates by version descending
     Optional<PythonReleaseResponse> optionalPythonReleaseResponse =
@@ -36,7 +37,7 @@ public class PythonService {
     log.info("Latest Python Release: [ {} ]", latestPythonResponse);
 
     if (latestPythonResponse == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Python Release Null Error...");
       return null;
     }
@@ -44,7 +45,7 @@ public class PythonService {
     final String versionActual = latestPythonResponse.getName();
     final String versionFull = getVersionFull(versionActual);
     final String versionDocker = getVersionDocker(versionFull);
-    final String versionGcp = getVersionGcp(versionFull);
+    final String versionGcp = getVersionGcp(versionFull, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -74,7 +75,11 @@ public class PythonService {
    * @param versionFull eg: 3.12.7
    * @return eg: python312
    */
-  private String getVersionGcp(final String versionFull) {
-    return "python" + getVersionMajorMinor(versionFull, false);
+  private String getVersionGcp(final String versionFull, final String latestGcpRuntimeVersion) {
+    final String versionMajorMinor = getVersionMajorMinor(versionFull, false);
+    if (parseIntSafe(versionMajorMinor) < parseIntSafe(latestGcpRuntimeVersion)) {
+      return "python" + latestGcpRuntimeVersion;
+    }
+    return "python" + versionMajorMinor;
   }
 }

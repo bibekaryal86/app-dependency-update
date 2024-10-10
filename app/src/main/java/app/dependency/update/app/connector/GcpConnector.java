@@ -23,10 +23,11 @@ public class GcpConnector {
   public Map<String, String> getLatestGcpRuntimes() {
     List<String> validKeys = List.of("java", "nodejs", "python");
     Map<String, String> latestRuntimesMap = new HashMap<>();
+
     final Document document = getGcpRuntimeSupportSchedule();
 
     if (document == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtimes lookup Document is null...");
       return latestRuntimesMap;
     }
@@ -37,7 +38,7 @@ public class GcpConnector {
     }
 
     if (latestRuntimesMap.isEmpty()) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest GCP Runtimes Map is Empty...");
     } else {
       log.info("Latest GCP Runtimes Map: {}]", latestRuntimesMap);
@@ -53,7 +54,7 @@ public class GcpConnector {
     try {
       return Jsoup.connect(GCP_RUNTIME_SUPPORT_ENDPOINT).get();
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get GCP Runtime Support Schedule...", ex);
     }
     return null;
@@ -63,7 +64,7 @@ public class GcpConnector {
     Element headerRow = table.selectFirst("thead tr");
 
     if (headerRow == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtime Tables, HeaderRow Not Found...");
       return Collections.emptyMap();
     }
@@ -72,7 +73,7 @@ public class GcpConnector {
     int runtimeIdIndex = getRuntimeIdIndex(headers);
 
     if (runtimeIdIndex == -1) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtime Tables, Runtime ID Header Not Found...");
       return Collections.emptyMap();
     }
@@ -84,7 +85,7 @@ public class GcpConnector {
       Element codeElement = runtimeIdCell.selectFirst("code");
 
       if (codeElement == null) {
-        ProcessUtils.setExceptionCaught(true);
+        ProcessUtils.setErrorsOrExceptions(true);
         log.error("GCP Runtime Tables, Code Element Not Found...");
         return Collections.emptyMap();
       }

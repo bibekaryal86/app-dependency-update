@@ -33,7 +33,7 @@ public class NodeConnector {
               new ParameterizedTypeReference<List<NodeReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Node Releases", ex);
     }
 

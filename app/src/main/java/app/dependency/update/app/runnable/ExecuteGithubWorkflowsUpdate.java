@@ -60,7 +60,7 @@ public class ExecuteGithubWorkflowsUpdate {
           .filter(path -> path.toString().endsWith(".yml"))
           .collect(Collectors.toList());
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Find Github Actions Files: [{}]", this.githubWorkflowsFolderPath, ex);
       return Collections.emptyList();
     }
@@ -70,7 +70,7 @@ public class ExecuteGithubWorkflowsUpdate {
     try {
       return Files.readAllLines(githubWorkflowPath);
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Reading Github Workflow [{}] of Repository [{}]",
           githubWorkflowPath,
@@ -246,7 +246,7 @@ public class ExecuteGithubWorkflowsUpdate {
       Files.write(githubWorkflowPath, githubWorkflowContent, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Writing Updated Github Workflow [{}] of repository: [{}]",
           githubWorkflowPath,

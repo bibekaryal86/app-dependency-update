@@ -41,7 +41,7 @@ public class ExecuteDockerfileUpdate {
     try {
       return Files.readAllLines(this.dockerfilePath);
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Reading Dockerfile of Repository [{}]", this.repository.getRepoName());
       return Collections.emptyList();
     }
@@ -121,7 +121,7 @@ public class ExecuteDockerfileUpdate {
       Files.write(this.dockerfilePath, dockerfileData, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Writing Updated Dockerfile of repository: [{}]", this.repository.getRepoName());
       return false;

@@ -30,7 +30,7 @@ public class NginxService {
     log.info("Latest Nginx Release: [ {} ]", latestNginxRelease);
 
     if (latestNginxRelease == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Nginx Release Null Error...");
       return null;
     }

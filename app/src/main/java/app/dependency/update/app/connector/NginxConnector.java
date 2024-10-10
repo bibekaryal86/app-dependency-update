@@ -33,7 +33,7 @@ public class NginxConnector {
               new ParameterizedTypeReference<List<NginxReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Nginx Releases", ex);
     }
 

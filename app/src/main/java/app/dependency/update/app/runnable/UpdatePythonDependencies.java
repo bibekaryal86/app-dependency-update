@@ -66,7 +66,7 @@ public class UpdatePythonDependencies {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

@@ -109,7 +109,7 @@ public class ExecuteGradleUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
       return false;
     }
@@ -131,7 +131,7 @@ public class ExecuteGradleUpdate implements Runnable {
             gradleModule);
         BuildGradleConfigs buildGradleConfigs = readBuildGradle(gradleModule);
         if (buildGradleConfigs == null) {
-          ProcessUtils.setExceptionCaught(true);
+          ProcessUtils.setErrorsOrExceptions(true);
           log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
         } else {
           List<String> buildGradleContent = modifyBuildGradle(buildGradleConfigs);
@@ -153,7 +153,7 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error in Execute Build Gradle Update: ", ex);
     }
   }
@@ -200,7 +200,7 @@ public class ExecuteGradleUpdate implements Runnable {
           .dependencies(List.of(dependencies, dependenciesBuildScript))
           .build();
     } catch (IOException e) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error reading build.gradle: [ {} ] [ {} ]", this.repository.getRepoName(), gradleModule);
     }
@@ -754,7 +754,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
       return updatedWrapperProperties;
     } catch (IOException e) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return Collections.emptyList();
@@ -779,7 +779,7 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

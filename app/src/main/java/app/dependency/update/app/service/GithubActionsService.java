@@ -63,7 +63,7 @@ public class GithubActionsService {
     log.info("Latest Github Action [{}/{}] Release: [{}]", owner, repo, latestGithubActionResponse);
 
     if (latestGithubActionResponse == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Github Action Release Null Error for [{}] / [{}]...", owner, repo);
       return null;
     }

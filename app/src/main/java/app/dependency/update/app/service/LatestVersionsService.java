@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import app.dependency.update.app.connector.GcpConnector;
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.LatestVersionAppServers;
 import app.dependency.update.app.model.LatestVersionBuildTools;
@@ -10,6 +11,7 @@ import app.dependency.update.app.model.entities.LatestVersionsEntity;
 import app.dependency.update.app.repository.LatestVersionsRepository;
 import app.dependency.update.app.util.ProcessUtils;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,11 @@ public class LatestVersionsService {
   private final NginxService nginxService;
   private final NodeService nodeService;
   private final PythonService pythonService;
+  private final GcpConnector gcpConnector;
 
   public LatestVersionsModel getLatestVersions() {
     log.debug("Get Latest Versions...");
+
     Optional<LatestVersionsEntity> mostRecentLatestVersionsOptional =
         getMostRecentLatestVersionsEntity();
 
@@ -37,6 +41,7 @@ public class LatestVersionsService {
       return null;
     }
 
+    Map<String, String> latestGcpRuntimes = gcpConnector.getLatestGcpRuntimes();
     LatestVersionsEntity latestVersionsEntity = mostRecentLatestVersionsOptional.get();
     LatestVersionsModel latestVersionsModel =
         LatestVersionsModel.builder()
@@ -61,9 +66,15 @@ public class LatestVersionsService {
                     .build())
             .latestVersionLanguages(
                 LatestVersionLanguages.builder()
-                    .java(getLatestVersionJava(latestVersionsEntity.getJava()))
-                    .node(getLatestVersionNode(latestVersionsEntity.getNode()))
-                    .python(getLatestVersionPython(latestVersionsEntity.getPython()))
+                    .java(
+                        getLatestVersionJava(
+                            latestVersionsEntity.getJava(), latestGcpRuntimes.get("java")))
+                    .node(
+                        getLatestVersionNode(
+                            latestVersionsEntity.getNode(), latestGcpRuntimes.get("nodejs")))
+                    .python(
+                        getLatestVersionPython(
+                            latestVersionsEntity.getPython(), latestGcpRuntimes.get("python")))
                     .build())
             .build();
 
@@ -102,7 +113,7 @@ public class LatestVersionsService {
     try {
       return nginxService.getLatestNginxVersion();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Nginx...", ex);
     }
     return latestVersionInMongo;
@@ -112,7 +123,7 @@ public class LatestVersionsService {
     try {
       return gradleRepoService.getLatestGradleVersion();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Gradle...", ex);
     }
     return latestVersionInMongo;
@@ -122,7 +133,7 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestCheckout();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Checkout...", ex);
     }
     return latestVersionInMongo;
@@ -132,7 +143,7 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupJava();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Java...", ex);
     }
     return latestVersionInMongo;
@@ -143,7 +154,7 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupGradle();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Gradle...", ex);
     }
     return latestVersionInMongo;
@@ -153,7 +164,7 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupNode();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Node...", ex);
     }
     return latestVersionInMongo;
@@ -164,7 +175,7 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupPython();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Python...", ex);
     }
     return latestVersionInMongo;
@@ -174,37 +185,40 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestCodeql();
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Codeql...", ex);
     }
     return latestVersionInMongo;
   }
 
-  private LatestVersion getLatestVersionJava(final LatestVersion latestVersionInMongo) {
+  private LatestVersion getLatestVersionJava(
+      final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return javaService.getLatestJavaVersion();
+      return javaService.getLatestJavaVersion(latestGcpRuntimeVersion);
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Java...", ex);
     }
     return latestVersionInMongo;
   }
 
-  private LatestVersion getLatestVersionNode(final LatestVersion latestVersionInMongo) {
+  private LatestVersion getLatestVersionNode(
+      final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return nodeService.getLatestNodeVersion();
+      return nodeService.getLatestNodeVersion(latestGcpRuntimeVersion);
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Node...", ex);
     }
     return latestVersionInMongo;
   }
 
-  private LatestVersion getLatestVersionPython(final LatestVersion latestVersionInMongo) {
+  private LatestVersion getLatestVersionPython(
+      final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return pythonService.getLatestPythonVersion();
+      return pythonService.getLatestPythonVersion(latestGcpRuntimeVersion);
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Python...", ex);
     }
     return latestVersionInMongo;

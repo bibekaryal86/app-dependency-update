@@ -75,7 +75,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       return Files.readAllLines(path);
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error reading file: [ {} ]", path);
     }
     return Collections.emptyList();
@@ -85,7 +85,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       Files.write(path, content, StandardCharsets.UTF_8);
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
     }
   }
@@ -97,7 +97,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     List<String> packageJsonContent = readFromFile(packageJsonPath);
 
     if (packageJsonContent.isEmpty()) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Package Json Content is empty: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(packageJsonPath, packageJsonContent);
@@ -161,7 +161,7 @@ public class ExecuteNodeNpmUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

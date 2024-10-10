@@ -36,7 +36,7 @@ public class GradleRepoService {
     log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Gradle Release Null Error...");
       return null;
     }
@@ -66,11 +66,11 @@ public class GradleRepoService {
           String latestVersionText = latestVersionElement.text();
           return getLatestVersion(latestVersionText);
         } else {
-          ProcessUtils.setExceptionCaught(true);
+          ProcessUtils.setErrorsOrExceptions(true);
           log.error("ERROR Latest Version Element is NULL: [ {} ]", group);
         }
       } else {
-        ProcessUtils.setExceptionCaught(true);
+        ProcessUtils.setErrorsOrExceptions(true);
         log.error("ERROR Version Element is NULL: [ {} ]", group);
       }
     }
@@ -85,7 +85,7 @@ public class GradleRepoService {
         return version;
       }
     } else {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Latest Gradle Plugin Version Wrong Length: [ {} ]", latestVersionText);
     }
     return null;

@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.parseIntSafe;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 
@@ -22,7 +23,7 @@ public class JavaService {
     this.javaConnector = javaConnector;
   }
 
-  public LatestVersion getLatestJavaVersion() {
+  public LatestVersion getLatestJavaVersion(final String latestGcpRuntimeVersion) {
     List<JavaReleaseResponse.JavaVersion> javaReleaseVersions = javaConnector.getJavaReleases();
     // get rid of non lts and sort by version descending
     Optional<JavaReleaseResponse.JavaVersion> optionalJavaReleaseVersion =
@@ -34,7 +35,7 @@ public class JavaService {
     log.info("Latest Java Release: [ {} ]", latestJavaRelease);
 
     if (latestJavaRelease == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Java Release Null Error...");
       return null;
     }
@@ -43,7 +44,7 @@ public class JavaService {
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
     final String versionDocker = getVersionDocker(versionMajor);
-    final String versionGcp = getVersionGcp(versionMajor);
+    final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -82,7 +83,10 @@ public class JavaService {
    * @param versionMajor eg: 21
    * @return eg: java21
    */
-  private String getVersionGcp(final String versionMajor) {
+  private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
+    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+      return "java" + latestGcpRuntimeVersion;
+    }
     return "java" + versionMajor;
   }
 }

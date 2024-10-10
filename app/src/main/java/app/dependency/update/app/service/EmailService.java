@@ -88,7 +88,7 @@ public class EmailService {
         log.info("Send Email Response Failure:  [ {} ]", response.getData());
       }
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Send Email Error...", ex);
     }
   }

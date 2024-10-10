@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.parseIntSafe;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
 import app.dependency.update.app.connector.NodeConnector;
@@ -21,7 +22,7 @@ public class NodeService {
     this.nodeConnector = nodeConnector;
   }
 
-  public LatestVersion getLatestNodeVersion() {
+  public LatestVersion getLatestNodeVersion(final String latestGcpRuntimeVersion) {
     List<NodeReleaseResponse> nodeReleaseResponses = nodeConnector.getNodeReleases();
     // get rid of non lts and sort by version descending
     Optional<NodeReleaseResponse> optionalNodeReleaseResponse =
@@ -33,7 +34,7 @@ public class NodeService {
     log.info("Latest Node Release: [ {} ]", latestNodeRelease);
 
     if (latestNodeRelease == null) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Node Release Null Error...");
       return null;
     }
@@ -42,7 +43,7 @@ public class NodeService {
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
     final String versionDocker = getVersionDocker(versionMajor);
-    final String versionGcp = getVersionGcp(versionMajor);
+    final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -79,9 +80,12 @@ public class NodeService {
 
   /**
    * @param versionMajor eg: 20
-   * @return eg: node20
+   * @return eg: nodejs20
    */
-  private String getVersionGcp(final String versionMajor) {
-    return "node" + versionMajor;
+  private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
+    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+      return "nodejs" + latestGcpRuntimeVersion;
+    }
+    return "nodejs" + versionMajor;
   }
 }

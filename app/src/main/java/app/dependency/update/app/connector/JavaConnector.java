@@ -31,7 +31,7 @@ public class JavaConnector {
                   .getBody())
           .getVersions();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Java Releases", ex);
     }
 
