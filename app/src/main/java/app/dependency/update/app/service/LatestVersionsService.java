@@ -1,6 +1,5 @@
 package app.dependency.update.app.service;
 
-import app.dependency.update.app.connector.GcpConnector;
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.LatestVersionAppServers;
 import app.dependency.update.app.model.LatestVersionBuildTools;
@@ -27,7 +26,7 @@ public class LatestVersionsService {
   private final NginxService nginxService;
   private final NodeService nodeService;
   private final PythonService pythonService;
-  private final GcpConnector gcpConnector;
+  private final GcpService gcpService;
 
   public LatestVersionsModel getLatestVersions() {
     log.debug("Get Latest Versions...");
@@ -39,7 +38,7 @@ public class LatestVersionsService {
       return null;
     }
 
-    Map<String, String> latestGcpRuntimes = gcpConnector.getLatestGcpRuntimes();
+    Map<String, String> latestGcpRuntimes = gcpService.getLatestGcpRuntimes();
     LatestVersionsEntity latestVersionsEntity = mostRecentLatestVersionsOptional.get();
 
     // languages
