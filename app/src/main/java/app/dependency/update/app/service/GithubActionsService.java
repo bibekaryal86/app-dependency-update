@@ -5,10 +5,9 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.connector.GithubActionsConnector;
 import app.dependency.update.app.model.GithubActionsReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
-
-import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

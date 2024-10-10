@@ -65,4 +65,6 @@ public class ConstantUtils {
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
   public static final String PYPI_SEARCH_ENDPOINT = "https://pypi.org/pypi/%s/json";
+  public static final String GCP_RUNTIME_SUPPORT_ENDPOINT =
+      "https://cloud.google.com/appengine/docs/standard/lifecycle/support-schedule";
 }
