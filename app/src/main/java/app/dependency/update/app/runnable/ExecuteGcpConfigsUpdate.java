@@ -2,7 +2,6 @@ package app.dependency.update.app.runnable;
 
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.Repository;
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,7 +36,6 @@ public class ExecuteGcpConfigsUpdate {
     try {
       return Files.readAllLines(this.yamlFilePath);
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Reading GCP App Yaml of Repository [{}]", this.repository.getRepoName());
       return Collections.emptyList();
     }
@@ -65,7 +63,6 @@ public class ExecuteGcpConfigsUpdate {
     final String[] runtimeArray = runtimeLine.split(":");
 
     if (runtimeArray.length != 2) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Malformed GCP App Yaml Runtime: [{}]", runtimeLine);
       return null;
     }
@@ -73,7 +70,6 @@ public class ExecuteGcpConfigsUpdate {
     final String runtimeValue = runtimeArray[1].trim();
 
     if (!isSupportedRuntime(runtimeValue)) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Incorrect GCP App Yaml Runtime: [{}]", runtimeLine);
       return null;
     }
@@ -94,7 +90,6 @@ public class ExecuteGcpConfigsUpdate {
       Files.write(this.yamlFilePath, yamlData, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Writing Updated GCP App Yaml of repository: [{}]", this.repository.getRepoName());
       return false;

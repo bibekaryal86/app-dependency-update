@@ -35,6 +35,8 @@
         </encoder>
     </appender>
 
+    <appender name="CUSTOM_ERROR" class="app.dependency.update.app.util.CustomLogbackErrorAppender"/>
+
     <logger name="org.mongodb.driver" level="WARN" additivity="false">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILELOG"/>
@@ -43,5 +45,6 @@
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILELOG"/>
+        <appender-ref ref="CUSTOM_ERROR"/>
     </root>
 </configuration>

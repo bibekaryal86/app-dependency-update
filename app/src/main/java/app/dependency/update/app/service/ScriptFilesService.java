@@ -5,7 +5,6 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.util.AppInitDataUtils;
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -34,7 +33,6 @@ public class ScriptFilesService {
         }
       }
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Delete Temp Script Files: [ {} ]", ex.getMessage(), ex);
     }
   }
@@ -74,7 +72,6 @@ public class ScriptFilesService {
         }
       }
     } catch (AppDependencyUpdateRuntimeException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error checking if Script files exist in Directory", ex);
       return true;
     }
@@ -86,7 +83,6 @@ public class ScriptFilesService {
       boolean isDeleted = Files.deleteIfExists(path);
       log.info("Delete: [ {} ] | [ {} ]", path, isDeleted);
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.info("ERROR Delete: [ {} ]", path, ex);
     }
   }
@@ -99,7 +95,6 @@ public class ScriptFilesService {
       }
       return false;
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error creating temp script directory", ex);
       return true;
     }
@@ -121,7 +116,6 @@ public class ScriptFilesService {
         return false;
       }
     } catch (IOException | NullPointerException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error creating temp script file: [ {} ]", scriptFile, ex);
       return true;
     }
@@ -137,7 +131,6 @@ public class ScriptFilesService {
               + scriptFile.getScriptFileName();
       new ProcessBuilder(COMMAND_PATH, CHMOD_COMMAND + scriptPath).start();
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error on Give Execute Permission to File: [ {} ]", scriptFile.getScriptFileName(), ex);
     }

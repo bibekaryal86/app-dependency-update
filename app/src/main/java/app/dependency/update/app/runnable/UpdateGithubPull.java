@@ -6,7 +6,6 @@ import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ public class UpdateGithubPull {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

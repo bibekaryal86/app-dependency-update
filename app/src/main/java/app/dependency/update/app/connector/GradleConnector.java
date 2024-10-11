@@ -3,7 +3,6 @@ package app.dependency.update.app.connector;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.GradleReleaseResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +35,6 @@ public class GradleConnector {
               new ParameterizedTypeReference<List<GradleReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Gradle Releases", ex);
     }
 
@@ -48,7 +46,6 @@ public class GradleConnector {
       String url = String.format(GRADLE_PLUGINS_ENDPOINT, group);
       return Jsoup.connect(url).get();
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Gradle Plugins: [ {} ]", group, ex);
     }
     return null;

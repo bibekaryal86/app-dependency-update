@@ -7,7 +7,6 @@ import static app.dependency.update.app.util.ProcessUtils.*;
 import app.dependency.update.app.exception.AppDependencyUpdateIOException;
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.ScriptFile;
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -55,7 +54,6 @@ public class ExecuteScriptFile implements Runnable {
       Process process = startProcess();
       processOutput(process);
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error in Execute Script: ", ex);
     }
   }
@@ -71,10 +69,8 @@ public class ExecuteScriptFile implements Runnable {
       process.waitFor();
       return process;
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       throw new AppDependencyUpdateIOException("Error in Start Process", ex.getCause());
     } catch (InterruptedException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       Thread.currentThread().interrupt();
       throw new AppDependencyUpdateRuntimeException("Error in Start Process", ex.getCause());
     }
@@ -99,7 +95,6 @@ public class ExecuteScriptFile implements Runnable {
 
       log.debug("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       throw new AppDependencyUpdateIOException(
           "Error in Process Stream Output: " + ", " + this.scriptPath, ex.getCause());
     }

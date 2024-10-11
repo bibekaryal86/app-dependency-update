@@ -8,7 +8,6 @@ import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Packages;
 import app.dependency.update.app.service.MongoRepoService;
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -95,7 +94,6 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       return Files.readAllLines(path);
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error reading file: [ {} ]", path);
     }
     return Collections.emptyList();
@@ -106,7 +104,6 @@ public class ExecutePythonUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       this.isExecuteScriptRequired = true;
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
     }
   }
@@ -128,7 +125,6 @@ public class ExecutePythonUpdate implements Runnable {
     List<String> requirementsTxtContent = readFromFile(requirementsTxtPath);
 
     if (requirementsTxtContent.isEmpty()) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "[ {} ] content is empty: in [ {} ]", requirementsTxt, this.repository.getRepoName());
     } else {
@@ -188,7 +184,6 @@ public class ExecutePythonUpdate implements Runnable {
         updatedLine = updatedLine.replace(version, latestVersion);
       }
     } else {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Python Requirement Array Size Incorrect: [ {} ]", requirement);
     }
     return updatedLine;
@@ -205,7 +200,6 @@ public class ExecutePythonUpdate implements Runnable {
     List<String> pyProjectContent = readFromFile(pyProjectTomlPath);
 
     if (pyProjectContent.isEmpty()) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("PyProject Toml Content is empty: [ {} ]", this.repository.getRepoName());
     } else {
       modifyPyProjectToml(pyProjectTomlPath, pyProjectContent);
@@ -338,7 +332,6 @@ public class ExecutePythonUpdate implements Runnable {
           updatedLine = updatedLine.replace(version, latestVersion);
         }
       } else {
-        ProcessUtils.setErrorsOrExceptions(true);
         log.error("Build Tool Array Size Incorrect: [ {} ]", buildTool);
       }
     }
@@ -351,7 +344,6 @@ public class ExecutePythonUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

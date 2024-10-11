@@ -3,7 +3,6 @@ package app.dependency.update.app.connector;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.JavaReleaseResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +30,6 @@ public class JavaConnector {
                   .getBody())
           .getVersions();
     } catch (RestClientException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Java Releases", ex);
     }
 

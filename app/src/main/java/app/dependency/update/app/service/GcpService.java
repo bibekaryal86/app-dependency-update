@@ -1,7 +1,6 @@
 package app.dependency.update.app.service;
 
 import app.dependency.update.app.connector.GcpConnector;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +29,6 @@ public class GcpService {
     final Document document = gcpConnector.getGcpRuntimeSupportSchedule();
 
     if (document == null) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtimes lookup Document is null...");
       return latestRuntimesMap;
     }
@@ -41,7 +39,6 @@ public class GcpService {
     }
 
     if (latestRuntimesMap.isEmpty()) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest GCP Runtimes Map is Empty...");
     } else {
       log.info("Latest GCP Runtimes Map: {}]", latestRuntimesMap);
@@ -57,7 +54,6 @@ public class GcpService {
     Element headerRow = table.selectFirst("thead tr");
 
     if (headerRow == null) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtime Tables, HeaderRow Not Found...");
       return Collections.emptyMap();
     }
@@ -66,7 +62,6 @@ public class GcpService {
     int runtimeIdIndex = getRuntimeIdIndex(headers);
 
     if (runtimeIdIndex == -1) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("GCP Runtime Tables, Runtime ID Header Not Found...");
       return Collections.emptyMap();
     }
@@ -78,7 +73,6 @@ public class GcpService {
       Element codeElement = runtimeIdCell.selectFirst("code");
 
       if (codeElement == null) {
-        ProcessUtils.setErrorsOrExceptions(true);
         log.error("GCP Runtime Tables, Code Element Not Found...");
         return Collections.emptyMap();
       }
