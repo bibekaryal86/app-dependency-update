@@ -19,12 +19,15 @@ import org.springframework.stereotype.Service;
 public class GradleRepoService {
 
   private final GradleConnector gradleConnector;
+  private final DockerhubService dockerhubService;
 
-  public GradleRepoService(GradleConnector gradleConnector) {
+  public GradleRepoService(GradleConnector gradleConnector, DockerhubService dockerhubService) {
     this.gradleConnector = gradleConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestGradleVersion(final String latestJavaVersionMajor) {
+  public LatestVersion getLatestGradleVersion(
+      final String latestJavaVersionMajor, final String latestDockerVersionFromMongo) {
     List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         gradleReleaseResponses.stream()
@@ -42,7 +45,8 @@ public class GradleRepoService {
     }
 
     final String versionFull = latestGradleRelease.getName();
-    final String versionDocker = getVersionDocker(versionFull, latestJavaVersionMajor);
+    final String versionDocker =
+        getVersionDocker(versionFull, latestJavaVersionMajor, latestDockerVersionFromMongo);
 
     return LatestVersion.builder()
         .versionActual(versionFull)
@@ -94,7 +98,17 @@ public class GradleRepoService {
    * @param versionFull eg: 8.10 or 8.10.2
    * @return eg: 8.10-jdk21-alpine or 8.10.2-jdk21-alpine
    */
-  private String getVersionDocker(final String versionFull, final String latestJavaVersionMajor) {
-    return "gradle:" + versionFull + "-jdk" + latestJavaVersionMajor + "-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionFull,
+      final String latestJavaVersionMajor,
+      final String latestDockerVersionFromMongo) {
+    final String library = "gradle";
+    final String tag = versionFull + "-jdk" + latestJavaVersionMajor + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 }

@@ -19,12 +19,15 @@ import org.springframework.stereotype.Service;
 public class PythonService {
 
   private final PythonConnector pythonConnector;
+  private final DockerhubService dockerhubService;
 
-  public PythonService(PythonConnector pythonConnector) {
+  public PythonService(PythonConnector pythonConnector, DockerhubService dockerhubService) {
     this.pythonConnector = pythonConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestPythonVersion(final String latestGcpRuntimeVersion) {
+  public LatestVersion getLatestPythonVersion(
+      final String latestGcpRuntimeVersion, final String latestDockerVersionFromMongo) {
     List<PythonReleaseResponse> pythonReleaseResponses = pythonConnector.getPythonReleases();
     // get rid of alpha, beta and release candidates by version descending
     Optional<PythonReleaseResponse> optionalPythonReleaseResponse =
@@ -44,7 +47,7 @@ public class PythonService {
 
     final String versionActual = latestPythonResponse.getName();
     final String versionFull = getVersionFull(versionActual);
-    final String versionDocker = getVersionDocker(versionFull);
+    final String versionDocker = getVersionDocker(versionFull, latestDockerVersionFromMongo);
     final String versionGcp = getVersionGcp(versionFull, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
@@ -67,8 +70,16 @@ public class PythonService {
    * @param versionFull eg: 3.12 or 3.12.7
    * @return eg: python:3.12-alpine or python:3.12.7-alpine
    */
-  private String getVersionDocker(final String versionFull) {
-    return "python:" + versionFull + "-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionFull, final String latestDockerVersionFromMongo) {
+    final String library = "python";
+    final String tag = versionFull + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 
   /**

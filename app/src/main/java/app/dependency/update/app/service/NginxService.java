@@ -16,12 +16,14 @@ import org.springframework.stereotype.Service;
 public class NginxService {
 
   private final NginxConnector nginxConnector;
+  private final DockerhubService dockerhubService;
 
-  public NginxService(NginxConnector nginxConnector) {
+  public NginxService(NginxConnector nginxConnector, DockerhubService dockerhubService) {
     this.nginxConnector = nginxConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestNginxVersion() {
+  public LatestVersion getLatestNginxVersion(final String latestDockerVersionFromMongo) {
     List<NginxReleaseResponse> nginxReleaseResponses = nginxConnector.getNginxReleases();
     Optional<NginxReleaseResponse> optionalNginxReleaseResponse =
         nginxReleaseResponses.stream().findFirst();
@@ -37,7 +39,7 @@ public class NginxService {
 
     final String versionActual = latestNginxRelease.getName();
     final String versionFull = getVersionFull(versionActual);
-    final String versionDocker = getVersionDocker(versionFull);
+    final String versionDocker = getVersionDocker(versionFull, latestDockerVersionFromMongo);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -58,7 +60,15 @@ public class NginxService {
    * @param versionFull eg: 1.27.2
    * @return eg: nginx:1.27.2-alpine
    */
-  private String getVersionDocker(final String versionFull) {
-    return "nginx:" + versionFull + "-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionFull, final String latestDockerVersionFromMongo) {
+    final String library = "nginx";
+    final String tag = versionFull + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 }

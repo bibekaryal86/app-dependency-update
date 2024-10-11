@@ -18,12 +18,15 @@ import org.springframework.stereotype.Service;
 public class JavaService {
 
   private final JavaConnector javaConnector;
+  private final DockerhubService dockerhubService;
 
-  public JavaService(JavaConnector javaConnector) {
+  public JavaService(JavaConnector javaConnector, DockerhubService dockerhubService) {
     this.javaConnector = javaConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestJavaVersion(final String latestGcpRuntimeVersion) {
+  public LatestVersion getLatestJavaVersion(
+      final String latestGcpRuntimeVersion, final String latestDockerVersionFromMongo) {
     List<JavaReleaseResponse.JavaVersion> javaReleaseVersions = javaConnector.getJavaReleases();
     // get rid of non lts and sort by version descending
     Optional<JavaReleaseResponse.JavaVersion> optionalJavaReleaseVersion =
@@ -43,7 +46,7 @@ public class JavaService {
     final String versionActual = latestJavaRelease.getSemver();
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
+    final String versionDocker = getVersionDocker(versionMajor, latestDockerVersionFromMongo);
     final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
@@ -75,8 +78,16 @@ public class JavaService {
    * @param versionMajor eg: 21
    * @return eg: eclipse-temurin:21-jre-alpine
    */
-  private String getVersionDocker(final String versionMajor) {
-    return DOCKER_JRE + ":" + versionMajor + "-jre-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionMajor, final String latestDockerVersionFromMongo) {
+    final String library = DOCKER_JRE;
+    final String tag = versionMajor + "-jre-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 
   /**

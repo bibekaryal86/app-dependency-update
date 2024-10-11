@@ -89,7 +89,7 @@ public class LatestVersionsService {
 
   private LatestVersion getLatestVersionNginx(final LatestVersion latestVersionInMongo) {
     try {
-      return nginxService.getLatestNginxVersion();
+      return nginxService.getLatestNginxVersion(latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Nginx...", ex);
@@ -100,7 +100,8 @@ public class LatestVersionsService {
   private LatestVersion getLatestVersionGradle(
       final LatestVersion latestVersionInMongo, final String latestJavaVersionMajor) {
     try {
-      return gradleRepoService.getLatestGradleVersion(latestJavaVersionMajor);
+      return gradleRepoService.getLatestGradleVersion(
+          latestJavaVersionMajor, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Gradle...", ex);
@@ -173,7 +174,8 @@ public class LatestVersionsService {
   private LatestVersion getLatestVersionJava(
       final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return javaService.getLatestJavaVersion(latestGcpRuntimeVersion);
+      return javaService.getLatestJavaVersion(
+          latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Java...", ex);
@@ -184,7 +186,8 @@ public class LatestVersionsService {
   private LatestVersion getLatestVersionNode(
       final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return nodeService.getLatestNodeVersion(latestGcpRuntimeVersion);
+      return nodeService.getLatestNodeVersion(
+          latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Node...", ex);
@@ -195,7 +198,8 @@ public class LatestVersionsService {
   private LatestVersion getLatestVersionPython(
       final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
-      return pythonService.getLatestPythonVersion(latestGcpRuntimeVersion);
+      return pythonService.getLatestPythonVersion(
+          latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
       ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Python...", ex);

@@ -17,12 +17,15 @@ import org.springframework.stereotype.Service;
 public class NodeService {
 
   private final NodeConnector nodeConnector;
+  private final DockerhubService dockerhubService;
 
-  public NodeService(NodeConnector nodeConnector) {
+  public NodeService(NodeConnector nodeConnector, DockerhubService dockerhubService) {
     this.nodeConnector = nodeConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestNodeVersion(final String latestGcpRuntimeVersion) {
+  public LatestVersion getLatestNodeVersion(
+      final String latestGcpRuntimeVersion, final String latestDockerVersionFromMongo) {
     List<NodeReleaseResponse> nodeReleaseResponses = nodeConnector.getNodeReleases();
     // get rid of non lts and sort by version descending
     Optional<NodeReleaseResponse> optionalNodeReleaseResponse =
@@ -42,7 +45,7 @@ public class NodeService {
     final String versionActual = latestNodeRelease.getVersion();
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
+    final String versionDocker = getVersionDocker(versionMajor, latestDockerVersionFromMongo);
     final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
@@ -74,8 +77,16 @@ public class NodeService {
    * @param versionMajor eg: 20
    * @return eg: node:20-alpine
    */
-  private String getVersionDocker(final String versionMajor) {
-    return "node:" + versionMajor + "-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionMajor, final String latestDockerVersionFromMongo) {
+    final String library = "node";
+    final String tag = versionMajor + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 
   /**

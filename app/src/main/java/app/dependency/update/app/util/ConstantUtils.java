@@ -67,4 +67,6 @@ public class ConstantUtils {
   public static final String PYPI_SEARCH_ENDPOINT = "https://pypi.org/pypi/%s/json";
   public static final String GCP_RUNTIME_SUPPORT_ENDPOINT =
       "https://cloud.google.com/appengine/docs/standard/lifecycle/support-schedule";
+  public static final String DOCKER_TAG_LOOKUP_ENDPOINT =
+      "https://hub.docker.com/v2/repositories/library/%s/tags/%s/";
 }
