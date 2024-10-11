@@ -39,6 +39,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -291,6 +292,13 @@ public class MongoRepoService {
       log.info("Mongo Packages Updated...");
       ProcessUtils.setMongoPackagesToUpdate(packagesToUpdate.size());
     }
+  }
+
+  @Scheduled(cron = "0 0 10 * * *") // Runs daily at midnight
+  public void deleteOldDocuments() {
+    LocalDateTime oneMonthAgo = LocalDateTime.now().minusDays(45);
+    processSummariesRepository.deleteByUpdateDateTimeBefore(oneMonthAgo);
+    log.info("Deleted Process Summaries before: [{}]", oneMonthAgo);
   }
 
   public MongoProcessSummaries getProcessSummaries(
