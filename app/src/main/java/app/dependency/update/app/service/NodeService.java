@@ -6,7 +6,6 @@ import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 import app.dependency.update.app.connector.NodeConnector;
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NodeReleaseResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ public class NodeService {
     log.info("Latest Node Release: [ {} ]", latestNodeRelease);
 
     if (latestNodeRelease == null) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Node Release Null Error...");
       return null;
     }

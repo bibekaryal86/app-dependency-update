@@ -114,7 +114,6 @@ public class AppInitDataUtils {
     try (Stream<Path> pathStream = Files.walk(Paths.get(argsMap.get(ENV_REPO_NAME)), 2)) {
       repoPaths = pathStream.filter(Files::isDirectory).toList();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       throw new AppDependencyUpdateRuntimeException(
           "Repositories not found in the repo path provided!", ex);
     }
@@ -135,7 +134,6 @@ public class AppInitDataUtils {
                 .map(mapper -> new Repository(path, UpdateType.NPM_DEPENDENCIES))
                 .toList());
       } catch (Exception ex) {
-        ProcessUtils.setErrorsOrExceptions(true);
         throw new AppDependencyUpdateRuntimeException(
             "NPM Files not found in the repo path provided!", ex);
       }
@@ -150,7 +148,6 @@ public class AppInitDataUtils {
                     })
                 .toList());
       } catch (Exception ex) {
-        ProcessUtils.setErrorsOrExceptions(true);
         throw new AppDependencyUpdateRuntimeException(
             "Gradle Repositories not found in the repo path provided!", ex);
       }
@@ -165,7 +162,6 @@ public class AppInitDataUtils {
                     })
                 .toList());
       } catch (Exception ex) {
-        ProcessUtils.setErrorsOrExceptions(true);
         throw new AppDependencyUpdateRuntimeException(
             "Python Files not found in the repo path provided!", ex);
       }
@@ -213,7 +209,6 @@ public class AppInitDataUtils {
           .filter(Objects::nonNull)
           .toList();
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error in Read Gradle Modules: [ {} ]", settingsGradlePath, ex);
       return Collections.singletonList(APP_MAIN_MODULE);
     }
@@ -230,7 +225,6 @@ public class AppInitDataUtils {
         scriptFiles.add(new ScriptFile(Objects.requireNonNull(resource.getFilename())));
       }
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       throw new AppDependencyUpdateRuntimeException("Error reading script files in resources", ex);
     }
 
@@ -258,7 +252,6 @@ public class AppInitDataUtils {
         return parseDistributionUrlForGradleVersion(distributionUrl);
       }
     } catch (IOException e) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return null;
@@ -286,7 +279,6 @@ public class AppInitDataUtils {
           .map(stream -> stream.getFileName().toString())
           .toList();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       throw new AppDependencyUpdateRuntimeException(
           "Requirements Texts Files not found in the repo path provided!", ex);
     }
@@ -316,7 +308,6 @@ public class AppInitDataUtils {
         }
       }
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Validate Latest Version: [{}]", latestVersion, ex);
       throw new AppDependencyUpdateRuntimeException("Latest Version Value Check Exception");
     }

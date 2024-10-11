@@ -5,7 +5,6 @@ import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 import app.dependency.update.app.connector.NginxConnector;
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NginxReleaseResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,6 @@ public class NginxService {
     log.info("Latest Nginx Release: [ {} ]", latestNginxRelease);
 
     if (latestNginxRelease == null) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Nginx Release Null Error...");
       return null;
     }

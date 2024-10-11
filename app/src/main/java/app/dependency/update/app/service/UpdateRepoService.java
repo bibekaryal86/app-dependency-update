@@ -391,7 +391,6 @@ public class UpdateRepoService {
       byte[] fileContent = Files.readAllBytes(path);
       return Base64.getEncoder().encodeToString(fileContent);
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Log File Content Error...", ex);
     }
     return null;

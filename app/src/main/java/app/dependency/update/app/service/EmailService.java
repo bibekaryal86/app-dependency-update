@@ -4,7 +4,6 @@ import static app.dependency.update.app.util.CommonUtils.isEmpty;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.util.AppInitDataUtils;
-import app.dependency.update.app.util.ProcessUtils;
 import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
@@ -88,7 +87,6 @@ public class EmailService {
         log.info("Send Email Response Failure:  [ {} ]", response.getData());
       }
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Send Email Error...", ex);
     }
   }

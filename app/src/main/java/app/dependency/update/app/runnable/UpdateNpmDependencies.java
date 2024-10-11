@@ -80,7 +80,6 @@ public class UpdateNpmDependencies {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

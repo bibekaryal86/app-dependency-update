@@ -7,7 +7,6 @@ import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 import app.dependency.update.app.connector.JavaConnector;
 import app.dependency.update.app.model.JavaReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,6 @@ public class JavaService {
     log.info("Latest Java Release: [ {} ]", latestJavaRelease);
 
     if (latestJavaRelease == null) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Java Release Null Error...");
       return null;
     }

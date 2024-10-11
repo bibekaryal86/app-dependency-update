@@ -7,7 +7,6 @@ import app.dependency.update.app.model.LatestVersionGithubActions;
 import app.dependency.update.app.model.LatestVersionLanguages;
 import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.entities.LatestVersionsEntity;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +90,6 @@ public class LatestVersionsService {
     try {
       return nginxService.getLatestNginxVersion(latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Nginx...", ex);
     }
     return latestVersionInMongo;
@@ -103,7 +101,6 @@ public class LatestVersionsService {
       return gradleRepoService.getLatestGradleVersion(
           latestJavaVersionMajor, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Gradle...", ex);
     }
     return latestVersionInMongo;
@@ -113,7 +110,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestCheckout();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Checkout...", ex);
     }
     return latestVersionInMongo;
@@ -123,7 +119,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupJava();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Java...", ex);
     }
     return latestVersionInMongo;
@@ -134,7 +129,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupGradle();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Gradle...", ex);
     }
     return latestVersionInMongo;
@@ -144,7 +138,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupNode();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Node...", ex);
     }
     return latestVersionInMongo;
@@ -155,7 +148,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestSetupPython();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Setup Python...", ex);
     }
     return latestVersionInMongo;
@@ -165,7 +157,6 @@ public class LatestVersionsService {
     try {
       return githubActionsService.getLatestCodeql();
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Github Codeql...", ex);
     }
     return latestVersionInMongo;
@@ -177,7 +168,6 @@ public class LatestVersionsService {
       return javaService.getLatestJavaVersion(
           latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Java...", ex);
     }
     return latestVersionInMongo;
@@ -189,7 +179,6 @@ public class LatestVersionsService {
       return nodeService.getLatestNodeVersion(
           latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Node...", ex);
     }
     return latestVersionInMongo;
@@ -201,7 +190,6 @@ public class LatestVersionsService {
       return pythonService.getLatestPythonVersion(
           latestGcpRuntimeVersion, latestVersionInMongo.getVersionDocker());
     } catch (Exception ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Get Latest Version Python...", ex);
     }
     return latestVersionInMongo;

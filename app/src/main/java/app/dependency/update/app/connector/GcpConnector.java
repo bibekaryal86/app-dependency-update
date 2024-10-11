@@ -2,7 +2,6 @@ package app.dependency.update.app.connector;
 
 import static app.dependency.update.app.util.ConstantUtils.GCP_RUNTIME_SUPPORT_ENDPOINT;
 
-import app.dependency.update.app.util.ProcessUtils;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -17,7 +16,6 @@ public class GcpConnector {
     try {
       return Jsoup.connect(GCP_RUNTIME_SUPPORT_ENDPOINT).get();
     } catch (IOException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get GCP Runtime Support Schedule...", ex);
     }
     return null;

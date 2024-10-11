@@ -3,7 +3,6 @@ package app.dependency.update.app.connector;
 import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.model.DockerhubResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -30,7 +29,6 @@ public class DockerhubConnector {
               DockerhubResponse.class)
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Docker Tag Release", ex);
     }
     return null;

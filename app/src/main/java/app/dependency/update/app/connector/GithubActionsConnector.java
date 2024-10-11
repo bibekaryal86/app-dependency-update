@@ -1,7 +1,6 @@
 package app.dependency.update.app.connector;
 
 import app.dependency.update.app.model.GithubActionsReleaseResponse;
-import app.dependency.update.app.util.ProcessUtils;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ public class GithubActionsConnector {
               new ParameterizedTypeReference<List<GithubActionsReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Github Actions Releases", ex);
     }
 
