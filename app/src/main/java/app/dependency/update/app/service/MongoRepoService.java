@@ -294,7 +294,7 @@ public class MongoRepoService {
     }
   }
 
-  @Scheduled(cron = "0 0 10 * * *") // Runs daily at midnight
+  @Scheduled(cron = "0 50 19 * * *") // Runs daily at midnight
   public void deleteOldDocuments() {
     LocalDateTime oneMonthAgo = LocalDateTime.now().minusDays(45);
     processSummariesRepository.deleteByUpdateDateTimeBefore(oneMonthAgo);
