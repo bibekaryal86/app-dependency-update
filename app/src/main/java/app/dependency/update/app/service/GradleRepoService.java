@@ -6,6 +6,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 import app.dependency.update.app.connector.GradleConnector;
 import app.dependency.update.app.model.GradleReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +19,15 @@ import org.springframework.stereotype.Service;
 public class GradleRepoService {
 
   private final GradleConnector gradleConnector;
+  private final DockerhubService dockerhubService;
 
-  public GradleRepoService(GradleConnector gradleConnector) {
+  public GradleRepoService(GradleConnector gradleConnector, DockerhubService dockerhubService) {
     this.gradleConnector = gradleConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestGradleVersion() {
+  public LatestVersion getLatestGradleVersion(
+      final String latestJavaVersionMajor, final String latestDockerVersionFromMongo) {
     List<GradleReleaseResponse> gradleReleaseResponses = gradleConnector.getGradleReleases();
     Optional<GradleReleaseResponse> optionalLatestGradleRelease =
         gradleReleaseResponses.stream()
@@ -35,15 +39,20 @@ public class GradleRepoService {
     log.info("Latest Gradle Release: [ {} ]", latestGradleRelease);
 
     if (latestGradleRelease == null) {
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Gradle Release Null Error...");
       return null;
     }
 
     final String versionFull = latestGradleRelease.getName();
-    final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
+    final String versionDocker =
+        getVersionDocker(versionFull, latestJavaVersionMajor, latestDockerVersionFromMongo);
 
-    return LatestVersion.builder().versionFull(versionFull).versionDocker(versionDocker).build();
+    return LatestVersion.builder()
+        .versionActual(versionFull)
+        .versionFull(versionFull)
+        .versionDocker(versionDocker)
+        .build();
   }
 
   public String getLatestGradlePlugin(final String group) {
@@ -60,9 +69,11 @@ public class GradleRepoService {
           String latestVersionText = latestVersionElement.text();
           return getLatestVersion(latestVersionText);
         } else {
+          ProcessUtils.setErrorsOrExceptions(true);
           log.error("ERROR Latest Version Element is NULL: [ {} ]", group);
         }
       } else {
+        ProcessUtils.setErrorsOrExceptions(true);
         log.error("ERROR Version Element is NULL: [ {} ]", group);
       }
     }
@@ -77,6 +88,7 @@ public class GradleRepoService {
         return version;
       }
     } else {
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Latest Gradle Plugin Version Wrong Length: [ {} ]", latestVersionText);
     }
     return null;
@@ -84,17 +96,19 @@ public class GradleRepoService {
 
   /**
    * @param versionFull eg: 8.10 or 8.10.2
-   * @return eg: 8
+   * @return eg: 8.10-jdk21-alpine or 8.10.2-jdk21-alpine
    */
-  private String getVersionMajor(final String versionFull) {
-    return versionFull.trim().split("\\.")[0];
-  }
-
-  /**
-   * @param versionMajor eg: 8
-   * @return eg: 8-jdk-alpine
-   */
-  private String getVersionDocker(final String versionMajor) {
-    return "gradle:" + versionMajor + "-jdk-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionFull,
+      final String latestJavaVersionMajor,
+      final String latestDockerVersionFromMongo) {
+    final String library = "gradle";
+    final String tag = versionFull + "-jdk" + latestJavaVersionMajor + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 }

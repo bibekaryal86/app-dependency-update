@@ -1,7 +1,5 @@
 package app.dependency.update.app.connector;
 
-import static app.dependency.update.app.util.ConstantUtils.*;
-
 import app.dependency.update.app.model.GithubActionsReleaseResponse;
 import app.dependency.update.app.util.ProcessUtils;
 import java.util.Collections;
@@ -33,8 +31,8 @@ public class GithubActionsConnector {
               new ParameterizedTypeReference<List<GithubActionsReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
-      log.error("ERROR Get Gradle Releases", ex);
+      ProcessUtils.setErrorsOrExceptions(true);
+      log.error("ERROR Get Github Actions Releases", ex);
     }
 
     return Collections.emptyList();

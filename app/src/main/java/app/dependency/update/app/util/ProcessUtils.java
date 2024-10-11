@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessUtils {
 
-  private static final AtomicBoolean exceptionCaught = new AtomicBoolean(false);
+  private static final AtomicBoolean errorsOrExceptions = new AtomicBoolean(false);
   private static final AtomicInteger mongoPluginsToUpdate = new AtomicInteger(0);
   private static final AtomicInteger mongoDependenciesToUpdate = new AtomicInteger(0);
   private static final AtomicInteger mongoPackagesToUpdate = new AtomicInteger(0);
@@ -22,8 +22,8 @@ public class ProcessUtils {
   private static ConcurrentMap<String, ProcessedRepository> processedRepositories =
       new ConcurrentHashMap<>();
 
-  public static void setExceptionCaught(boolean value) {
-    exceptionCaught.set(value);
+  public static void setErrorsOrExceptions(boolean value) {
+    errorsOrExceptions.set(value);
   }
 
   public static void setMongoPluginsToUpdate(int count) {
@@ -42,8 +42,8 @@ public class ProcessUtils {
     mongoNpmSkipsActive.set(count);
   }
 
-  public static boolean getExceptionCaught() {
-    return exceptionCaught.get();
+  public static boolean getErrorsOrExceptions() {
+    return errorsOrExceptions.get();
   }
 
   public static int getMongoPluginsToUpdate() {
@@ -117,6 +117,6 @@ public class ProcessUtils {
     setMongoDependenciesToUpdate(0);
     setMongoPackagesToUpdate(0);
     setMongoNpmSkipsActive(0);
-    setExceptionCaught(false);
+    setErrorsOrExceptions(false);
   }
 }

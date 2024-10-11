@@ -8,7 +8,7 @@ import app.dependency.update.app.model.GradleConfigBlock;
 import app.dependency.update.app.model.GradleDefinition;
 import app.dependency.update.app.model.GradleDependency;
 import app.dependency.update.app.model.GradlePlugin;
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.Dependencies;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteGradleUpdate implements Runnable {
   private final String threadName;
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final Repository repository;
   private final ScriptFile scriptFile;
   private final List<String> arguments;
@@ -46,13 +46,13 @@ public class ExecuteGradleUpdate implements Runnable {
   private boolean isExecuteScriptRequired = false;
 
   public ExecuteGradleUpdate(
-      final LatestVersions latestVersions,
+      final LatestVersionsModel latestVersionsModel,
       final Repository repository,
       final ScriptFile scriptFile,
       final List<String> arguments,
       final MongoRepoService mongoRepoService) {
     this.threadName = threadName(repository, this.getClass().getSimpleName());
-    this.latestVersions = latestVersions;
+    this.latestVersionsModel = latestVersionsModel;
     this.repository = repository;
     this.scriptFile = scriptFile;
     this.arguments = arguments;
@@ -80,12 +80,13 @@ public class ExecuteGradleUpdate implements Runnable {
 
     final boolean isGcpConfigUpdated =
         new ExecuteGcpConfigsUpdate(
-                this.repository, this.latestVersions.getLatestVersionLanguages().getJava())
+                this.repository, this.latestVersionsModel.getLatestVersionLanguages().getJava())
             .executeGcpConfigsUpdate();
     final boolean isDockerfileUpdated =
-        new ExecuteDockerfileUpdate(this.repository, this.latestVersions).executeDockerfileUpdate();
+        new ExecuteDockerfileUpdate(this.repository, this.latestVersionsModel)
+            .executeDockerfileUpdate();
     final boolean isGithubWorkflowsUpdated =
-        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersions)
+        new ExecuteGithubWorkflowsUpdate(this.repository, this.latestVersionsModel)
             .executeGithubWorkflowsUpdate();
 
     if (this.isExecuteScriptRequired
@@ -108,7 +109,7 @@ public class ExecuteGradleUpdate implements Runnable {
       Files.write(path, content, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error Saving Updated File: [ {} ]", path, ex);
       return false;
     }
@@ -130,6 +131,7 @@ public class ExecuteGradleUpdate implements Runnable {
             gradleModule);
         BuildGradleConfigs buildGradleConfigs = readBuildGradle(gradleModule);
         if (buildGradleConfigs == null) {
+          ProcessUtils.setErrorsOrExceptions(true);
           log.error("Build Gradle Configs is null: [ {} ]", this.repository.getRepoPath());
         } else {
           List<String> buildGradleContent = modifyBuildGradle(buildGradleConfigs);
@@ -151,7 +153,7 @@ public class ExecuteGradleUpdate implements Runnable {
         }
       }
     } catch (Exception ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error in Execute Build Gradle Update: ", ex);
     }
   }
@@ -198,7 +200,7 @@ public class ExecuteGradleUpdate implements Runnable {
           .dependencies(List.of(dependencies, dependenciesBuildScript))
           .build();
     } catch (IOException e) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error reading build.gradle: [ {} ] [ {} ]", this.repository.getRepoName(), gradleModule);
     }
@@ -657,7 +659,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
   private void modifyJavaBlock(final List<String> originals) {
     final String latestJavaVersionMajor =
-        this.latestVersions.getLatestVersionLanguages().getJava().getVersionMajor();
+        this.latestVersionsModel.getLatestVersionLanguages().getJava().getVersionMajor();
     final String currentJavaVersionMajor = extractOldVersion(originals, latestJavaVersionMajor);
 
     if (currentJavaVersionMajor.equals(latestJavaVersionMajor)) {
@@ -711,7 +713,7 @@ public class ExecuteGradleUpdate implements Runnable {
     // adding here as backup
     if (!isRequiresUpdate(
         this.repository.getCurrentGradleVersion(),
-        this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull())) {
+        this.latestVersionsModel.getLatestVersionBuildTools().getGradle().getVersionFull())) {
       return;
     }
 
@@ -740,7 +742,10 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.latestVersions.getLatestVersionBuildTools().getGradle().getVersionFull());
+                  this.latestVersionsModel
+                      .getLatestVersionBuildTools()
+                      .getGradle()
+                      .getVersionFull());
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);
@@ -749,7 +754,7 @@ public class ExecuteGradleUpdate implements Runnable {
 
       return updatedWrapperProperties;
     } catch (IOException e) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Error reading gradle-wrapper.properties: [ {} ]", repository);
     }
     return Collections.emptyList();
@@ -774,7 +779,7 @@ public class ExecuteGradleUpdate implements Runnable {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

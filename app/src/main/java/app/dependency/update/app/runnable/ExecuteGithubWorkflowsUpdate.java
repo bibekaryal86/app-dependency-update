@@ -2,7 +2,7 @@ package app.dependency.update.app.runnable;
 
 import static app.dependency.update.app.util.CommonUtils.getVersionMajorMinor;
 
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.util.CommonUtils;
 import app.dependency.update.app.util.ProcessUtils;
@@ -25,13 +25,13 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class ExecuteGithubWorkflowsUpdate {
   private final Repository repository;
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final Path githubWorkflowsFolderPath;
 
   public ExecuteGithubWorkflowsUpdate(
-      final Repository repository, final LatestVersions latestVersions) {
+      final Repository repository, final LatestVersionsModel latestVersionsModel) {
     this.repository = repository;
-    this.latestVersions = latestVersions;
+    this.latestVersionsModel = latestVersionsModel;
     githubWorkflowsFolderPath = this.repository.getRepoPath().resolve(".github");
   }
 
@@ -60,7 +60,7 @@ public class ExecuteGithubWorkflowsUpdate {
           .filter(path -> path.toString().endsWith(".yml"))
           .collect(Collectors.toList());
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Find Github Actions Files: [{}]", this.githubWorkflowsFolderPath, ex);
       return Collections.emptyList();
     }
@@ -70,7 +70,7 @@ public class ExecuteGithubWorkflowsUpdate {
     try {
       return Files.readAllLines(githubWorkflowPath);
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Reading Github Workflow [{}] of Repository [{}]",
           githubWorkflowPath,
@@ -111,27 +111,33 @@ public class ExecuteGithubWorkflowsUpdate {
 
     if (githubActionLine.contains("actions/checkout")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getCheckout().getVersionMajor();
+          this.latestVersionsModel.getLatestVersionGithubActions().getCheckout().getVersionMajor();
     }
     if (githubActionLine.contains("actions/setup-java")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getSetupJava().getVersionMajor();
+          this.latestVersionsModel.getLatestVersionGithubActions().getSetupJava().getVersionMajor();
     }
     if (githubActionLine.contains("gradle/actions/setup-gradle")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getSetupGradle().getVersionMajor();
+          this.latestVersionsModel
+              .getLatestVersionGithubActions()
+              .getSetupGradle()
+              .getVersionMajor();
     }
     if (githubActionLine.contains("actions/setup-node")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getSetupNode().getVersionMajor();
+          this.latestVersionsModel.getLatestVersionGithubActions().getSetupNode().getVersionMajor();
     }
     if (githubActionLine.contains("actions/setup-python")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getSetupPython().getVersionMajor();
+          this.latestVersionsModel
+              .getLatestVersionGithubActions()
+              .getSetupPython()
+              .getVersionMajor();
     }
     if (githubActionLine.contains("github/codeql-action")) {
       latestVersion =
-          this.latestVersions.getLatestVersionGithubActions().getCodeql().getVersionMajor();
+          this.latestVersionsModel.getLatestVersionGithubActions().getCodeql().getVersionMajor();
     }
 
     if (StringUtils.hasText(latestVersion)) {
@@ -175,15 +181,18 @@ public class ExecuteGithubWorkflowsUpdate {
     String latestVersion = "";
 
     if (versionLine.contains("node-version") && !versionLine.contains("matrix.node-version")) {
-      latestVersion = this.latestVersions.getLatestVersionLanguages().getNode().getVersionMajor();
+      latestVersion =
+          this.latestVersionsModel.getLatestVersionLanguages().getNode().getVersionMajor();
     } else if (versionLine.contains("python-version")
         && !versionLine.contains("matrix.python-version")) {
       latestVersion =
           getVersionMajorMinor(
-              this.latestVersions.getLatestVersionLanguages().getPython().getVersionFull(), true);
+              this.latestVersionsModel.getLatestVersionLanguages().getPython().getVersionFull(),
+              true);
     } else if (versionLine.contains("java-version")
         && !versionLine.contains("matrix.java-version")) {
-      latestVersion = this.latestVersions.getLatestVersionLanguages().getJava().getVersionMajor();
+      latestVersion =
+          this.latestVersionsModel.getLatestVersionLanguages().getJava().getVersionMajor();
     }
 
     return latestVersion;
@@ -237,7 +246,7 @@ public class ExecuteGithubWorkflowsUpdate {
       Files.write(githubWorkflowPath, githubWorkflowContent, StandardCharsets.UTF_8);
       return true;
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error(
           "Error Writing Updated Github Workflow [{}] of repository: [{}]",
           githubWorkflowPath,

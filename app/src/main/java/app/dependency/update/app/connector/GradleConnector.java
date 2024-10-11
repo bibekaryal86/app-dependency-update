@@ -36,7 +36,7 @@ public class GradleConnector {
               new ParameterizedTypeReference<List<GradleReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Gradle Releases", ex);
     }
 
@@ -48,7 +48,7 @@ public class GradleConnector {
       String url = String.format(GRADLE_PLUGINS_ENDPOINT, group);
       return Jsoup.connect(url).get();
     } catch (IOException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Gradle Plugins: [ {} ]", group, ex);
     }
     return null;

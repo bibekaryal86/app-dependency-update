@@ -1,11 +1,13 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.parseIntSafe;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_JRE;
 
 import app.dependency.update.app.connector.JavaConnector;
 import app.dependency.update.app.model.JavaReleaseResponse;
 import app.dependency.update.app.model.LatestVersion;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +18,15 @@ import org.springframework.stereotype.Service;
 public class JavaService {
 
   private final JavaConnector javaConnector;
+  private final DockerhubService dockerhubService;
 
-  public JavaService(JavaConnector javaConnector) {
+  public JavaService(JavaConnector javaConnector, DockerhubService dockerhubService) {
     this.javaConnector = javaConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestJavaVersion() {
+  public LatestVersion getLatestJavaVersion(
+      final String latestGcpRuntimeVersion, final String latestDockerVersionFromMongo) {
     List<JavaReleaseResponse.JavaVersion> javaReleaseVersions = javaConnector.getJavaReleases();
     // get rid of non lts and sort by version descending
     Optional<JavaReleaseResponse.JavaVersion> optionalJavaReleaseVersion =
@@ -33,6 +38,7 @@ public class JavaService {
     log.info("Latest Java Release: [ {} ]", latestJavaRelease);
 
     if (latestJavaRelease == null) {
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Java Release Null Error...");
       return null;
     }
@@ -40,8 +46,8 @@ public class JavaService {
     final String versionActual = latestJavaRelease.getSemver();
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
-    final String versionGcp = getVersionGcp(versionMajor);
+    final String versionDocker = getVersionDocker(versionMajor, latestDockerVersionFromMongo);
+    final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -72,15 +78,26 @@ public class JavaService {
    * @param versionMajor eg: 21
    * @return eg: eclipse-temurin:21-jre-alpine
    */
-  private String getVersionDocker(final String versionMajor) {
-    return DOCKER_JRE + ":" + versionMajor + "-jre-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionMajor, final String latestDockerVersionFromMongo) {
+    final String library = DOCKER_JRE;
+    final String tag = versionMajor + "-jre-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 
   /**
    * @param versionMajor eg: 21
    * @return eg: java21
    */
-  private String getVersionGcp(final String versionMajor) {
+  private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
+    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+      return "java" + latestGcpRuntimeVersion;
+    }
     return "java" + versionMajor;
   }
 }

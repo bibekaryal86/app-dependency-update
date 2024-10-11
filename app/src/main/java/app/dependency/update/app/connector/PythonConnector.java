@@ -33,7 +33,7 @@ public class PythonConnector {
               new ParameterizedTypeReference<List<PythonReleaseResponse>>() {})
           .getBody();
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR Get Python Releases", ex);
     }
 

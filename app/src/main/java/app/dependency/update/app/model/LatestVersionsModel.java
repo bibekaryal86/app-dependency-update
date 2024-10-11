@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LatestVersions {
+public class LatestVersionsModel {
   private LatestVersionAppServers latestVersionAppServers;
   private LatestVersionBuildTools latestVersionBuildTools;
   private LatestVersionGithubActions latestVersionGithubActions;

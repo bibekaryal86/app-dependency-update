@@ -24,7 +24,7 @@ public class PypiConnector {
       return restTemplate.getForObject(
           String.format(PYPI_SEARCH_ENDPOINT, name), PypiSearchResponse.class);
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR in Get Pypi Search Response: [ {} ]", name, ex);
     }
 

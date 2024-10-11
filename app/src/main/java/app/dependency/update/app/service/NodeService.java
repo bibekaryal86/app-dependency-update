@@ -1,10 +1,12 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.parseIntSafe;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
 import app.dependency.update.app.connector.NodeConnector;
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.NodeReleaseResponse;
+import app.dependency.update.app.util.ProcessUtils;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +17,15 @@ import org.springframework.stereotype.Service;
 public class NodeService {
 
   private final NodeConnector nodeConnector;
+  private final DockerhubService dockerhubService;
 
-  public NodeService(NodeConnector nodeConnector) {
+  public NodeService(NodeConnector nodeConnector, DockerhubService dockerhubService) {
     this.nodeConnector = nodeConnector;
+    this.dockerhubService = dockerhubService;
   }
 
-  public LatestVersion getLatestNodeVersion() {
+  public LatestVersion getLatestNodeVersion(
+      final String latestGcpRuntimeVersion, final String latestDockerVersionFromMongo) {
     List<NodeReleaseResponse> nodeReleaseResponses = nodeConnector.getNodeReleases();
     // get rid of non lts and sort by version descending
     Optional<NodeReleaseResponse> optionalNodeReleaseResponse =
@@ -32,6 +37,7 @@ public class NodeService {
     log.info("Latest Node Release: [ {} ]", latestNodeRelease);
 
     if (latestNodeRelease == null) {
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Latest Node Release Null Error...");
       return null;
     }
@@ -39,8 +45,8 @@ public class NodeService {
     final String versionActual = latestNodeRelease.getVersion();
     final String versionFull = getVersionFull(versionActual);
     final String versionMajor = getVersionMajor(versionFull);
-    final String versionDocker = getVersionDocker(versionMajor);
-    final String versionGcp = getVersionGcp(versionMajor);
+    final String versionDocker = getVersionDocker(versionMajor, latestDockerVersionFromMongo);
+    final String versionGcp = getVersionGcp(versionMajor, latestGcpRuntimeVersion);
 
     return LatestVersion.builder()
         .versionActual(versionActual)
@@ -71,15 +77,26 @@ public class NodeService {
    * @param versionMajor eg: 20
    * @return eg: node:20-alpine
    */
-  private String getVersionDocker(final String versionMajor) {
-    return "node:" + versionMajor + "-" + DOCKER_ALPINE;
+  private String getVersionDocker(
+      final String versionMajor, final String latestDockerVersionFromMongo) {
+    final String library = "node";
+    final String tag = versionMajor + "-" + DOCKER_ALPINE;
+    final boolean isNewDockerImageExists =
+        dockerhubService.checkIfDockerImageTagExists(library, tag);
+    if (isNewDockerImageExists) {
+      return library + ":" + tag;
+    }
+    return latestDockerVersionFromMongo;
   }
 
   /**
    * @param versionMajor eg: 20
-   * @return eg: node20
+   * @return eg: nodejs20
    */
-  private String getVersionGcp(final String versionMajor) {
-    return "node" + versionMajor;
+  private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
+    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+      return "nodejs" + latestGcpRuntimeVersion;
+    }
+    return "nodejs" + versionMajor;
   }
 }

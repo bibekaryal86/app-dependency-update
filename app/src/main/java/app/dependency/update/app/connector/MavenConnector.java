@@ -24,7 +24,7 @@ public class MavenConnector {
       return restTemplate.getForObject(
           String.format(MAVEN_SEARCH_ENDPOINT, group, artifact), MavenSearchResponse.class);
     } catch (RestClientException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("ERROR in Get Maven Search Response: [ {} ] [ {} ]", group, artifact, ex);
     }
 

@@ -22,4 +22,6 @@ public interface ProcessSummariesRepository extends MongoRepository<ProcessSumma
   @Query("{ 'updateType': ?0, 'updateDateTime' : { $gte: ?1, $lt: ?2 } }")
   List<ProcessSummaries> findByUpdateTypeAndUpdateDate(
       String updateType, LocalDateTime startOfDay, LocalDateTime endOfDay);
+
+  void deleteByUpdateDateTimeBefore(LocalDateTime date);
 }

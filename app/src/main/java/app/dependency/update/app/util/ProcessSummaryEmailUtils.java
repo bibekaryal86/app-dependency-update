@@ -115,8 +115,8 @@ public class ProcessSummaryEmailUtils {
                 <br />
               """
             .formatted(
-                processSummary.isExceptionCaught() ? " color: red;" : "",
-                processSummary.isExceptionCaught()));
+                processSummary.isErrorsOrExceptions() ? " color: red;" : "",
+                processSummary.isErrorsOrExceptions()));
 
     if (prCreatedAndMerged.isEmpty()) {
       html.append(

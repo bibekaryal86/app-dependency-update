@@ -5,7 +5,7 @@ import static app.dependency.update.app.util.ConstantUtils.*;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
 import app.dependency.update.app.model.AppInitData;
-import app.dependency.update.app.model.LatestVersions;
+import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.Repository;
 import app.dependency.update.app.model.ScriptFile;
 import app.dependency.update.app.model.entities.NpmSkips;
@@ -20,14 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UpdateNpmDependencies {
-  private final LatestVersions latestVersions;
+  private final LatestVersionsModel latestVersionsModel;
   private final List<Repository> repositories;
   private final ScriptFile scriptFile;
   private final MongoRepoService mongoRepoService;
 
   public UpdateNpmDependencies(
       final AppInitData appInitData, final MongoRepoService mongoRepoService) {
-    this.latestVersions = appInitData.getLatestVersions();
+    this.latestVersionsModel = appInitData.getLatestVersionsModel();
     this.repositories =
         appInitData.getRepositories().stream()
             .filter(repository -> repository.getType().equals(UpdateType.NPM_DEPENDENCIES))
@@ -57,7 +57,8 @@ public class UpdateNpmDependencies {
     arguments.add(repository.getRepoPath().toString());
     arguments.add(String.format(BRANCH_UPDATE_DEPENDENCIES, LocalDate.now()));
     arguments.add(getNpmSkips());
-    return new ExecuteNodeNpmUpdate(this.latestVersions, repository, this.scriptFile, arguments)
+    return new ExecuteNodeNpmUpdate(
+            this.latestVersionsModel, repository, this.scriptFile, arguments)
         .start();
   }
 
@@ -79,7 +80,7 @@ public class UpdateNpmDependencies {
     try {
       thread.join();
     } catch (InterruptedException ex) {
-      ProcessUtils.setExceptionCaught(true);
+      ProcessUtils.setErrorsOrExceptions(true);
       log.error("Exception Join Thread", ex);
     }
   }

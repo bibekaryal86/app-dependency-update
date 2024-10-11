@@ -43,6 +43,7 @@ public class ConstantUtils {
   public static final String MONGODB_COLLECTION_PACKAGES = "packages";
   public static final String MONGODB_COLLECTION_NPMSKIPS = "npm_skips";
   public static final String MONGODB_COLLECTION_PROCESS_SUMMARIES = "process_summaries";
+  public static final String MONGODB_COLLECTION_LATEST_VERSIONS = "latest_versions";
   public static final String BRANCH_UPDATE_DEPENDENCIES = "update_dependencies_%s";
 
   public static final String DOCKER_ALPINE = "alpine";
@@ -64,4 +65,8 @@ public class ConstantUtils {
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
   public static final String PYPI_SEARCH_ENDPOINT = "https://pypi.org/pypi/%s/json";
+  public static final String GCP_RUNTIME_SUPPORT_ENDPOINT =
+      "https://cloud.google.com/appengine/docs/standard/lifecycle/support-schedule";
+  public static final String DOCKER_TAG_LOOKUP_ENDPOINT =
+      "https://hub.docker.com/v2/repositories/library/%s/tags/%s/";
 }
