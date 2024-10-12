@@ -92,7 +92,7 @@ public class NodeService {
    * @return eg: nodejs20
    */
   private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
-    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+    if (parseIntSafe(versionMajor) > parseIntSafe(latestGcpRuntimeVersion)) {
       return "nodejs" + latestGcpRuntimeVersion;
     }
     return "nodejs" + versionMajor;

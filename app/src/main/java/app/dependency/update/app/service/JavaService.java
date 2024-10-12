@@ -93,7 +93,7 @@ public class JavaService {
    * @return eg: java21
    */
   private String getVersionGcp(final String versionMajor, final String latestGcpRuntimeVersion) {
-    if (parseIntSafe(versionMajor) < parseIntSafe(latestGcpRuntimeVersion)) {
+    if (parseIntSafe(versionMajor) > parseIntSafe(latestGcpRuntimeVersion)) {
       return "java" + latestGcpRuntimeVersion;
     }
     return "java" + versionMajor;

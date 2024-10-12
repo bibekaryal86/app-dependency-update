@@ -86,7 +86,7 @@ public class PythonService {
    */
   private String getVersionGcp(final String versionFull, final String latestGcpRuntimeVersion) {
     final String versionMajorMinor = getVersionMajorMinor(versionFull, false);
-    if (parseIntSafe(versionMajorMinor) < parseIntSafe(latestGcpRuntimeVersion)) {
+    if (parseIntSafe(versionMajorMinor) > parseIntSafe(latestGcpRuntimeVersion)) {
       return "python" + latestGcpRuntimeVersion;
     }
     return "python" + versionMajorMinor;

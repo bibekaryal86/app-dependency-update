@@ -2,6 +2,7 @@ package app.dependency.update.app.runnable;
 
 import app.dependency.update.app.model.LatestVersion;
 import app.dependency.update.app.model.Repository;
+import app.dependency.update.app.util.CommonUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,7 +21,10 @@ public class ExecuteGcpConfigsUpdate {
   public ExecuteGcpConfigsUpdate(final Repository repository, final LatestVersion latestVersion) {
     this.repository = repository;
     this.latestVersion = latestVersion;
-    yamlFilePath = this.repository.getRepoPath().resolve("gcp/app.yaml");
+    yamlFilePath =
+        repository.getType().equals(CommonUtils.UpdateType.PYTHON_DEPENDENCIES)
+            ? this.repository.getRepoPath().resolve("app.yaml")
+            : this.repository.getRepoPath().resolve("gcp/app.yaml");
   }
 
   public boolean executeGcpConfigsUpdate() {
