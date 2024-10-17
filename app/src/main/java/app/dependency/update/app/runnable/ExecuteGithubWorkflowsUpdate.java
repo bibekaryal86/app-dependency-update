@@ -84,14 +84,28 @@ public class ExecuteGithubWorkflowsUpdate {
     boolean isUpdated = false;
     List<String> updatedGithubWorkflowContent = new ArrayList<>();
 
-    for (String line : githubWorkflowContent) {
+    for (int i = 0; i < githubWorkflowContent.size(); i++) {
+      String line = githubWorkflowContent.get(i);
       if (line.trim().startsWith("#")) {
         updatedGithubWorkflowContent.add(line);
         continue;
       }
 
       String updatedLine = updateGithubActions(line);
-      updatedLine = updateLanguageVersion(updatedLine);
+      if (line.equals(updatedLine)) {
+        updatedLine = updateLanguageVersion(updatedLine);
+      }
+      if (line.equals(updatedLine) && i > 0) {
+        final String lineMinusOne = githubWorkflowContent.get(i - 1);
+        List<String> updatedLines = updateToolVersionFlyway(updatedLine, lineMinusOne);
+        updatedLine = updatedLines.getFirst();
+
+        final String updatedLineMinusOne = updatedLines.get(1);
+        if (!lineMinusOne.equals(updatedLineMinusOne)) {
+          updatedGithubWorkflowContent.set(i - 1, updatedLineMinusOne);
+        }
+      }
+
       updatedGithubWorkflowContent.add(updatedLine);
 
       if (!line.equals(updatedLine)) {
@@ -109,30 +123,25 @@ public class ExecuteGithubWorkflowsUpdate {
     if (githubActionLine.contains("actions/checkout")) {
       latestVersion =
           this.latestVersionsModel.getLatestVersionGithubActions().getCheckout().getVersionMajor();
-    }
-    if (githubActionLine.contains("actions/setup-java")) {
+    } else if (githubActionLine.contains("actions/setup-java")) {
       latestVersion =
           this.latestVersionsModel.getLatestVersionGithubActions().getSetupJava().getVersionMajor();
-    }
-    if (githubActionLine.contains("gradle/actions/setup-gradle")) {
+    } else if (githubActionLine.contains("gradle/actions/setup-gradle")) {
       latestVersion =
           this.latestVersionsModel
               .getLatestVersionGithubActions()
               .getSetupGradle()
               .getVersionMajor();
-    }
-    if (githubActionLine.contains("actions/setup-node")) {
+    } else if (githubActionLine.contains("actions/setup-node")) {
       latestVersion =
           this.latestVersionsModel.getLatestVersionGithubActions().getSetupNode().getVersionMajor();
-    }
-    if (githubActionLine.contains("actions/setup-python")) {
+    } else if (githubActionLine.contains("actions/setup-python")) {
       latestVersion =
           this.latestVersionsModel
               .getLatestVersionGithubActions()
               .getSetupPython()
               .getVersionMajor();
-    }
-    if (githubActionLine.contains("github/codeql-action")) {
+    } else if (githubActionLine.contains("github/codeql-action")) {
       latestVersion =
           this.latestVersionsModel.getLatestVersionGithubActions().getCodeql().getVersionMajor();
     }
@@ -156,10 +165,10 @@ public class ExecuteGithubWorkflowsUpdate {
 
   private String updateLanguageVersion(final String versionLine) {
     String currentVersion = "";
-    String latestVersion = getLatestVersion(versionLine);
+    String latestVersion = getLatestLanguageVersion(versionLine);
 
     if (StringUtils.hasText(latestVersion)) {
-      currentVersion = getCurrentVersion(versionLine);
+      currentVersion = getCurrentLanguageVersion(versionLine);
 
       if (!StringUtils.hasText(currentVersion)) {
         // set it as latest version so that the line doesn't get updated
@@ -174,7 +183,31 @@ public class ExecuteGithubWorkflowsUpdate {
     return versionLine.replace(currentVersion, latestVersion);
   }
 
-  private String getLatestVersion(String versionLine) {
+  private List<String> updateToolVersionFlyway(
+      final String versionLine, final String versionLineMinusOne) {
+    String currentVersion = "";
+    String latestVersion = getLatestToolVersionFlyway(versionLine);
+
+    if (StringUtils.hasText(latestVersion)) {
+      currentVersion = getCurrentToolVersionFlyway(versionLine);
+
+      if (!StringUtils.hasText(currentVersion)) {
+        // set it as latest version so that the line doesn't get updated
+        currentVersion = latestVersion;
+      }
+    }
+
+    if (currentVersion.equals(latestVersion)) {
+      return List.of(versionLine, versionLineMinusOne);
+    }
+
+    final String updatedVersionLine = versionLine.replace(currentVersion, latestVersion);
+    final String updatedVersionLineMinusOne =
+        versionLineMinusOne.replace(currentVersion, latestVersion);
+    return List.of(updatedVersionLine, updatedVersionLineMinusOne);
+  }
+
+  private String getLatestLanguageVersion(final String versionLine) {
     String latestVersion = "";
 
     if (versionLine.contains("node-version") && !versionLine.contains("matrix.node-version")) {
@@ -195,7 +228,15 @@ public class ExecuteGithubWorkflowsUpdate {
     return latestVersion;
   }
 
-  private String getCurrentVersion(final String versionLine) {
+  private String getLatestToolVersionFlyway(final String versionLine) {
+    String latestVersion = "";
+    if (versionLine.contains("sudo mv flyway-")) {
+      latestVersion = this.latestVersionsModel.getLatestVersionTools().getFlyway().getVersionFull();
+    }
+    return latestVersion;
+  }
+
+  private String getCurrentLanguageVersion(final String versionLine) {
     String currentVersion = "";
 
     if (versionLine.contains("[") && versionLine.contains("]")) {
@@ -212,8 +253,12 @@ public class ExecuteGithubWorkflowsUpdate {
     return currentVersion;
   }
 
+  private String getCurrentToolVersionFlyway(final String versionLine) {
+    return versionLine.replaceAll("[^0-9.]", "");
+  }
+
   private String getLowestCurrentVersionFromMatrix(final String versionLine) {
-    Pattern pattern = Pattern.compile("\\[(.*?)\\]");
+    Pattern pattern = Pattern.compile("\\[(.*?)]");
     Matcher matcher = pattern.matcher(versionLine);
 
     if (matcher.find()) {

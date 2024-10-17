@@ -1,10 +1,10 @@
 package app.dependency.update.app.service;
 
 import app.dependency.update.app.model.LatestVersion;
-import app.dependency.update.app.model.LatestVersionAppServers;
-import app.dependency.update.app.model.LatestVersionBuildTools;
 import app.dependency.update.app.model.LatestVersionGithubActions;
 import app.dependency.update.app.model.LatestVersionLanguages;
+import app.dependency.update.app.model.LatestVersionServers;
+import app.dependency.update.app.model.LatestVersionTools;
 import app.dependency.update.app.model.LatestVersionsModel;
 import app.dependency.update.app.model.entities.LatestVersionsEntity;
 import java.util.Map;
@@ -26,6 +26,7 @@ public class LatestVersionsService {
   private final NodeService nodeService;
   private final PythonService pythonService;
   private final GcpService gcpService;
+  private final FlywayService flywayService;
 
   public LatestVersionsModel getLatestVersions() {
     log.debug("Get Latest Versions...");
@@ -47,7 +48,7 @@ public class LatestVersionsService {
         getLatestVersionNode(latestVersionsEntity.getNode(), latestGcpRuntimes.get("nodejs"));
     LatestVersion java =
         getLatestVersionJava(latestVersionsEntity.getJava(), latestGcpRuntimes.get("java"));
-    // github actions
+    // actions
     LatestVersion codeql = getLatestVersionGithubCodeql(latestVersionsEntity.getCodeql());
     LatestVersion setupPython =
         getLatestVersionGithubSetupPython(latestVersionsEntity.getSetupPython());
@@ -56,16 +57,17 @@ public class LatestVersionsService {
         getLatestVersionGithubSetupGradle(latestVersionsEntity.getSetupGradle());
     LatestVersion setupJava = getLatestVersionGithubSetupJava(latestVersionsEntity.getSetupJava());
     LatestVersion checkout = getLatestVersionGithubCheckout(latestVersionsEntity.getCheckout());
-    // build tools
+    // tools
     LatestVersion gradle =
         getLatestVersionGradle(latestVersionsEntity.getGradle(), java.getVersionMajor());
-    // app servers
+    LatestVersion flyway = getLatestVersionFlyway(latestVersionsEntity.getFlyway());
+    // servers
     LatestVersion nginx = getLatestVersionNginx(latestVersionsEntity.getNginx());
 
     LatestVersionsModel latestVersionsModel =
         LatestVersionsModel.builder()
-            .latestVersionAppServers(LatestVersionAppServers.builder().nginx(nginx).build())
-            .latestVersionBuildTools(LatestVersionBuildTools.builder().gradle(gradle).build())
+            .latestVersionServers(LatestVersionServers.builder().nginx(nginx).build())
+            .latestVersionTools(LatestVersionTools.builder().gradle(gradle).flyway(flyway).build())
             .latestVersionGithubActions(
                 LatestVersionGithubActions.builder()
                     .checkout(checkout)
@@ -162,6 +164,15 @@ public class LatestVersionsService {
     return latestVersionInMongo;
   }
 
+  private LatestVersion getLatestVersionFlyway(final LatestVersion latestVersionInMongo) {
+    try {
+      return flywayService.getLatestFlywayVersion();
+    } catch (Exception ex) {
+      log.error("Get Latest Version Github Flyway...", ex);
+    }
+    return latestVersionInMongo;
+  }
+
   private LatestVersion getLatestVersionJava(
       final LatestVersion latestVersionInMongo, final String latestGcpRuntimeVersion) {
     try {
@@ -201,13 +212,13 @@ public class LatestVersionsService {
     if (!latestVersionsEntity
         .getNginx()
         .getVersionActual()
-        .equals(latestVersionsModel.getLatestVersionAppServers().getNginx().getVersionActual())) {
+        .equals(latestVersionsModel.getLatestVersionServers().getNginx().getVersionActual())) {
       return true;
     }
     if (!latestVersionsEntity
         .getGradle()
         .getVersionActual()
-        .equals(latestVersionsModel.getLatestVersionBuildTools().getGradle().getVersionActual())) {
+        .equals(latestVersionsModel.getLatestVersionTools().getGradle().getVersionActual())) {
       return true;
     }
     if (!latestVersionsEntity
