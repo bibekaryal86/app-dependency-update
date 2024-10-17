@@ -287,8 +287,8 @@ public class AppInitDataUtils {
   private static LatestVersionsModel getLatestVersions() {
     LatestVersionsModel latestVersionsModel =
         ApplicationContextUtil.getBean(LatestVersionsService.class).getLatestVersions();
-    validateLatestVersion(latestVersionsModel.getLatestVersionAppServers());
-    validateLatestVersion(latestVersionsModel.getLatestVersionBuildTools());
+    validateLatestVersion(latestVersionsModel.getLatestVersionServers());
+    validateLatestVersion(latestVersionsModel.getLatestVersionTools());
     validateLatestVersion(latestVersionsModel.getLatestVersionGithubActions());
     validateLatestVersion(latestVersionsModel.getLatestVersionLanguages());
     return latestVersionsModel;

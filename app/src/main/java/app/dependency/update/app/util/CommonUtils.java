@@ -44,6 +44,10 @@ public class CommonUtils {
 
   public static boolean isCheckPreReleaseVersion(final String version) {
     String versionLowercase = version.toLowerCase();
+    if (versionLowercase.contains("release")) {
+      // eg: nginx
+      versionLowercase = versionLowercase.replace("release", "");
+    }
     return versionLowercase.contains("alpha")
         || versionLowercase.contains("a")
         || versionLowercase.contains("beta")

@@ -85,7 +85,7 @@ public class ExecuteDockerfileUpdate {
 
   private String getLatestVersionDocker(final String fromLine) {
     if (fromLine.contains("gradle")) {
-      return this.latestVersionsModel.getLatestVersionBuildTools().getGradle().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionTools().getGradle().getVersionDocker();
     }
     if (fromLine.contains(DOCKER_JRE)) {
       return this.latestVersionsModel.getLatestVersionLanguages().getJava().getVersionDocker();
@@ -94,7 +94,7 @@ public class ExecuteDockerfileUpdate {
       return this.latestVersionsModel.getLatestVersionLanguages().getNode().getVersionDocker();
     }
     if (fromLine.contains("nginx")) {
-      return this.latestVersionsModel.getLatestVersionAppServers().getNginx().getVersionDocker();
+      return this.latestVersionsModel.getLatestVersionServers().getNginx().getVersionDocker();
     }
     if (fromLine.contains("python")) {
       return this.latestVersionsModel.getLatestVersionLanguages().getPython().getVersionDocker();

@@ -25,18 +25,19 @@ public class LatestVersionsEntity {
   @MongoId private ObjectId id;
   private LocalDateTime updateDateTime;
 
-  // app servers
+  // servers
   private LatestVersion nginx;
-  // build tools
+  // tools
   private LatestVersion gradle;
-  // github actions
+  private LatestVersion flyway;
+  // actions
   private LatestVersion checkout;
   private LatestVersion setupJava;
   private LatestVersion setupGradle;
   private LatestVersion setupNode;
   private LatestVersion setupPython;
   private LatestVersion codeql;
-  // programming languages
+  // languages
   private LatestVersion java;
   private LatestVersion node;
   private LatestVersion python;

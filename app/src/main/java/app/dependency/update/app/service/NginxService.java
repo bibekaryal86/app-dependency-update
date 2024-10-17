@@ -1,5 +1,6 @@
 package app.dependency.update.app.service;
 
+import static app.dependency.update.app.util.CommonUtils.isCheckPreReleaseVersion;
 import static app.dependency.update.app.util.ConstantUtils.DOCKER_ALPINE;
 
 import app.dependency.update.app.connector.NginxConnector;
@@ -25,7 +26,10 @@ public class NginxService {
   public LatestVersion getLatestNginxVersion(final String latestDockerVersionFromMongo) {
     List<NginxReleaseResponse> nginxReleaseResponses = nginxConnector.getNginxReleases();
     Optional<NginxReleaseResponse> optionalNginxReleaseResponse =
-        nginxReleaseResponses.stream().findFirst();
+        nginxReleaseResponses.stream()
+            .filter(
+                nginxReleaseResponse -> !isCheckPreReleaseVersion(nginxReleaseResponse.getName()))
+            .findFirst();
 
     NginxReleaseResponse latestNginxRelease = optionalNginxReleaseResponse.orElse(null);
     log.info("Latest Nginx Release: [ {} ]", latestNginxRelease);

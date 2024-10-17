@@ -356,8 +356,9 @@ public class MongoRepoService {
     log.info("Save Latest Version: [{}]", latestVersionsModel);
     LatestVersionsEntity latestVersionsEntity =
         LatestVersionsEntity.builder()
-            .nginx(latestVersionsModel.getLatestVersionAppServers().getNginx())
-            .gradle(latestVersionsModel.getLatestVersionBuildTools().getGradle())
+            .nginx(latestVersionsModel.getLatestVersionServers().getNginx())
+            .gradle(latestVersionsModel.getLatestVersionTools().getGradle())
+            .flyway(latestVersionsModel.getLatestVersionTools().getFlyway())
             .checkout(latestVersionsModel.getLatestVersionGithubActions().getCheckout())
             .setupJava(latestVersionsModel.getLatestVersionGithubActions().getSetupJava())
             .setupGradle(latestVersionsModel.getLatestVersionGithubActions().getSetupGradle())

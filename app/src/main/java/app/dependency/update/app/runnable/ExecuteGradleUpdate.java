@@ -708,7 +708,7 @@ public class ExecuteGradleUpdate implements Runnable {
     // adding here as backup
     if (!isRequiresUpdate(
         this.repository.getCurrentGradleVersion(),
-        this.latestVersionsModel.getLatestVersionBuildTools().getGradle().getVersionFull())) {
+        this.latestVersionsModel.getLatestVersionTools().getGradle().getVersionFull())) {
       return;
     }
 
@@ -737,10 +737,7 @@ public class ExecuteGradleUpdate implements Runnable {
               updateDistributionUrl(
                   wrapperProperty,
                   this.repository.getCurrentGradleVersion(),
-                  this.latestVersionsModel
-                      .getLatestVersionBuildTools()
-                      .getGradle()
-                      .getVersionFull());
+                  this.latestVersionsModel.getLatestVersionTools().getGradle().getVersionFull());
           updatedWrapperProperties.add(updatedDistributionUrl);
         } else {
           updatedWrapperProperties.add(wrapperProperty);

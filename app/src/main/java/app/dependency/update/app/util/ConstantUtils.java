@@ -61,6 +61,8 @@ public class ConstantUtils {
   public static final String NGINX_TAGS_ENDPOINT = "https://api.github.com/repos/nginx/nginx/tags";
   public static final String GITHUB_ACTIONS_RELEASES_ENDPOINT =
       "https://api.github.com/repos/%s/%s/releases";
+  public static final String FLYWAY_RELEASES_ENDPOINT =
+      "https://api.github.com/repos/flyway/flyway/releases";
   public static final String GRADLE_PLUGINS_ENDPOINT = "https://plugins.gradle.org/plugin/%s";
   public static final String MAVEN_SEARCH_ENDPOINT =
       "https://search.maven.org/solrsearch/select?core=gav&rows=5&wt=json&q=g:%s+AND+a:%s";
