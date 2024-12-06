@@ -41,6 +41,9 @@ public class UpdateRepoController {
       @Parameter(in = ParameterIn.QUERY, description = "Create PR for a Branch")
           @RequestParam(required = false, defaultValue = "false")
           final boolean isForceCreatePr,
+      @Parameter(in = ParameterIn.QUERY, description = "Reset and Pull GitHub Repo")
+          @RequestParam(required = false, defaultValue = "true")
+          final boolean isGithubResetPullRequired,
       @Parameter(
               in = ParameterIn.QUERY,
               description = "For Delete Branches, Update Dependencies only")
@@ -68,7 +71,8 @@ public class UpdateRepoController {
           updateType,
           isForceCreatePr,
           isDeleteUpdateDependenciesOnly,
-          checkDependenciesUpdate(updateType));
+          checkDependenciesUpdate(updateType),
+          isGithubResetPullRequired);
     }
     return ResponseEntity.accepted().body("{\"request\": \"submitted\"}");
   }

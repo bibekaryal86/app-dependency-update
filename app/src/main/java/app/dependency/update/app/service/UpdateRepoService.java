@@ -67,7 +67,7 @@ public class UpdateRepoService {
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
       log.info("Starting Scheduler to Update Repos...");
-      updateRepos(false, false, null, null, UpdateType.ALL, false, true, true);
+      updateRepos(false, false, null, null, UpdateType.ALL, false, true, true, true);
     }
   }
 
@@ -86,14 +86,19 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isForceCreatePr,
       final boolean isDeleteUpdateDependenciesOnly,
-      final boolean isProcessSummaryRequired) {
+      final boolean isProcessSummaryRequired,
+      final boolean isGithubResetPullRequired) {
     // reset processed repository map from previous run if anything remaining
     resetProcessedRepositoriesAndSummary();
     if (checkDependenciesUpdate(updateType)) {
       taskScheduler.schedule(
           () ->
               updateReposAllDependencies(
-                  updateType, isRecreateCaches, isRecreateScriptFiles, isProcessSummaryRequired),
+                  updateType,
+                  isRecreateCaches,
+                  isRecreateScriptFiles,
+                  isProcessSummaryRequired,
+                  isGithubResetPullRequired),
           Instant.now().plusSeconds(3));
     } else {
       taskScheduler.schedule(
@@ -134,13 +139,15 @@ public class UpdateRepoService {
       final UpdateType updateType,
       final boolean isRecreateCaches,
       final boolean isRecreateScriptFiles,
-      final boolean isProcessSummaryRequired) {
+      final boolean isProcessSummaryRequired,
+      final boolean isGithubResetPullRequired) {
     log.info(
-        "Update Repos All Dependencies: [ {} ] [ {} ] | [ {} ] | [ {} ]",
+        "Update Repos All Dependencies: [ {} ] [ {} ] | [ {} ] | [ {} ] | [ {} ]",
         updateType,
         isRecreateCaches,
         isRecreateScriptFiles,
-        isProcessSummaryRequired);
+        isProcessSummaryRequired,
+        isGithubResetPullRequired);
     // clear and set caches as needed
     if (isRecreateCaches) {
       log.info("Update Repos All Dependencies, Recreating Caches...");
@@ -157,22 +164,26 @@ public class UpdateRepoService {
 
     AppInitData appInitData = AppInitDataUtils.appInitData();
 
-    // checkout main branch
-    executeUpdateGithubReset(appInitData);
-    // pull changes
-    executeUpdateGithubPull(appInitData);
+    if (isGithubResetPullRequired || updateType == UpdateType.ALL) {
+      // checkout main branch
+      executeUpdateGithubReset(appInitData);
+      // pull changes
+      executeUpdateGithubPull(appInitData);
+    }
 
     // clear and set caches after pull (gradle version in repo could have changed)
-    log.info("Update Repos All Dependencies, Reset All Caches...");
-    resetAllCaches();
-    log.info("Update Repos All Dependencies, Update Plugins In Mongo...");
-    mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap());
-    log.info("Update Repos All Dependencies, Update Dependencies In Mongo...");
-    mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap());
-    log.info("Update Repos All Dependencies, Update Packages In Mongo...");
-    mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap());
-    log.info("Update Repos All Dependencies, Set All Caches...");
-    setAllCaches();
+    if (isRecreateCaches) {
+      log.info("Update Repos All Dependencies, Reset All Caches...");
+      resetAllCaches();
+      log.info("Update Repos All Dependencies, Update Plugins In Mongo...");
+      mongoRepoService.updatePluginsInMongo(mongoRepoService.pluginsMap());
+      log.info("Update Repos All Dependencies, Update Dependencies In Mongo...");
+      mongoRepoService.updateDependenciesInMongo(mongoRepoService.dependenciesMap());
+      log.info("Update Repos All Dependencies, Update Packages In Mongo...");
+      mongoRepoService.updatePackagesInMongo(mongoRepoService.packagesMap());
+      log.info("Update Repos All Dependencies, Set All Caches...");
+      setAllCaches();
+    }
 
     if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
       executeUpdateNpmDependencies(appInitData);
@@ -310,7 +321,7 @@ public class UpdateRepoService {
   }
 
   private void executeUpdateGithubReset(final AppInitData appInitData) {
-    log.info("Execute Update Github Info...");
+    log.info("Execute Update Github Reset...");
     new UpdateGithubReset(appInitData).updateGithubReset();
   }
 
