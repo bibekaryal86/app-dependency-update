@@ -151,7 +151,9 @@ public class CommonUtils {
     ALL,
     APP_INIT_DATA,
     PLUGINS_MAP,
-    DEPENDENCIES_MAP
+    DEPENDENCIES_MAP,
+    PACKAGES_MAP,
+    NPMSKIPS_MAP
   }
 
   public enum LogLevelChange {

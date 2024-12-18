@@ -78,6 +78,14 @@ public class AppTestController {
           mongoRepoService.clearDependenciesMap();
           mongoRepoService.dependenciesMap();
         }
+        case PACKAGES_MAP -> {
+          mongoRepoService.clearPackagesMap();
+          mongoRepoService.packagesMap();
+        }
+        case NPMSKIPS_MAP -> {
+          mongoRepoService.clearNpmSkipsMap();
+          mongoRepoService.npmSkipsMap();
+        }
       }
 
       resetRepositoriesWithPrError();
