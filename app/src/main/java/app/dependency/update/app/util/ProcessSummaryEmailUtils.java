@@ -209,7 +209,8 @@ public class ProcessSummaryEmailUtils {
 
     processedRepositoryTable(allProcessedRepositories, html);
 
-    html.append("""
+    html.append(
+        """
           </body>
         </html>
         """);
@@ -229,7 +230,8 @@ public class ProcessSummaryEmailUtils {
       html.append("</tr>");
     }
 
-    html.append("""
+    html.append(
+        """
         </table>
       """);
   }
