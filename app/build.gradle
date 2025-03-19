@@ -9,9 +9,9 @@
 plugins {
     id 'application'
     id 'java'
-    id 'io.freefair.lombok' version '8.11'
-    id 'org.springframework.boot' version '3.4.1'
-    id 'com.diffplug.spotless' version '7.0.0'
+    id 'io.freefair.lombok' version '8.13'
+    id 'org.springframework.boot' version '3.4.3'
+    id 'com.diffplug.spotless' version '7.0.2'
 }
 
 java {
@@ -31,20 +31,20 @@ bootJar {
 }
 
 dependencies {
-    def springVersion = "3.4.1"
+    def springVersion = "3.4.3"
     implementation "org.springframework.boot:spring-boot-starter-actuator:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-cache:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-data-mongodb:$springVersion"
-    implementation 'ch.qos.logback:logback-core:1.5.16'
-    implementation 'ch.qos.logback:logback-classic:1.5.16'
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
+    implementation 'ch.qos.logback:logback-core:1.5.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.17'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.2'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
     implementation 'com.mailjet:mailjet-client:5.2.5'
-    implementation 'org.jsoup:jsoup:1.18.3'
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'org.jsoup:jsoup:1.19.1'
+    implementation 'com.google.code.gson:gson:2.12.1'
 }
 
 application {
