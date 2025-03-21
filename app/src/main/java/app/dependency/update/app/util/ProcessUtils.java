@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessUtils {
 
+  private static final AtomicBoolean schedulerRescheduled = new AtomicBoolean(false);
   private static final AtomicBoolean errorsOrExceptions = new AtomicBoolean(false);
   private static final AtomicInteger mongoPluginsToUpdate = new AtomicInteger(0);
   private static final AtomicInteger mongoDependenciesToUpdate = new AtomicInteger(0);
@@ -21,6 +22,10 @@ public class ProcessUtils {
   private static Set<String> repositoriesWithPrError = new HashSet<>();
   private static ConcurrentMap<String, ProcessedRepository> processedRepositories =
       new ConcurrentHashMap<>();
+
+  public static void setSchedulerRescheduled(boolean value) {
+    schedulerRescheduled.set(value);
+  }
 
   public static void setErrorsOrExceptions(boolean value) {
     errorsOrExceptions.set(value);
@@ -40,6 +45,10 @@ public class ProcessUtils {
 
   public static void setMongoNpmSkipsActive(int count) {
     mongoNpmSkipsActive.set(count);
+  }
+
+  public static boolean getSchedulerRescheduled() {
+    return schedulerRescheduled.get();
   }
 
   public static boolean getErrorsOrExceptions() {
@@ -118,5 +127,6 @@ public class ProcessUtils {
     setMongoPackagesToUpdate(0);
     setMongoNpmSkipsActive(0);
     setErrorsOrExceptions(false);
+    setSchedulerRescheduled(false);
   }
 }

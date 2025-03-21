@@ -6,7 +6,9 @@ import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
+import static app.dependency.update.app.util.ProcessUtils.getSchedulerRescheduled;
 import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
+import static app.dependency.update.app.util.ProcessUtils.setSchedulerRescheduled;
 import static app.dependency.update.app.util.ProcessUtils.updateProcessedRepositoriesRepoType;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -61,12 +63,14 @@ public class UpdateRepoService {
 
   @Scheduled(cron = "0 0 20 * * *")
   void updateReposScheduler() {
-    if (isTaskRunning()) {
+    if (isTaskRunning() && !getSchedulerRescheduled()) {
       log.info("Something is running, rescheduling 30 minutes from now...");
+      setSchedulerRescheduled(true);
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
       log.info("Starting Scheduler to Update Repos...");
+      setSchedulerRescheduled(false);
       updateRepos(false, false, null, null, UpdateType.ALL, false, true, true, true);
     }
   }
@@ -199,14 +203,15 @@ public class UpdateRepoService {
 
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
+        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData, true),
         Instant.now().plusSeconds(300));
   }
 
   private void updateReposAllDependenciesContinue(
       final boolean isProcessSummaryRequired,
       final UpdateType updateType,
-      final AppInitData appInitData) {
+      final AppInitData appInitData,
+      final boolean isCheckPrCreateRetry) {
     log.info(
         "Update Repos All Dependencies Continue: [ {} ] | [ {} ]",
         isProcessSummaryRequired,
@@ -216,7 +221,10 @@ public class UpdateRepoService {
     // pull changes
     executeUpdateGithubPull(appInitData);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
+    if (isCheckPrCreateRetry) {
+      updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
+    }
+
     // send process summary email if applicable
     makeProcessSummary(isProcessSummaryRequired, updateType);
     // this is the final step, clear processed repositories
@@ -241,7 +249,7 @@ public class UpdateRepoService {
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
           () ->
-              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
+              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData, false),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
