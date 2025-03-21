@@ -6,7 +6,9 @@ import static app.dependency.update.app.util.ConstantUtils.ENV_REPO_NAME;
 import static app.dependency.update.app.util.ConstantUtils.ENV_SEND_EMAIL;
 import static app.dependency.update.app.util.ConstantUtils.PATH_DELIMITER;
 import static app.dependency.update.app.util.ProcessUtils.getRepositoriesWithPrError;
+import static app.dependency.update.app.util.ProcessUtils.getSchedulerRescheduled;
 import static app.dependency.update.app.util.ProcessUtils.resetProcessedRepositoriesAndSummary;
+import static app.dependency.update.app.util.ProcessUtils.setSchedulerRescheduled;
 import static app.dependency.update.app.util.ProcessUtils.updateProcessedRepositoriesRepoType;
 
 import app.dependency.update.app.exception.AppDependencyUpdateRuntimeException;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -44,7 +47,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateRepoService {
 
-  private final ConcurrentTaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
+  private ConcurrentTaskScheduler taskScheduler;
   private final MongoRepoService mongoRepoService;
   private final ScriptFilesService scriptFilesService;
   private final EmailService emailService;
@@ -53,7 +57,8 @@ public class UpdateRepoService {
       final MongoRepoService mongoRepoService,
       final ScriptFilesService scriptFilesService,
       final EmailService emailService) {
-    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
+    this.scheduledExecutorService = Executors.newScheduledThreadPool(30);
+    this.taskScheduler = new ConcurrentTaskScheduler(this.scheduledExecutorService);
     this.mongoRepoService = mongoRepoService;
     this.scriptFilesService = scriptFilesService;
     this.emailService = emailService;
@@ -61,14 +66,23 @@ public class UpdateRepoService {
 
   @Scheduled(cron = "0 0 20 * * *")
   void updateReposScheduler() {
-    if (isTaskRunning()) {
+    if (isTaskRunning() && !getSchedulerRescheduled()) {
       log.info("Something is running, rescheduling 30 minutes from now...");
+      setSchedulerRescheduled(true);
       taskScheduler.schedule(
           this::updateReposScheduler, Instant.now().plus(30, ChronoUnit.MINUTES));
     } else {
       log.info("Starting Scheduler to Update Repos...");
+      setSchedulerRescheduled(false);
       updateRepos(false, false, null, null, UpdateType.ALL, false, true, true, true);
     }
+  }
+
+  public void restartScheduler() throws InterruptedException {
+    scheduledExecutorService.shutdownNow();
+    Thread.sleep(5000);
+    this.scheduledExecutorService = Executors.newScheduledThreadPool(30);
+    this.taskScheduler = new ConcurrentTaskScheduler(scheduledExecutorService);
   }
 
   public boolean isTaskRunning() {
@@ -164,7 +178,7 @@ public class UpdateRepoService {
 
     AppInitData appInitData = AppInitDataUtils.appInitData();
 
-    if (isGithubResetPullRequired || updateType == UpdateType.ALL) {
+    if (isGithubResetPullRequired) {
       // checkout main branch
       executeUpdateGithubReset(appInitData);
       // pull changes
@@ -185,10 +199,6 @@ public class UpdateRepoService {
       setAllCaches();
     }
 
-    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
-      executeUpdateNpmDependencies(appInitData);
-    }
-
     if (updateType == UpdateType.ALL || updateType == UpdateType.GRADLE_DEPENDENCIES) {
       executeUpdateGradleDependencies(appInitData);
     }
@@ -197,16 +207,23 @@ public class UpdateRepoService {
       executeUpdatePythonDependencies(appInitData);
     }
 
+    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
+      executeUpdateNpmDependencies(appInitData);
+    }
+
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
+        () ->
+            updateReposAllDependenciesContinue(
+                isProcessSummaryRequired, updateType, appInitData, true),
         Instant.now().plusSeconds(300));
   }
 
   private void updateReposAllDependenciesContinue(
       final boolean isProcessSummaryRequired,
       final UpdateType updateType,
-      final AppInitData appInitData) {
+      final AppInitData appInitData,
+      final boolean isCheckPrCreateRetry) {
     log.info(
         "Update Repos All Dependencies Continue: [ {} ] | [ {} ]",
         isProcessSummaryRequired,
@@ -216,7 +233,10 @@ public class UpdateRepoService {
     // pull changes
     executeUpdateGithubPull(appInitData);
     // check github pr create error and execute if needed
-    updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
+    if (isCheckPrCreateRetry) {
+      updateReposContinueGithubPrCreateRetry(isProcessSummaryRequired, updateType);
+    }
+
     // send process summary email if applicable
     makeProcessSummary(isProcessSummaryRequired, updateType);
     // this is the final step, clear processed repositories
@@ -241,7 +261,8 @@ public class UpdateRepoService {
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
           () ->
-              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData),
+              updateReposAllDependenciesContinue(
+                  isProcessSummaryRequired, updateType, appInitData, false),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }

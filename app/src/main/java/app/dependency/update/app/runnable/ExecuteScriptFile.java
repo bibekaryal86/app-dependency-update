@@ -93,7 +93,12 @@ public class ExecuteScriptFile implements Runnable {
         }
       }
 
-      log.debug("Process output: [ {} ]\n{}", this.scriptPath, stringBuilder);
+      String output = stringBuilder.toString();
+      if (output.contains("ERROR--")) {
+        log.info("Process output ERROR--: [ {} ]\n{}", this.scriptPath, output);
+      } else {
+        log.debug("Process output: [ {} ]\n{}", this.scriptPath, output);
+      }
     } catch (IOException ex) {
       throw new AppDependencyUpdateIOException(
           "Error in Process Stream Output: " + ", " + this.scriptPath, ex.getCause());
@@ -146,7 +151,7 @@ public class ExecuteScriptFile implements Runnable {
 
   private boolean checkPrCreationError(final String output, final String repoName) {
     if (output.contains("pull request create failed")) {
-      log.info("Pull Request Create Failed: [ {} ]", this.threadName);
+      log.info("Pull Request Create Failed: [ {} ] \n {}", this.threadName, output);
       addRepositoriesWithPrError(repoName);
       return true;
     } else {
