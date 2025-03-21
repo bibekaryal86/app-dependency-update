@@ -128,5 +128,6 @@ public class ProcessUtils {
     setMongoNpmSkipsActive(0);
     setErrorsOrExceptions(false);
     setSchedulerRescheduled(false);
+    resetRepositoriesWithPrError();
   }
 }

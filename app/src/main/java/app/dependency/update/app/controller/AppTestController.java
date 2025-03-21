@@ -88,7 +88,6 @@ public class AppTestController {
         }
       }
 
-      resetRepositoriesWithPrError();
       resetProcessedRepositoriesAndSummary();
       return ResponseEntity.ok("{\"reset\": \"successful\"}");
     } else {
@@ -107,5 +106,18 @@ public class AppTestController {
     return ResponseEntity.ok(
         String.format(
             "{\"logLevelBefore\":\"%s\",\"logLevelAfter\":\"%s\"}", levelBefore, levelAfter));
+  }
+
+  @Operation(summary = "Restart Scheduler", description = "Shuts down and starts Task Scheduler")
+  @GetMapping(value = "/tests/restart/{are_you_sure}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> restart(
+      @PathVariable(name = "are_you_sure") final boolean areYouSure) throws InterruptedException {
+    if (areYouSure) {
+      updateRepoService.restartScheduler();
+      resetProcessedRepositoriesAndSummary();
+      return ResponseEntity.ok("{\"shutdown\": \"submitted\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"shutdown\": \"not submitted\"}");
+    }
   }
 }

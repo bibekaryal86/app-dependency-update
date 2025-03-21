@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -46,7 +47,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateRepoService {
 
-  private final ConcurrentTaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
+  private ConcurrentTaskScheduler taskScheduler;
   private final MongoRepoService mongoRepoService;
   private final ScriptFilesService scriptFilesService;
   private final EmailService emailService;
@@ -55,7 +57,8 @@ public class UpdateRepoService {
       final MongoRepoService mongoRepoService,
       final ScriptFilesService scriptFilesService,
       final EmailService emailService) {
-    this.taskScheduler = new ConcurrentTaskScheduler(Executors.newScheduledThreadPool(30));
+    this.scheduledExecutorService = Executors.newScheduledThreadPool(30);
+    this.taskScheduler = new ConcurrentTaskScheduler(this.scheduledExecutorService);
     this.mongoRepoService = mongoRepoService;
     this.scriptFilesService = scriptFilesService;
     this.emailService = emailService;
@@ -73,6 +76,13 @@ public class UpdateRepoService {
       setSchedulerRescheduled(false);
       updateRepos(false, false, null, null, UpdateType.ALL, false, true, true, true);
     }
+  }
+
+  public void restartScheduler() throws InterruptedException {
+    scheduledExecutorService.shutdownNow();
+    Thread.sleep(5000);
+    this.scheduledExecutorService = Executors.newScheduledThreadPool(30);
+    this.taskScheduler = new ConcurrentTaskScheduler(scheduledExecutorService);
   }
 
   public boolean isTaskRunning() {
@@ -168,7 +178,7 @@ public class UpdateRepoService {
 
     AppInitData appInitData = AppInitDataUtils.appInitData();
 
-    if (isGithubResetPullRequired || updateType == UpdateType.ALL) {
+    if (isGithubResetPullRequired) {
       // checkout main branch
       executeUpdateGithubReset(appInitData);
       // pull changes
@@ -189,10 +199,6 @@ public class UpdateRepoService {
       setAllCaches();
     }
 
-    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
-      executeUpdateNpmDependencies(appInitData);
-    }
-
     if (updateType == UpdateType.ALL || updateType == UpdateType.GRADLE_DEPENDENCIES) {
       executeUpdateGradleDependencies(appInitData);
     }
@@ -201,9 +207,15 @@ public class UpdateRepoService {
       executeUpdatePythonDependencies(appInitData);
     }
 
+    if (updateType == UpdateType.ALL || updateType == UpdateType.NPM_DEPENDENCIES) {
+      executeUpdateNpmDependencies(appInitData);
+    }
+
     // wait 5 minutes to complete github PR checks and resume process
     taskScheduler.schedule(
-        () -> updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData, true),
+        () ->
+            updateReposAllDependenciesContinue(
+                isProcessSummaryRequired, updateType, appInitData, true),
         Instant.now().plusSeconds(300));
   }
 
@@ -249,7 +261,8 @@ public class UpdateRepoService {
       // wait 5 minutes to complete github PR checks and resume process
       taskScheduler.schedule(
           () ->
-              updateReposAllDependenciesContinue(isProcessSummaryRequired, updateType, appInitData, false),
+              updateReposAllDependenciesContinue(
+                  isProcessSummaryRequired, updateType, appInitData, false),
           Instant.now().plus(66, ChronoUnit.MINUTES));
     }
   }
